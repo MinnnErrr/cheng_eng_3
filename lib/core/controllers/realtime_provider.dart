@@ -1,0 +1,125 @@
+import 'package:cheng_eng_3/core/controllers/point/customer_point_history_notifier.dart';
+import 'package:cheng_eng_3/core/controllers/product/customer_product_notifier.dart';
+import 'package:cheng_eng_3/core/controllers/product/staff_product_notifier.dart';
+import 'package:cheng_eng_3/core/controllers/reward/customer_reward_notifier.dart';
+import 'package:cheng_eng_3/core/controllers/reward/staff_reward_notifier.dart';
+import 'package:cheng_eng_3/core/controllers/towing/staff_towing_notifier.dart';
+import 'package:cheng_eng_3/core/controllers/towing/customer_towing_notifier.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+
+final towingRealtimeProvider = Provider<void>((ref) {
+  final supabase = Supabase.instance.client;
+
+  final channel = supabase
+      .channel('towing-realtime')
+      .onPostgresChanges(
+        event: PostgresChangeEvent.all,
+        schema: 'public',
+        table: 'tows',
+        callback: (payload) {
+          // staff refresh
+          ref.invalidate(staffTowingProvider);
+
+          //customer refresh
+          final userId = payload.newRecord['userId'];
+          ref.invalidate(customerTowingProvider(userId));
+        },
+      )
+      .subscribe();
+  ref.onDispose(() {
+    supabase.removeChannel(channel);
+  });
+});
+
+final productRealTimeProvider = Provider<void>((ref) {
+  final supabase = Supabase.instance.client;
+
+  final channel = supabase
+      .channel('product-realtime')
+      .onPostgresChanges(
+        event: PostgresChangeEvent.all,
+        schema: 'public',
+        table: 'products',
+        callback: (payload) {
+          // staff refresh
+          ref.invalidate(staffProductProvider);
+
+          //customer refresh
+          ref.invalidate(customerProductProvider);
+        },
+      )
+      .subscribe();
+  ref.onDispose(() {
+    supabase.removeChannel(channel);
+  });
+});
+
+final rewardRealTimeProvider = Provider<void>((ref) {
+  final supabase = Supabase.instance.client;
+
+  final channel = supabase
+      .channel('reward-realtime')
+      .onPostgresChanges(
+        event: PostgresChangeEvent.all,
+        schema: 'public',
+        table: 'rewards',
+        callback: (payload) {
+          // staff refresh
+          ref.invalidate(staffRewardProvider);
+
+          //customer refresh
+          ref.invalidate(customerRewardProvider);
+        },
+      )
+      .subscribe();
+  ref.onDispose(() {
+    supabase.removeChannel(channel);
+  });
+});
+
+final pointHistoryRealTimeProvider = Provider<void>((ref) {
+  final supabase = Supabase.instance.client;
+
+  final channel = supabase
+      .channel('point-history-realtime')
+      .onPostgresChanges(
+        event: PostgresChangeEvent.all,
+        schema: 'public',
+        table: 'point_history',
+        callback: (payload) {
+          // staff refresh
+          ref.invalidate(staffProductProvider);
+
+          //customer refresh
+          final userId = payload.newRecord['userId'];
+          ref.invalidate(pointHistoryProvider(userId));
+        },
+      )
+      .subscribe();
+  ref.onDispose(() {
+    supabase.removeChannel(channel);
+  });
+});
+
+final redeemedRewardRealTimeProvider = Provider<void>((ref) {
+  final supabase = Supabase.instance.client;
+
+  final channel = supabase
+      .channel('redeemed-reward-realtime')
+      .onPostgresChanges(
+        event: PostgresChangeEvent.all,
+        schema: 'public',
+        table: 'redeemed_rewards',
+        callback: (payload) {
+          final userId = payload.newRecord['userId'];
+          ref.invalidate(pointHistoryProvider(userId));
+        },
+      )
+      .subscribe();
+  ref.onDispose(() {
+    supabase.removeChannel(channel);
+  });
+});
+
+
