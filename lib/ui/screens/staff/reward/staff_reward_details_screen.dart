@@ -282,8 +282,12 @@ class _StaffRewardDetailsScreenState
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                Text('Has Expiry Date'),
-                                Text(reward.hasExpiry == true ? 'Yes' : 'No'),
+                                Text('Validity Period'),
+                                Text(
+                                  reward.validityWeeks != null
+                                      ? '${reward.validityWeeks} weeks'
+                                      : '-',
+                                ),
                               ],
                             ),
                             Divider(),

@@ -25,11 +25,12 @@ class _StaffRewardCreateState extends ConsumerState<StaffRewardCreateScreen> {
   final _pointCtrl = TextEditingController();
   final _qtyCtrl = TextEditingController();
   final _availableDateCtrl = TextEditingController();
+  final _validityCtrl = TextEditingController();
 
   bool _limitedPeriod = false;
   DateTime? _availableUntil;
   bool _isActive = true;
-  bool _hasExpiry = false;
+  bool _hasValidity = false;
   final List<File> _photos = [];
 
   final _formKey = GlobalKey<FormState>();
@@ -55,6 +56,7 @@ class _StaffRewardCreateState extends ConsumerState<StaffRewardCreateScreen> {
     _pointCtrl.dispose();
     _qtyCtrl.dispose();
     _availableDateCtrl.dispose();
+    _validityCtrl.dispose();
     super.dispose();
   }
 
@@ -100,6 +102,13 @@ class _StaffRewardCreateState extends ConsumerState<StaffRewardCreateScreen> {
                       setState(() {
                         _limitedPeriod = value;
                       });
+
+                      if (value == false) {
+                        setState(() {
+                          _availableUntil == null;
+                          _availableDateCtrl.text = '';
+                        });
+                      }
                     }
                   },
                   validator: (value) {
@@ -130,6 +139,44 @@ class _StaffRewardCreateState extends ConsumerState<StaffRewardCreateScreen> {
                       },
                       icon: Icon(Icons.calendar_month),
                     ),
+                  ),
+
+                DropdownButtonFormField<bool>(
+                  initialValue: _hasValidity,
+                  decoration: const InputDecoration(
+                    labelText: "Set validity period for the reward?",
+                  ),
+                  items: const [
+                    DropdownMenuItem(value: true, child: Text("Yes")),
+                    DropdownMenuItem(value: false, child: Text("No")),
+                  ],
+                  onChanged: (value) {
+                    if (value != null) {
+                      setState(() {
+                        _hasValidity = value;
+                      });
+
+                      if (value == false) {
+                        setState(() {
+                          _validityCtrl.text = '';
+                        });
+                      }
+                    }
+                  },
+                  validator: (value) {
+                    if (value == null) {
+                      return 'Required';
+                    } else {
+                      return null;
+                    }
+                  },
+                ),
+
+                if (_hasValidity)
+                  textFormField(
+                    controller: _validityCtrl,
+                    label: 'Validity Period (Weeks)',
+                    keyboardType: TextInputType.number,
                   ),
 
                 textFormField(
@@ -190,7 +237,9 @@ class _StaffRewardCreateState extends ConsumerState<StaffRewardCreateScreen> {
                           ? null
                           : _conditionCtrl.text.trim(),
                       availableUntil: _availableUntil,
-                      hasExpiry: _hasExpiry,
+                      validityWeeks: _validityCtrl.text.trim().isEmpty
+                          ? null
+                          : int.parse(_validityCtrl.text.trim()),
                     );
 
                     if (!context.mounted) return;

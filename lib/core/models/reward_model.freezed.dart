@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$Reward {
 
- String get id; DateTime get createdAt; String get code; String get name; String get description; String? get conditions; int get points; int get quantity; DateTime? get availableUntil; bool get hasExpiry; List<String> get photoPaths; bool get status; DateTime? get deletedAt; DateTime? get updatedAt;
+ String get id; DateTime get createdAt; String get code; String get name; String get description; String? get conditions; int get points; int get quantity; DateTime? get availableUntil; int? get validityWeeks; List<String> get photoPaths; bool get status; DateTime? get deletedAt; DateTime? get updatedAt;
 /// Create a copy of Reward
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -28,16 +28,16 @@ $RewardCopyWith<Reward> get copyWith => _$RewardCopyWithImpl<Reward>(this as Rew
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is Reward&&(identical(other.id, id) || other.id == id)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.code, code) || other.code == code)&&(identical(other.name, name) || other.name == name)&&(identical(other.description, description) || other.description == description)&&(identical(other.conditions, conditions) || other.conditions == conditions)&&(identical(other.points, points) || other.points == points)&&(identical(other.quantity, quantity) || other.quantity == quantity)&&(identical(other.availableUntil, availableUntil) || other.availableUntil == availableUntil)&&(identical(other.hasExpiry, hasExpiry) || other.hasExpiry == hasExpiry)&&const DeepCollectionEquality().equals(other.photoPaths, photoPaths)&&(identical(other.status, status) || other.status == status)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is Reward&&(identical(other.id, id) || other.id == id)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.code, code) || other.code == code)&&(identical(other.name, name) || other.name == name)&&(identical(other.description, description) || other.description == description)&&(identical(other.conditions, conditions) || other.conditions == conditions)&&(identical(other.points, points) || other.points == points)&&(identical(other.quantity, quantity) || other.quantity == quantity)&&(identical(other.availableUntil, availableUntil) || other.availableUntil == availableUntil)&&(identical(other.validityWeeks, validityWeeks) || other.validityWeeks == validityWeeks)&&const DeepCollectionEquality().equals(other.photoPaths, photoPaths)&&(identical(other.status, status) || other.status == status)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,createdAt,code,name,description,conditions,points,quantity,availableUntil,hasExpiry,const DeepCollectionEquality().hash(photoPaths),status,deletedAt,updatedAt);
+int get hashCode => Object.hash(runtimeType,id,createdAt,code,name,description,conditions,points,quantity,availableUntil,validityWeeks,const DeepCollectionEquality().hash(photoPaths),status,deletedAt,updatedAt);
 
 @override
 String toString() {
-  return 'Reward(id: $id, createdAt: $createdAt, code: $code, name: $name, description: $description, conditions: $conditions, points: $points, quantity: $quantity, availableUntil: $availableUntil, hasExpiry: $hasExpiry, photoPaths: $photoPaths, status: $status, deletedAt: $deletedAt, updatedAt: $updatedAt)';
+  return 'Reward(id: $id, createdAt: $createdAt, code: $code, name: $name, description: $description, conditions: $conditions, points: $points, quantity: $quantity, availableUntil: $availableUntil, validityWeeks: $validityWeeks, photoPaths: $photoPaths, status: $status, deletedAt: $deletedAt, updatedAt: $updatedAt)';
 }
 
 
@@ -48,7 +48,7 @@ abstract mixin class $RewardCopyWith<$Res>  {
   factory $RewardCopyWith(Reward value, $Res Function(Reward) _then) = _$RewardCopyWithImpl;
 @useResult
 $Res call({
- String id, DateTime createdAt, String code, String name, String description, String? conditions, int points, int quantity, DateTime? availableUntil, bool hasExpiry, List<String> photoPaths, bool status, DateTime? deletedAt, DateTime? updatedAt
+ String id, DateTime createdAt, String code, String name, String description, String? conditions, int points, int quantity, DateTime? availableUntil, int? validityWeeks, List<String> photoPaths, bool status, DateTime? deletedAt, DateTime? updatedAt
 });
 
 
@@ -65,7 +65,7 @@ class _$RewardCopyWithImpl<$Res>
 
 /// Create a copy of Reward
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? createdAt = null,Object? code = null,Object? name = null,Object? description = null,Object? conditions = freezed,Object? points = null,Object? quantity = null,Object? availableUntil = freezed,Object? hasExpiry = null,Object? photoPaths = null,Object? status = null,Object? deletedAt = freezed,Object? updatedAt = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? createdAt = null,Object? code = null,Object? name = null,Object? description = null,Object? conditions = freezed,Object? points = null,Object? quantity = null,Object? availableUntil = freezed,Object? validityWeeks = freezed,Object? photoPaths = null,Object? status = null,Object? deletedAt = freezed,Object? updatedAt = freezed,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
@@ -76,8 +76,8 @@ as String,conditions: freezed == conditions ? _self.conditions : conditions // i
 as String?,points: null == points ? _self.points : points // ignore: cast_nullable_to_non_nullable
 as int,quantity: null == quantity ? _self.quantity : quantity // ignore: cast_nullable_to_non_nullable
 as int,availableUntil: freezed == availableUntil ? _self.availableUntil : availableUntil // ignore: cast_nullable_to_non_nullable
-as DateTime?,hasExpiry: null == hasExpiry ? _self.hasExpiry : hasExpiry // ignore: cast_nullable_to_non_nullable
-as bool,photoPaths: null == photoPaths ? _self.photoPaths : photoPaths // ignore: cast_nullable_to_non_nullable
+as DateTime?,validityWeeks: freezed == validityWeeks ? _self.validityWeeks : validityWeeks // ignore: cast_nullable_to_non_nullable
+as int?,photoPaths: null == photoPaths ? _self.photoPaths : photoPaths // ignore: cast_nullable_to_non_nullable
 as List<String>,status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
 as bool,deletedAt: freezed == deletedAt ? _self.deletedAt : deletedAt // ignore: cast_nullable_to_non_nullable
 as DateTime?,updatedAt: freezed == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
@@ -163,10 +163,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  DateTime createdAt,  String code,  String name,  String description,  String? conditions,  int points,  int quantity,  DateTime? availableUntil,  bool hasExpiry,  List<String> photoPaths,  bool status,  DateTime? deletedAt,  DateTime? updatedAt)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  DateTime createdAt,  String code,  String name,  String description,  String? conditions,  int points,  int quantity,  DateTime? availableUntil,  int? validityWeeks,  List<String> photoPaths,  bool status,  DateTime? deletedAt,  DateTime? updatedAt)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _Reward() when $default != null:
-return $default(_that.id,_that.createdAt,_that.code,_that.name,_that.description,_that.conditions,_that.points,_that.quantity,_that.availableUntil,_that.hasExpiry,_that.photoPaths,_that.status,_that.deletedAt,_that.updatedAt);case _:
+return $default(_that.id,_that.createdAt,_that.code,_that.name,_that.description,_that.conditions,_that.points,_that.quantity,_that.availableUntil,_that.validityWeeks,_that.photoPaths,_that.status,_that.deletedAt,_that.updatedAt);case _:
   return orElse();
 
 }
@@ -184,10 +184,10 @@ return $default(_that.id,_that.createdAt,_that.code,_that.name,_that.description
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  DateTime createdAt,  String code,  String name,  String description,  String? conditions,  int points,  int quantity,  DateTime? availableUntil,  bool hasExpiry,  List<String> photoPaths,  bool status,  DateTime? deletedAt,  DateTime? updatedAt)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  DateTime createdAt,  String code,  String name,  String description,  String? conditions,  int points,  int quantity,  DateTime? availableUntil,  int? validityWeeks,  List<String> photoPaths,  bool status,  DateTime? deletedAt,  DateTime? updatedAt)  $default,) {final _that = this;
 switch (_that) {
 case _Reward():
-return $default(_that.id,_that.createdAt,_that.code,_that.name,_that.description,_that.conditions,_that.points,_that.quantity,_that.availableUntil,_that.hasExpiry,_that.photoPaths,_that.status,_that.deletedAt,_that.updatedAt);}
+return $default(_that.id,_that.createdAt,_that.code,_that.name,_that.description,_that.conditions,_that.points,_that.quantity,_that.availableUntil,_that.validityWeeks,_that.photoPaths,_that.status,_that.deletedAt,_that.updatedAt);}
 }
 /// A variant of `when` that fallback to returning `null`
 ///
@@ -201,10 +201,10 @@ return $default(_that.id,_that.createdAt,_that.code,_that.name,_that.description
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  DateTime createdAt,  String code,  String name,  String description,  String? conditions,  int points,  int quantity,  DateTime? availableUntil,  bool hasExpiry,  List<String> photoPaths,  bool status,  DateTime? deletedAt,  DateTime? updatedAt)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  DateTime createdAt,  String code,  String name,  String description,  String? conditions,  int points,  int quantity,  DateTime? availableUntil,  int? validityWeeks,  List<String> photoPaths,  bool status,  DateTime? deletedAt,  DateTime? updatedAt)?  $default,) {final _that = this;
 switch (_that) {
 case _Reward() when $default != null:
-return $default(_that.id,_that.createdAt,_that.code,_that.name,_that.description,_that.conditions,_that.points,_that.quantity,_that.availableUntil,_that.hasExpiry,_that.photoPaths,_that.status,_that.deletedAt,_that.updatedAt);case _:
+return $default(_that.id,_that.createdAt,_that.code,_that.name,_that.description,_that.conditions,_that.points,_that.quantity,_that.availableUntil,_that.validityWeeks,_that.photoPaths,_that.status,_that.deletedAt,_that.updatedAt);case _:
   return null;
 
 }
@@ -216,7 +216,7 @@ return $default(_that.id,_that.createdAt,_that.code,_that.name,_that.description
 @JsonSerializable()
 
 class _Reward implements Reward {
-  const _Reward({required this.id, required this.createdAt, required this.code, required this.name, required this.description, this.conditions, required this.points, required this.quantity, this.availableUntil, required this.hasExpiry, required final  List<String> photoPaths, required this.status, this.deletedAt, this.updatedAt}): _photoPaths = photoPaths;
+  const _Reward({required this.id, required this.createdAt, required this.code, required this.name, required this.description, required this.conditions, required this.points, required this.quantity, required this.availableUntil, required this.validityWeeks, required final  List<String> photoPaths, required this.status, this.deletedAt, this.updatedAt}): _photoPaths = photoPaths;
   factory _Reward.fromJson(Map<String, dynamic> json) => _$RewardFromJson(json);
 
 @override final  String id;
@@ -228,7 +228,7 @@ class _Reward implements Reward {
 @override final  int points;
 @override final  int quantity;
 @override final  DateTime? availableUntil;
-@override final  bool hasExpiry;
+@override final  int? validityWeeks;
  final  List<String> _photoPaths;
 @override List<String> get photoPaths {
   if (_photoPaths is EqualUnmodifiableListView) return _photoPaths;
@@ -253,16 +253,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Reward&&(identical(other.id, id) || other.id == id)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.code, code) || other.code == code)&&(identical(other.name, name) || other.name == name)&&(identical(other.description, description) || other.description == description)&&(identical(other.conditions, conditions) || other.conditions == conditions)&&(identical(other.points, points) || other.points == points)&&(identical(other.quantity, quantity) || other.quantity == quantity)&&(identical(other.availableUntil, availableUntil) || other.availableUntil == availableUntil)&&(identical(other.hasExpiry, hasExpiry) || other.hasExpiry == hasExpiry)&&const DeepCollectionEquality().equals(other._photoPaths, _photoPaths)&&(identical(other.status, status) || other.status == status)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Reward&&(identical(other.id, id) || other.id == id)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.code, code) || other.code == code)&&(identical(other.name, name) || other.name == name)&&(identical(other.description, description) || other.description == description)&&(identical(other.conditions, conditions) || other.conditions == conditions)&&(identical(other.points, points) || other.points == points)&&(identical(other.quantity, quantity) || other.quantity == quantity)&&(identical(other.availableUntil, availableUntil) || other.availableUntil == availableUntil)&&(identical(other.validityWeeks, validityWeeks) || other.validityWeeks == validityWeeks)&&const DeepCollectionEquality().equals(other._photoPaths, _photoPaths)&&(identical(other.status, status) || other.status == status)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,createdAt,code,name,description,conditions,points,quantity,availableUntil,hasExpiry,const DeepCollectionEquality().hash(_photoPaths),status,deletedAt,updatedAt);
+int get hashCode => Object.hash(runtimeType,id,createdAt,code,name,description,conditions,points,quantity,availableUntil,validityWeeks,const DeepCollectionEquality().hash(_photoPaths),status,deletedAt,updatedAt);
 
 @override
 String toString() {
-  return 'Reward(id: $id, createdAt: $createdAt, code: $code, name: $name, description: $description, conditions: $conditions, points: $points, quantity: $quantity, availableUntil: $availableUntil, hasExpiry: $hasExpiry, photoPaths: $photoPaths, status: $status, deletedAt: $deletedAt, updatedAt: $updatedAt)';
+  return 'Reward(id: $id, createdAt: $createdAt, code: $code, name: $name, description: $description, conditions: $conditions, points: $points, quantity: $quantity, availableUntil: $availableUntil, validityWeeks: $validityWeeks, photoPaths: $photoPaths, status: $status, deletedAt: $deletedAt, updatedAt: $updatedAt)';
 }
 
 
@@ -273,7 +273,7 @@ abstract mixin class _$RewardCopyWith<$Res> implements $RewardCopyWith<$Res> {
   factory _$RewardCopyWith(_Reward value, $Res Function(_Reward) _then) = __$RewardCopyWithImpl;
 @override @useResult
 $Res call({
- String id, DateTime createdAt, String code, String name, String description, String? conditions, int points, int quantity, DateTime? availableUntil, bool hasExpiry, List<String> photoPaths, bool status, DateTime? deletedAt, DateTime? updatedAt
+ String id, DateTime createdAt, String code, String name, String description, String? conditions, int points, int quantity, DateTime? availableUntil, int? validityWeeks, List<String> photoPaths, bool status, DateTime? deletedAt, DateTime? updatedAt
 });
 
 
@@ -290,7 +290,7 @@ class __$RewardCopyWithImpl<$Res>
 
 /// Create a copy of Reward
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? createdAt = null,Object? code = null,Object? name = null,Object? description = null,Object? conditions = freezed,Object? points = null,Object? quantity = null,Object? availableUntil = freezed,Object? hasExpiry = null,Object? photoPaths = null,Object? status = null,Object? deletedAt = freezed,Object? updatedAt = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? createdAt = null,Object? code = null,Object? name = null,Object? description = null,Object? conditions = freezed,Object? points = null,Object? quantity = null,Object? availableUntil = freezed,Object? validityWeeks = freezed,Object? photoPaths = null,Object? status = null,Object? deletedAt = freezed,Object? updatedAt = freezed,}) {
   return _then(_Reward(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
@@ -301,8 +301,8 @@ as String,conditions: freezed == conditions ? _self.conditions : conditions // i
 as String?,points: null == points ? _self.points : points // ignore: cast_nullable_to_non_nullable
 as int,quantity: null == quantity ? _self.quantity : quantity // ignore: cast_nullable_to_non_nullable
 as int,availableUntil: freezed == availableUntil ? _self.availableUntil : availableUntil // ignore: cast_nullable_to_non_nullable
-as DateTime?,hasExpiry: null == hasExpiry ? _self.hasExpiry : hasExpiry // ignore: cast_nullable_to_non_nullable
-as bool,photoPaths: null == photoPaths ? _self._photoPaths : photoPaths // ignore: cast_nullable_to_non_nullable
+as DateTime?,validityWeeks: freezed == validityWeeks ? _self.validityWeeks : validityWeeks // ignore: cast_nullable_to_non_nullable
+as int?,photoPaths: null == photoPaths ? _self._photoPaths : photoPaths // ignore: cast_nullable_to_non_nullable
 as List<String>,status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
 as bool,deletedAt: freezed == deletedAt ? _self.deletedAt : deletedAt // ignore: cast_nullable_to_non_nullable
 as DateTime?,updatedAt: freezed == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable

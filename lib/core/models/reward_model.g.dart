@@ -18,7 +18,7 @@ _Reward _$RewardFromJson(Map<String, dynamic> json) => _Reward(
   availableUntil: json['availableUntil'] == null
       ? null
       : DateTime.parse(json['availableUntil'] as String),
-  hasExpiry: json['hasExpiry'] as bool,
+  validityWeeks: (json['validityWeeks'] as num?)?.toInt(),
   photoPaths: (json['photoPaths'] as List<dynamic>)
       .map((e) => e as String)
       .toList(),
@@ -41,7 +41,7 @@ Map<String, dynamic> _$RewardToJson(_Reward instance) => <String, dynamic>{
   'points': instance.points,
   'quantity': instance.quantity,
   'availableUntil': instance.availableUntil?.toIso8601String(),
-  'hasExpiry': instance.hasExpiry,
+  'validityWeeks': instance.validityWeeks,
   'photoPaths': instance.photoPaths,
   'status': instance.status,
   'deletedAt': instance.deletedAt?.toIso8601String(),

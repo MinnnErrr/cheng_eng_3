@@ -29,10 +29,11 @@ class _StaffRewardUpdateState extends ConsumerState<StaffRewardUpdateScreen> {
   final _pointCtrl = TextEditingController();
   final _qtyCtrl = TextEditingController();
   final _availableDateCtrl = TextEditingController();
+  final _validityCtrl = TextEditingController();
 
-  bool _limitedPeriod = false;
-  DateTime? _availableUntil;
-  bool _hasExpiry = false;
+  late bool _limitedPeriod;
+  late DateTime? _availableUntil;
+  late bool _hasValidity;
   final List<dynamic> _photos = [];
 
   final _formKey = GlobalKey<FormState>();
@@ -50,11 +51,15 @@ class _StaffRewardUpdateState extends ConsumerState<StaffRewardUpdateScreen> {
     }
     _pointCtrl.text = reward.points.toString();
     _qtyCtrl.text = reward.quantity.toString();
-    _availableUntil = reward.availableUntil;
-    if (_availableUntil != null) {
+    if (reward.availableUntil != null) {
+      _limitedPeriod = true;
+      _availableUntil = reward.availableUntil;
       _availableDateCtrl.text = _dateFormatter.format(_availableUntil!);
     }
-    _hasExpiry = _hasExpiry;
+    if (reward.validityWeeks != null) {
+      _hasValidity = true;
+      _validityCtrl.text = reward.validityWeeks.toString();
+    }
     if (reward.photoPaths.isNotEmpty) {
       for (final path in reward.photoPaths) {
         final url = imageService.retrieveImageUrl(path);
@@ -144,6 +149,13 @@ class _StaffRewardUpdateState extends ConsumerState<StaffRewardUpdateScreen> {
                           setState(() {
                             _limitedPeriod = value;
                           });
+
+                          if (value == false) {
+                            setState(() {
+                              _availableUntil == null;
+                              _availableDateCtrl.text = '';
+                            });
+                          }
                         }
                       },
                       validator: (value) {
@@ -180,9 +192,9 @@ class _StaffRewardUpdateState extends ConsumerState<StaffRewardUpdateScreen> {
                       ),
 
                     DropdownButtonFormField<bool>(
-                      initialValue: _hasExpiry,
+                      initialValue: _hasValidity,
                       decoration: const InputDecoration(
-                        labelText: "Display reward for limited period?",
+                        labelText: "Set validity period for the reward?",
                       ),
                       items: const [
                         DropdownMenuItem(value: true, child: Text("Yes")),
@@ -191,8 +203,14 @@ class _StaffRewardUpdateState extends ConsumerState<StaffRewardUpdateScreen> {
                       onChanged: (value) {
                         if (value != null) {
                           setState(() {
-                            _hasExpiry = value;
+                            _hasValidity = value;
                           });
+
+                          if (value == false) {
+                            setState(() {
+                              _validityCtrl.text = '';
+                            });
+                          }
                         }
                       },
                       validator: (value) {
@@ -203,6 +221,13 @@ class _StaffRewardUpdateState extends ConsumerState<StaffRewardUpdateScreen> {
                         }
                       },
                     ),
+
+                    if (_hasValidity)
+                      textFormField(
+                        controller: _validityCtrl,
+                        label: 'Validity Period (Weeks)',
+                        keyboardType: TextInputType.number,
+                      ),
 
                     textFormField(
                       controller: _descCtrl,
@@ -237,7 +262,9 @@ class _StaffRewardUpdateState extends ConsumerState<StaffRewardUpdateScreen> {
                               ? null
                               : _conditionCtrl.text.trim(),
                           availableUntil: _availableUntil,
-                          hasExpiry: _hasExpiry,
+                          validityWeeks: _validityCtrl.text.trim().isEmpty
+                              ? null
+                              : int.parse(_validityCtrl.text.trim()),
                         );
 
                         if (!context.mounted) return;

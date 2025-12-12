@@ -40,10 +40,10 @@ class RedeemedRewardNotifier extends _$RedeemedRewardNotifier {
     final now = DateTime.now();
 
     DateTime? expiryDate;
-    if (reward.hasExpiry) {
+    if (reward.validityWeeks != null) {
       expiryDate = DateTime(
-        now.year + 1,
-        now.month,
+        now.year,
+        now.month + reward.validityWeeks!,
         now.day,
         now.hour,
         now.minute,

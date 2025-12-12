@@ -32,7 +32,7 @@ class StaffRewardNotifier extends _$StaffRewardNotifier {
     required List<File> photos,
     required String? conditions,
     required DateTime? availableUntil,
-    required bool hasExpiry
+    required int? validityWeeks
   }) async {
     final rewardId = Uuid().v4();
     List<String> photoPaths = [];
@@ -66,7 +66,7 @@ class StaffRewardNotifier extends _$StaffRewardNotifier {
       status: status,
       conditions: conditions,
       availableUntil: availableUntil,
-      hasExpiry: hasExpiry
+      validityWeeks: validityWeeks
     );
 
     try {
@@ -87,7 +87,7 @@ class StaffRewardNotifier extends _$StaffRewardNotifier {
     required List<dynamic> photos,
     required String? conditions,
     required DateTime? availableUntil,
-    required bool hasExpiry
+    required int? validityWeeks
   }) async {
     final previous = state.value ?? [];
     final currentReward = previous.firstWhere(
@@ -130,7 +130,7 @@ class StaffRewardNotifier extends _$StaffRewardNotifier {
       quantity: quantity,
       conditions: conditions,
       availableUntil: availableUntil,
-      hasExpiry: hasExpiry,
+      validityWeeks: validityWeeks,
       photoPaths: newPaths,
       updatedAt: DateTime.now(),
     );
