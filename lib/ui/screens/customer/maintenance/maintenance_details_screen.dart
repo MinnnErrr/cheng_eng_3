@@ -1,5 +1,5 @@
 import 'package:cheng_eng_3/core/controllers/maintenance/maintenance_notifier.dart';
-import 'package:cheng_eng_3/core/controllers/vehicle/vehicle_notifier.dart';
+import 'package:cheng_eng_3/core/controllers/vehicle/customer_vehicle_notifier.dart';
 import 'package:cheng_eng_3/core/models/maintenance_model.dart';
 import 'package:cheng_eng_3/ui/screens/customer/maintenance/maintenance_update_screen.dart';
 import 'package:cheng_eng_3/utils/status_colour.dart';
@@ -42,7 +42,7 @@ class MaintenanceDetailsScreen extends ConsumerWidget {
     }
 
     Widget vehicleDetails(String vehicleId) {
-      final vehicleAsync = ref.watch(vehicleByIdProvider(vehicleId));
+      final vehicleAsync = ref.watch(customerVehicleByIdProvider(vehicleId));
 
       return vehicleAsync.when(
         data: (vehicle) {

@@ -86,7 +86,7 @@ class RedeemedRewardNotifier extends _$RedeemedRewardNotifier {
     required String redeemedId,
   }) async {
     final redeemed = await ref.watch(
-      redeemedRewardByIdProvider((userId, redeemedId)).future,
+      redeemedRewardByIdProvider((redeemedId: redeemedId, userId: userId)).future,
     );
 
     if (redeemed.isClaimed == true) {
@@ -107,17 +107,14 @@ class RedeemedRewardNotifier extends _$RedeemedRewardNotifier {
 }
 
 final redeemedRewardByIdProvider =
-    FutureProvider.family<RedeemedReward, (String userId, String redeemedId)>(
-      (ref, args) async {
-        final userId = args.$1;
-        final redeemedId = args.$2;
+    FutureProvider.family<RedeemedReward, ({String userId, String redeemedId})>(
+      (ref, params) async {
+        final list = await ref.watch(
+          redeemedRewardProvider(params.userId).future,
+        );
 
-        // Wait for parent async provider to complete
-        final list = await ref.watch(redeemedRewardProvider(userId).future);
-
-        // Find the reward
         return list.firstWhere(
-          (r) => r.id == redeemedId,
+          (r) => r.id == params.redeemedId,
           orElse: () => throw Exception('Reward not found'),
         );
       },

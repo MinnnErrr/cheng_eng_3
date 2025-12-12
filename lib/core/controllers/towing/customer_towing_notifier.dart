@@ -1,7 +1,7 @@
 import 'dart:io';
 
 import 'package:cheng_eng_3/core/controllers/auth/auth_notifier.dart';
-import 'package:cheng_eng_3/core/controllers/vehicle/vehicle_notifier.dart';
+import 'package:cheng_eng_3/core/controllers/vehicle/customer_vehicle_notifier.dart';
 import 'package:cheng_eng_3/core/models/towing_model.dart';
 import 'package:cheng_eng_3/core/services/image_service.dart';
 import 'package:cheng_eng_3/core/services/towing_service.dart';
@@ -55,7 +55,7 @@ class CustomerTowingNotifier extends _$CustomerTowingNotifier {
       }
     }
 
-    final vehicle = ref.read(vehicleByIdProvider(vehicleId)).value;
+    final vehicle = ref.read(customerVehicleByIdProvider(vehicleId)).value;
 
     if (vehicle == null) return false;
 
@@ -103,21 +103,16 @@ class CustomerTowingNotifier extends _$CustomerTowingNotifier {
   }
 }
 
-final customerTowingByIdProvider =
-    Provider.family<AsyncValue<Towing>, ({String userId, String towingId})>(
-      (ref, params) {
-        final towingList = ref.watch(customerTowingProvider(params.userId));
+final customerTowingByIdProvider = FutureProvider.family<Towing, ({String userId, String towingId})>(
+  (ref, params) async {
+    final towingList = await ref.watch(customerTowingProvider(params.userId).future);
 
-        return towingList.when(
-          data: (list) {
-            final towing = list.firstWhere(
-              (t) => t.id == params.towingId,
-              orElse: () => throw Exception('Towing not found'),
-            );
-            return AsyncValue.data(towing);
-          },
-          loading: () => const AsyncValue.loading(),
-          error: (err, st) => AsyncValue.error(err, st),
-        );
-      },
+    final towing = towingList.firstWhere(
+      (t) => t.id == params.towingId,
+      orElse: () => throw Exception('Towing not found'),
     );
+
+    return towing;
+  },
+);
+

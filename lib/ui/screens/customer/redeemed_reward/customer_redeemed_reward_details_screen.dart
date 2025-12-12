@@ -44,7 +44,7 @@ class _CustomerRedeemedRewardDetailsScreenState
     }
 
     final redeemed = ref.watch(
-      redeemedRewardByIdProvider((user!.id, widget.redeemedId)),
+      redeemedRewardByIdProvider((userId: user!.id, redeemedId: widget.redeemedId)),
     );
 
     return Scaffold(

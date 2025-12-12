@@ -1,4 +1,4 @@
-import 'package:cheng_eng_3/core/controllers/vehicle/vehicle_notifier.dart';
+import 'package:cheng_eng_3/core/controllers/vehicle/customer_vehicle_notifier.dart';
 import 'package:cheng_eng_3/ui/screens/customer/vehicle/vehicle_details_screen.dart';
 import 'package:cheng_eng_3/ui/screens/customer/vehicle/vehicle_update_screen.dart';
 import 'package:cheng_eng_3/ui/widgets/snackbar.dart';
@@ -11,8 +11,8 @@ class VehicleScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final vehicleListState = ref.watch(vehicleProvider);
-    final vehicleListNotifier = ref.read(vehicleProvider.notifier);
+    final vehicleListState = ref.watch(customerVehicleProvider);
+    final vehicleListNotifier = ref.read(customerVehicleProvider.notifier);
 
     return Scaffold(
       appBar: AppBar(

@@ -80,7 +80,7 @@ class _StaffClaimRewardScreenState
 
   Widget _details(String redeemedId, String userId) {
     final redeemed = ref.watch(
-      redeemedRewardByIdProvider((userId, redeemedId)),
+      redeemedRewardByIdProvider((userId: userId, redeemedId: redeemedId)),
     );
     final profile = ref.watch(userProfileByUserIdProvider(userId));
 

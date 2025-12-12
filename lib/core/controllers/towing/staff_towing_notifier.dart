@@ -31,24 +31,17 @@ class StaffTowingNotifier extends _$StaffTowingNotifier {
   }
 }
 
-final staffTowingByIdProvider =
-    Provider.family<AsyncValue<Towing>, String>((
-      ref,
-      towingId,
-    ) {
-      final towingList = ref.watch(staffTowingProvider);
+final staffTowingByIdProvider = FutureProvider.family<Towing, String>(
+  (ref, towingId) async {
+    final towingList = await ref.watch(staffTowingProvider.future);
 
-      return towingList.when(
-        data: (list) {
-          final towing = list.firstWhere(
-            (t) => t.id == towingId,
-            orElse: () => throw Exception('Towing not found'),
-          );
-          return AsyncValue.data(towing);
-        },
-        loading: () => const AsyncValue.loading(),
-        error: (err, st) => AsyncValue.error(err, st),
-      );
-    });
+    final towing = towingList.firstWhere(
+      (t) => t.id == towingId,
+      orElse: () => throw Exception('Towing not found'),
+    );
+
+    return towing;
+  },
+);
 
 

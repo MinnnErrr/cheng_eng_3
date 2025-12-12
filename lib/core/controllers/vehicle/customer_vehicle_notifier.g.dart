@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'vehicle_notifier.dart';
+part of 'customer_vehicle_notifier.dart';
 
 // **************************************************************************
 // RiverpodGenerator
@@ -9,33 +9,34 @@ part of 'vehicle_notifier.dart';
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // ignore_for_file: type=lint, type=warning
 
-@ProviderFor(VehicleNotifier)
-const vehicleProvider = VehicleNotifierProvider._();
+@ProviderFor(CustomerVehicleNotifier)
+const customerVehicleProvider = CustomerVehicleNotifierProvider._();
 
-final class VehicleNotifierProvider
-    extends $AsyncNotifierProvider<VehicleNotifier, VehicleList> {
-  const VehicleNotifierProvider._()
+final class CustomerVehicleNotifierProvider
+    extends $AsyncNotifierProvider<CustomerVehicleNotifier, VehicleList> {
+  const CustomerVehicleNotifierProvider._()
     : super(
         from: null,
         argument: null,
         retry: null,
-        name: r'vehicleProvider',
+        name: r'customerVehicleProvider',
         isAutoDispose: true,
         dependencies: null,
         $allTransitiveDependencies: null,
       );
 
   @override
-  String debugGetCreateSourceHash() => _$vehicleNotifierHash();
+  String debugGetCreateSourceHash() => _$customerVehicleNotifierHash();
 
   @$internal
   @override
-  VehicleNotifier create() => VehicleNotifier();
+  CustomerVehicleNotifier create() => CustomerVehicleNotifier();
 }
 
-String _$vehicleNotifierHash() => r'764bb213c1134c5134e61e97dff0ce135236c2d9';
+String _$customerVehicleNotifierHash() =>
+    r'033767bca5046f4f1c9a7d04a9abd659087579e3';
 
-abstract class _$VehicleNotifier extends $AsyncNotifier<VehicleList> {
+abstract class _$CustomerVehicleNotifier extends $AsyncNotifier<VehicleList> {
   FutureOr<VehicleList> build();
   @$mustCallSuper
   @override

@@ -1,5 +1,5 @@
 import 'package:cheng_eng_3/core/controllers/maintenance/maintenance_notifier.dart';
-import 'package:cheng_eng_3/core/controllers/vehicle/vehicle_notifier.dart';
+import 'package:cheng_eng_3/core/controllers/vehicle/customer_vehicle_notifier.dart';
 import 'package:cheng_eng_3/core/models/vehicle_model.dart';
 import 'package:cheng_eng_3/core/services/image_service.dart';
 import 'package:cheng_eng_3/ui/screens/customer/cart/cart_screen.dart';
@@ -20,7 +20,7 @@ class VehicleDetailsScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final vehicleState = ref.watch(vehicleByIdProvider(vehicleId));
+    final vehicleState = ref.watch(customerVehicleByIdProvider(vehicleId));
     final imageService = ref.read(imageServiceProvider);
     final screenSize = MediaQuery.of(context).size;
     final maintenanceList = ref.watch(

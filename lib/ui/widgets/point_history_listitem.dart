@@ -17,7 +17,7 @@ class PointHistoryListitem extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final dateFormatter = DateFormat('dd/MM/yyyy').add_jm();
-    final userProfile = ref.watch(userProfileByIdProvider(record.userId));
+    final userProfile = ref.watch(userProfileByUserIdProvider(record.userId));
 
     return Row(
       children: [

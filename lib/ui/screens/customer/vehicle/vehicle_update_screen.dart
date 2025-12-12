@@ -1,5 +1,5 @@
 import 'dart:io';
-import 'package:cheng_eng_3/core/controllers/vehicle/vehicle_notifier.dart';
+import 'package:cheng_eng_3/core/controllers/vehicle/customer_vehicle_notifier.dart';
 import 'package:cheng_eng_3/core/models/vehicle_model.dart';
 import 'package:cheng_eng_3/core/services/image_service.dart';
 import 'package:cheng_eng_3/ui/widgets/snackbar.dart';
@@ -70,12 +70,12 @@ class _VehicleUpdateScreenState extends ConsumerState<VehicleUpdateScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final vehicleNotifier = ref.read(vehicleProvider.notifier);
-    bool isLoading = ref.watch(vehicleProvider).isLoading;
+    final vehicleNotifier = ref.read(customerVehicleProvider.notifier);
+    bool isLoading = ref.watch(customerVehicleProvider).isLoading;
 
     final vehicle = widget.vehicleId == null
         ? null
-        : ref.watch(vehicleByIdProvider(widget.vehicleId!)).value;
+        : ref.watch(customerVehicleByIdProvider(widget.vehicleId!)).value;
 
     if (vehicle != null && _initialized != true) {
       _initialized = true;

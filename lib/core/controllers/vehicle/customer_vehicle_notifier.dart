@@ -8,10 +8,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:uuid/uuid.dart';
 
-part 'vehicle_notifier.g.dart';
+part 'customer_vehicle_notifier.g.dart';
 
 @riverpod
-class VehicleNotifier extends _$VehicleNotifier {
+class CustomerVehicleNotifier extends _$CustomerVehicleNotifier {
   VehicleService get _vehicleService => ref.read(vehicleServiceProvider);
   ImageService get _imageService => ref.read(imageServiceProvider);
 
@@ -158,20 +158,12 @@ class VehicleNotifier extends _$VehicleNotifier {
   }
 }
 
-final vehicleByIdProvider = Provider.family<AsyncValue<Vehicle>, String>((
-  ref,
-  vehicleId,
-) {
-  final vehicleState = ref.watch(vehicleProvider);
+final customerVehicleByIdProvider =
+    FutureProvider.family<Vehicle, String>((ref, vehicleId) async {
+  final vehicles = await ref.watch(customerVehicleProvider.future);
 
-  return vehicleState.when(
-    data: (list) {
-      final vehicle = list.vehicles.firstWhere(
-        (v) => v.id == vehicleId,
-      );
-      return AsyncValue.data(vehicle);
-    },
-    loading: () => const AsyncValue.loading(),
-    error: (err, st) => AsyncValue.error(err, st),
+  return vehicles.vehicles.firstWhere(
+    (v) => v.id == vehicleId,
+    orElse: () => throw Exception("Maintenance not found"),
   );
 });
