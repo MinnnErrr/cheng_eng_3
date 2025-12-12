@@ -48,14 +48,14 @@ class RewardService {
   Future<void> updateQuantity(int quantity, String rewardId) async {
     await supabase
         .from('rewards')
-        .update({'quantity': quantity})
+        .update({'quantity': quantity, 'updatedAt': DateTime.now()})
         .eq('id', rewardId);
   }
 
   Future<void> updateStatus(bool isActive, String rewardId) async {
     await supabase
         .from('rewards')
-        .update({'status': isActive})
+        .update({'status': isActive, 'updatedAt': DateTime.now()})
         .eq('id', rewardId);
   }
 

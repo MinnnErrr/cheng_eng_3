@@ -40,7 +40,7 @@ class PointHistoryService {
   Future<void> updateType(PointType type, String recordId) async {
     await supabase
         .from('point_history')
-        .update({'type': type})
+        .update({'type': type, 'updatedAt': DateTime.now()})
         .eq('id', recordId);
   }
 }

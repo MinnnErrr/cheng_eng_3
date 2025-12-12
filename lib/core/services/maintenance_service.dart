@@ -77,7 +77,7 @@ class MaintenanceService {
   Future<Maintenance> updateStatus(String status, String maintenanceId) async {
     final data = await supabase
         .from('maintenances')
-        .update({'status': status})
+        .update({'status': status, 'updatedAt': DateTime.now()})
         .eq('id', maintenanceId)
         .select()
         .single();

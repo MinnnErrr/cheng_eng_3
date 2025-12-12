@@ -39,7 +39,7 @@ class RedeemedRewardService {
   Future<void> updateStatus(bool isClaimed, String id) async {
     await supabase
         .from('redeemed_rewards')
-        .update({'isClaimed': isClaimed})
+        .update({'isClaimed': isClaimed, 'updatedAt': DateTime.now()})
         .eq('id', id);
   }
 }

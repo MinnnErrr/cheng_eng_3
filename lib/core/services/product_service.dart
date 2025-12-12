@@ -47,14 +47,14 @@ class ProductService {
   Future<void> updateQuantity(int quantity, String productId) async {
     await supabase
         .from('products')
-        .update({'quantity': quantity})
+        .update({'quantity': quantity, 'updatedAt': DateTime.now()})
         .eq('id', productId);
   }
 
   Future<void> updateStatus(bool isActive, String productId) async {
     await supabase
         .from('products')
-        .update({'status': isActive})
+        .update({'status': isActive, 'updatedAt': DateTime.now()})
         .eq('id', productId);
   }
 
