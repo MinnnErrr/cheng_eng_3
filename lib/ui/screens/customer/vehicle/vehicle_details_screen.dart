@@ -1,10 +1,11 @@
+import 'package:cheng_eng_3/core/controllers/maintenance/maintenance_by_vehicle_provider.dart';
 import 'package:cheng_eng_3/core/controllers/maintenance/maintenance_notifier.dart';
-import 'package:cheng_eng_3/core/controllers/vehicle/customer_vehicle_notifier.dart';
+import 'package:cheng_eng_3/core/controllers/vehicle/customer_vehicle_by_id_provider.dart';
 import 'package:cheng_eng_3/core/models/vehicle_model.dart';
 import 'package:cheng_eng_3/core/services/image_service.dart';
 import 'package:cheng_eng_3/ui/screens/customer/cart/cart_screen.dart';
+import 'package:cheng_eng_3/ui/screens/customer/maintenance/maintenance_create_screen.dart';
 import 'package:cheng_eng_3/ui/screens/customer/maintenance/maintenance_details_screen.dart';
-import 'package:cheng_eng_3/ui/screens/customer/maintenance/maintenance_update_screen.dart';
 import 'package:cheng_eng_3/ui/screens/customer/vehicle/vehicle_update_screen.dart';
 import 'package:cheng_eng_3/ui/widgets/cart_icon.dart';
 import 'package:cheng_eng_3/ui/widgets/imagebuilder.dart';
@@ -75,7 +76,7 @@ class VehicleDetailsScreen extends ConsumerWidget {
                         onPressed: () => Navigator.of(context).push(
                           MaterialPageRoute(
                             builder: (context) =>
-                                MaintenanceUpdateScreen(vehicleId: vehicle.id),
+                                MaintenanceCreateScreen(vehicleId: vehicle.id),
                           ),
                         ),
                         label: Text('Add'),
@@ -209,7 +210,7 @@ class VehicleDetailsScreen extends ConsumerWidget {
                         onPressed: () => Navigator.of(context).push(
                           MaterialPageRoute(
                             builder: (_) =>
-                                VehicleUpdateScreen(vehicleId: vehicle.id),
+                                VehicleUpdateScreen(vehicle: vehicle),
                           ),
                         ),
                         icon: Icon(Icons.edit),

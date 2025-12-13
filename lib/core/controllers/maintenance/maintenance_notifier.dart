@@ -1,7 +1,6 @@
 import 'package:cheng_eng_3/core/controllers/auth/auth_notifier.dart';
 import 'package:cheng_eng_3/core/models/maintenance_model.dart';
 import 'package:cheng_eng_3/core/services/maintenance_service.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:uuid/uuid.dart';
 
@@ -155,73 +154,3 @@ class MaintenanceNotifier extends _$MaintenanceNotifier {
     }
   }
 }
-
-final maintenanceByVehicleProvider =
-    FutureProvider.family<MaintenanceList, String>((ref, vehicleId) async {
-  final list = await ref.watch(maintenanceProvider.future);
-
-  final maintenances = list.maintenances
-      .where((m) => m.vehicleId == vehicleId)
-      .toList();
-
-  return MaintenanceList(maintenances: maintenances);
-});
-
-
-final maintenanceByIdProvider =
-    FutureProvider.family<Maintenance, String>((ref, maintenanceId) async {
-  final maintenances = await ref.watch(maintenanceProvider.future);
-
-  return maintenances.maintenances.firstWhere(
-    (m) => m.id == maintenanceId,
-    orElse: () => throw Exception("Maintenance not found"),
-  );
-});
-
-
-final maintenanceCountDaysProvider =
-    FutureProvider.family<int, String>((ref, maintenanceId) async {
-  final maintenanceList = await ref.watch(maintenanceProvider.future);
-
-  final maintenance = maintenanceList.maintenances.firstWhere(
-    (m) => m.id == maintenanceId,
-    orElse: () => throw Exception('Maintenance not found'),
-  );
-
-  return maintenance.nextServDate.difference(DateTime.now()).inDays;
-});
-
-
-final maintenanceByNearestDateProvider =
-    FutureProvider<MaintenanceList>((ref) async {
-  final maintenanceList = await ref.watch(maintenanceProvider.future);
-
-  if (maintenanceList.maintenances.isEmpty) {
-    return MaintenanceList(maintenances: []);
-  }
-
-  final now = DateTime.now();
-
-  final upcoming = maintenanceList.maintenances
-      .where((m) =>
-          !m.nextServDate.isBefore(now) &&
-          m.status.toLowerCase() == 'incomplete')
-      .toList();
-
-  if (upcoming.isEmpty) return MaintenanceList(maintenances: []);
-
-  // Sort by nearest date
-  upcoming.sort((a, b) => a.nextServDate.compareTo(b.nextServDate));
-
-  final nearestDate = upcoming.first.nextServDate;
-
-  // Select only maintenance tasks with the same nearest date
-  final filtered = upcoming.where((m) {
-    return m.nextServDate.year == nearestDate.year &&
-        m.nextServDate.month == nearestDate.month &&
-        m.nextServDate.day == nearestDate.day;
-  }).toList();
-
-  return MaintenanceList(maintenances: filtered);
-});
-

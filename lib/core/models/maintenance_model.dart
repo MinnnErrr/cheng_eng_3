@@ -25,7 +25,8 @@ sealed class Maintenance with _$Maintenance {
     required double nextServDistance,
     required String status,
     DateTime? deletedAt,
-    required String vehicleId
+    required String vehicleId,
+    DateTime? updatedAt
   }) = _Maintenance;
 
   factory Maintenance.fromJson(Map<String, dynamic> json) =>

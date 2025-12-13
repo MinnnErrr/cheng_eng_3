@@ -6,8 +6,9 @@ import 'package:cheng_eng_3/core/controllers/product/customer_product_notifier.d
 import 'package:cheng_eng_3/core/controllers/product/staff_product_notifier.dart';
 import 'package:cheng_eng_3/core/controllers/reward/customer_reward_notifier.dart';
 import 'package:cheng_eng_3/core/controllers/reward/staff_reward_notifier.dart';
-import 'package:cheng_eng_3/core/controllers/towing/staff_towing_notifier.dart';
-import 'package:cheng_eng_3/core/controllers/towing/customer_towing_notifier.dart';
+import 'package:cheng_eng_3/core/controllers/towing/staff_towings_notifier.dart';
+import 'package:cheng_eng_3/core/controllers/towing/customer_towings_notifier.dart';
+import 'package:cheng_eng_3/core/controllers/towing/towing_notifier.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -21,12 +22,17 @@ final towingRealtimeProvider = Provider<void>((ref) {
         schema: 'public',
         table: 'tows',
         callback: (payload) {
+          final userId = payload.newRecord['userId'];
+          final towingId = payload.newRecord['id'];
+
           // staff refresh
-          ref.invalidate(staffTowingProvider);
+          ref.invalidate(staffTowingsProvider);
 
           //customer refresh
-          final userId = payload.newRecord['userId'];
-          ref.invalidate(customerTowingProvider(userId));
+          ref.invalidate(customerTowingsProvider(userId));
+
+          //single towing refresh
+          ref.invalidate(towingProvider(towingId));
         },
       )
       .subscribe();

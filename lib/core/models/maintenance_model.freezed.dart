@@ -278,7 +278,7 @@ as List<Maintenance>,
 /// @nodoc
 mixin _$Maintenance {
 
- String get id; String get title; String? get description; String? get remarks; DateTime get currentServDate; double get currentServDistance; DateTime get nextServDate; double get nextServDistance; String get status; DateTime? get deletedAt; String get vehicleId;
+ String get id; String get title; String? get description; String? get remarks; DateTime get currentServDate; double get currentServDistance; DateTime get nextServDate; double get nextServDistance; String get status; DateTime? get deletedAt; String get vehicleId; DateTime? get updatedAt;
 /// Create a copy of Maintenance
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -291,16 +291,16 @@ $MaintenanceCopyWith<Maintenance> get copyWith => _$MaintenanceCopyWithImpl<Main
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is Maintenance&&(identical(other.id, id) || other.id == id)&&(identical(other.title, title) || other.title == title)&&(identical(other.description, description) || other.description == description)&&(identical(other.remarks, remarks) || other.remarks == remarks)&&(identical(other.currentServDate, currentServDate) || other.currentServDate == currentServDate)&&(identical(other.currentServDistance, currentServDistance) || other.currentServDistance == currentServDistance)&&(identical(other.nextServDate, nextServDate) || other.nextServDate == nextServDate)&&(identical(other.nextServDistance, nextServDistance) || other.nextServDistance == nextServDistance)&&(identical(other.status, status) || other.status == status)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt)&&(identical(other.vehicleId, vehicleId) || other.vehicleId == vehicleId));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is Maintenance&&(identical(other.id, id) || other.id == id)&&(identical(other.title, title) || other.title == title)&&(identical(other.description, description) || other.description == description)&&(identical(other.remarks, remarks) || other.remarks == remarks)&&(identical(other.currentServDate, currentServDate) || other.currentServDate == currentServDate)&&(identical(other.currentServDistance, currentServDistance) || other.currentServDistance == currentServDistance)&&(identical(other.nextServDate, nextServDate) || other.nextServDate == nextServDate)&&(identical(other.nextServDistance, nextServDistance) || other.nextServDistance == nextServDistance)&&(identical(other.status, status) || other.status == status)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt)&&(identical(other.vehicleId, vehicleId) || other.vehicleId == vehicleId)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,title,description,remarks,currentServDate,currentServDistance,nextServDate,nextServDistance,status,deletedAt,vehicleId);
+int get hashCode => Object.hash(runtimeType,id,title,description,remarks,currentServDate,currentServDistance,nextServDate,nextServDistance,status,deletedAt,vehicleId,updatedAt);
 
 @override
 String toString() {
-  return 'Maintenance(id: $id, title: $title, description: $description, remarks: $remarks, currentServDate: $currentServDate, currentServDistance: $currentServDistance, nextServDate: $nextServDate, nextServDistance: $nextServDistance, status: $status, deletedAt: $deletedAt, vehicleId: $vehicleId)';
+  return 'Maintenance(id: $id, title: $title, description: $description, remarks: $remarks, currentServDate: $currentServDate, currentServDistance: $currentServDistance, nextServDate: $nextServDate, nextServDistance: $nextServDistance, status: $status, deletedAt: $deletedAt, vehicleId: $vehicleId, updatedAt: $updatedAt)';
 }
 
 
@@ -311,7 +311,7 @@ abstract mixin class $MaintenanceCopyWith<$Res>  {
   factory $MaintenanceCopyWith(Maintenance value, $Res Function(Maintenance) _then) = _$MaintenanceCopyWithImpl;
 @useResult
 $Res call({
- String id, String title, String? description, String? remarks, DateTime currentServDate, double currentServDistance, DateTime nextServDate, double nextServDistance, String status, DateTime? deletedAt, String vehicleId
+ String id, String title, String? description, String? remarks, DateTime currentServDate, double currentServDistance, DateTime nextServDate, double nextServDistance, String status, DateTime? deletedAt, String vehicleId, DateTime? updatedAt
 });
 
 
@@ -328,7 +328,7 @@ class _$MaintenanceCopyWithImpl<$Res>
 
 /// Create a copy of Maintenance
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? title = null,Object? description = freezed,Object? remarks = freezed,Object? currentServDate = null,Object? currentServDistance = null,Object? nextServDate = null,Object? nextServDistance = null,Object? status = null,Object? deletedAt = freezed,Object? vehicleId = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? title = null,Object? description = freezed,Object? remarks = freezed,Object? currentServDate = null,Object? currentServDistance = null,Object? nextServDate = null,Object? nextServDistance = null,Object? status = null,Object? deletedAt = freezed,Object? vehicleId = null,Object? updatedAt = freezed,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,title: null == title ? _self.title : title // ignore: cast_nullable_to_non_nullable
@@ -341,7 +341,8 @@ as DateTime,nextServDistance: null == nextServDistance ? _self.nextServDistance 
 as double,status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
 as String,deletedAt: freezed == deletedAt ? _self.deletedAt : deletedAt // ignore: cast_nullable_to_non_nullable
 as DateTime?,vehicleId: null == vehicleId ? _self.vehicleId : vehicleId // ignore: cast_nullable_to_non_nullable
-as String,
+as String,updatedAt: freezed == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
+as DateTime?,
   ));
 }
 
@@ -423,10 +424,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String title,  String? description,  String? remarks,  DateTime currentServDate,  double currentServDistance,  DateTime nextServDate,  double nextServDistance,  String status,  DateTime? deletedAt,  String vehicleId)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String title,  String? description,  String? remarks,  DateTime currentServDate,  double currentServDistance,  DateTime nextServDate,  double nextServDistance,  String status,  DateTime? deletedAt,  String vehicleId,  DateTime? updatedAt)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _Maintenance() when $default != null:
-return $default(_that.id,_that.title,_that.description,_that.remarks,_that.currentServDate,_that.currentServDistance,_that.nextServDate,_that.nextServDistance,_that.status,_that.deletedAt,_that.vehicleId);case _:
+return $default(_that.id,_that.title,_that.description,_that.remarks,_that.currentServDate,_that.currentServDistance,_that.nextServDate,_that.nextServDistance,_that.status,_that.deletedAt,_that.vehicleId,_that.updatedAt);case _:
   return orElse();
 
 }
@@ -444,10 +445,10 @@ return $default(_that.id,_that.title,_that.description,_that.remarks,_that.curre
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String title,  String? description,  String? remarks,  DateTime currentServDate,  double currentServDistance,  DateTime nextServDate,  double nextServDistance,  String status,  DateTime? deletedAt,  String vehicleId)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String title,  String? description,  String? remarks,  DateTime currentServDate,  double currentServDistance,  DateTime nextServDate,  double nextServDistance,  String status,  DateTime? deletedAt,  String vehicleId,  DateTime? updatedAt)  $default,) {final _that = this;
 switch (_that) {
 case _Maintenance():
-return $default(_that.id,_that.title,_that.description,_that.remarks,_that.currentServDate,_that.currentServDistance,_that.nextServDate,_that.nextServDistance,_that.status,_that.deletedAt,_that.vehicleId);}
+return $default(_that.id,_that.title,_that.description,_that.remarks,_that.currentServDate,_that.currentServDistance,_that.nextServDate,_that.nextServDistance,_that.status,_that.deletedAt,_that.vehicleId,_that.updatedAt);}
 }
 /// A variant of `when` that fallback to returning `null`
 ///
@@ -461,10 +462,10 @@ return $default(_that.id,_that.title,_that.description,_that.remarks,_that.curre
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String title,  String? description,  String? remarks,  DateTime currentServDate,  double currentServDistance,  DateTime nextServDate,  double nextServDistance,  String status,  DateTime? deletedAt,  String vehicleId)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String title,  String? description,  String? remarks,  DateTime currentServDate,  double currentServDistance,  DateTime nextServDate,  double nextServDistance,  String status,  DateTime? deletedAt,  String vehicleId,  DateTime? updatedAt)?  $default,) {final _that = this;
 switch (_that) {
 case _Maintenance() when $default != null:
-return $default(_that.id,_that.title,_that.description,_that.remarks,_that.currentServDate,_that.currentServDistance,_that.nextServDate,_that.nextServDistance,_that.status,_that.deletedAt,_that.vehicleId);case _:
+return $default(_that.id,_that.title,_that.description,_that.remarks,_that.currentServDate,_that.currentServDistance,_that.nextServDate,_that.nextServDistance,_that.status,_that.deletedAt,_that.vehicleId,_that.updatedAt);case _:
   return null;
 
 }
@@ -476,7 +477,7 @@ return $default(_that.id,_that.title,_that.description,_that.remarks,_that.curre
 @JsonSerializable()
 
 class _Maintenance implements Maintenance {
-  const _Maintenance({required this.id, required this.title, this.description, this.remarks, required this.currentServDate, required this.currentServDistance, required this.nextServDate, required this.nextServDistance, required this.status, this.deletedAt, required this.vehicleId});
+  const _Maintenance({required this.id, required this.title, this.description, this.remarks, required this.currentServDate, required this.currentServDistance, required this.nextServDate, required this.nextServDistance, required this.status, this.deletedAt, required this.vehicleId, this.updatedAt});
   factory _Maintenance.fromJson(Map<String, dynamic> json) => _$MaintenanceFromJson(json);
 
 @override final  String id;
@@ -490,6 +491,7 @@ class _Maintenance implements Maintenance {
 @override final  String status;
 @override final  DateTime? deletedAt;
 @override final  String vehicleId;
+@override final  DateTime? updatedAt;
 
 /// Create a copy of Maintenance
 /// with the given fields replaced by the non-null parameter values.
@@ -504,16 +506,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Maintenance&&(identical(other.id, id) || other.id == id)&&(identical(other.title, title) || other.title == title)&&(identical(other.description, description) || other.description == description)&&(identical(other.remarks, remarks) || other.remarks == remarks)&&(identical(other.currentServDate, currentServDate) || other.currentServDate == currentServDate)&&(identical(other.currentServDistance, currentServDistance) || other.currentServDistance == currentServDistance)&&(identical(other.nextServDate, nextServDate) || other.nextServDate == nextServDate)&&(identical(other.nextServDistance, nextServDistance) || other.nextServDistance == nextServDistance)&&(identical(other.status, status) || other.status == status)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt)&&(identical(other.vehicleId, vehicleId) || other.vehicleId == vehicleId));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Maintenance&&(identical(other.id, id) || other.id == id)&&(identical(other.title, title) || other.title == title)&&(identical(other.description, description) || other.description == description)&&(identical(other.remarks, remarks) || other.remarks == remarks)&&(identical(other.currentServDate, currentServDate) || other.currentServDate == currentServDate)&&(identical(other.currentServDistance, currentServDistance) || other.currentServDistance == currentServDistance)&&(identical(other.nextServDate, nextServDate) || other.nextServDate == nextServDate)&&(identical(other.nextServDistance, nextServDistance) || other.nextServDistance == nextServDistance)&&(identical(other.status, status) || other.status == status)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt)&&(identical(other.vehicleId, vehicleId) || other.vehicleId == vehicleId)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,title,description,remarks,currentServDate,currentServDistance,nextServDate,nextServDistance,status,deletedAt,vehicleId);
+int get hashCode => Object.hash(runtimeType,id,title,description,remarks,currentServDate,currentServDistance,nextServDate,nextServDistance,status,deletedAt,vehicleId,updatedAt);
 
 @override
 String toString() {
-  return 'Maintenance(id: $id, title: $title, description: $description, remarks: $remarks, currentServDate: $currentServDate, currentServDistance: $currentServDistance, nextServDate: $nextServDate, nextServDistance: $nextServDistance, status: $status, deletedAt: $deletedAt, vehicleId: $vehicleId)';
+  return 'Maintenance(id: $id, title: $title, description: $description, remarks: $remarks, currentServDate: $currentServDate, currentServDistance: $currentServDistance, nextServDate: $nextServDate, nextServDistance: $nextServDistance, status: $status, deletedAt: $deletedAt, vehicleId: $vehicleId, updatedAt: $updatedAt)';
 }
 
 
@@ -524,7 +526,7 @@ abstract mixin class _$MaintenanceCopyWith<$Res> implements $MaintenanceCopyWith
   factory _$MaintenanceCopyWith(_Maintenance value, $Res Function(_Maintenance) _then) = __$MaintenanceCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String title, String? description, String? remarks, DateTime currentServDate, double currentServDistance, DateTime nextServDate, double nextServDistance, String status, DateTime? deletedAt, String vehicleId
+ String id, String title, String? description, String? remarks, DateTime currentServDate, double currentServDistance, DateTime nextServDate, double nextServDistance, String status, DateTime? deletedAt, String vehicleId, DateTime? updatedAt
 });
 
 
@@ -541,7 +543,7 @@ class __$MaintenanceCopyWithImpl<$Res>
 
 /// Create a copy of Maintenance
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? title = null,Object? description = freezed,Object? remarks = freezed,Object? currentServDate = null,Object? currentServDistance = null,Object? nextServDate = null,Object? nextServDistance = null,Object? status = null,Object? deletedAt = freezed,Object? vehicleId = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? title = null,Object? description = freezed,Object? remarks = freezed,Object? currentServDate = null,Object? currentServDistance = null,Object? nextServDate = null,Object? nextServDistance = null,Object? status = null,Object? deletedAt = freezed,Object? vehicleId = null,Object? updatedAt = freezed,}) {
   return _then(_Maintenance(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,title: null == title ? _self.title : title // ignore: cast_nullable_to_non_nullable
@@ -554,7 +556,8 @@ as DateTime,nextServDistance: null == nextServDistance ? _self.nextServDistance 
 as double,status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
 as String,deletedAt: freezed == deletedAt ? _self.deletedAt : deletedAt // ignore: cast_nullable_to_non_nullable
 as DateTime?,vehicleId: null == vehicleId ? _self.vehicleId : vehicleId // ignore: cast_nullable_to_non_nullable
-as String,
+as String,updatedAt: freezed == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
+as DateTime?,
   ));
 }
 

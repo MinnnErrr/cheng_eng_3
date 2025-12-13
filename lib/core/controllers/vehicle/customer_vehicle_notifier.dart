@@ -4,7 +4,6 @@ import 'package:cheng_eng_3/core/controllers/auth/auth_notifier.dart';
 import 'package:cheng_eng_3/core/models/vehicle_model.dart';
 import 'package:cheng_eng_3/core/services/image_service.dart';
 import 'package:cheng_eng_3/core/services/vehicle_service.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:uuid/uuid.dart';
 
@@ -158,12 +157,3 @@ class CustomerVehicleNotifier extends _$CustomerVehicleNotifier {
   }
 }
 
-final customerVehicleByIdProvider =
-    FutureProvider.family<Vehicle, String>((ref, vehicleId) async {
-  final vehicles = await ref.watch(customerVehicleProvider.future);
-
-  return vehicles.vehicles.firstWhere(
-    (v) => v.id == vehicleId,
-    orElse: () => throw Exception("Maintenance not found"),
-  );
-});

@@ -1,8 +1,14 @@
 import 'package:cheng_eng_3/core/controllers/auth/auth_notifier.dart';
-import 'package:cheng_eng_3/core/controllers/towing/customer_towing_notifier.dart';
+import 'package:cheng_eng_3/core/controllers/maintenance/maintenance_by_id_provider.dart';
+import 'package:cheng_eng_3/core/controllers/maintenance/maintenance_by_vehicle_provider.dart';
+import 'package:cheng_eng_3/core/controllers/maintenance/maintenance_count_days_provider.dart';
+import 'package:cheng_eng_3/core/controllers/maintenance/maintenance_nearest_date_provider.dart';
+import 'package:cheng_eng_3/core/controllers/towing/customer_towings_notifier.dart';
 import 'package:cheng_eng_3/core/controllers/maintenance/maintenance_notifier.dart';
 import 'package:cheng_eng_3/core/controllers/profile/profile_notifier.dart';
-import 'package:cheng_eng_3/core/controllers/towing/staff_towing_notifier.dart';
+import 'package:cheng_eng_3/core/controllers/towing/staff_towings_notifier.dart';
+import 'package:cheng_eng_3/core/controllers/towing/towing_notifier.dart';
+import 'package:cheng_eng_3/core/controllers/vehicle/customer_vehicle_by_id_provider.dart';
 import 'package:cheng_eng_3/core/controllers/vehicle/customer_vehicle_notifier.dart';
 import 'package:cheng_eng_3/core/services/auth_service.dart';
 import 'package:cheng_eng_3/core/services/image_service.dart';
@@ -23,10 +29,9 @@ final appStateResetProvider = Provider((ref) {
     ref.invalidate(maintenanceByVehicleProvider);
     ref.invalidate(maintenanceByNearestDateProvider);
     ref.invalidate(maintenanceCountDaysProvider);
-    ref.invalidate(staffTowingProvider);
-    ref.invalidate(staffTowingByIdProvider);
-    ref.invalidate(customerTowingProvider);
-    ref.invalidate(customerTowingByIdProvider);
+    ref.invalidate(staffTowingsProvider);
+    ref.invalidate(customerTowingsProvider);
+    ref.invalidate(towingProvider);
 
     ref.invalidate(authServiceProvider);
     ref.invalidate(profileServiceProvider);

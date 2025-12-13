@@ -1,5 +1,4 @@
 import 'package:cheng_eng_3/core/controllers/maintenance/maintenance_notifier.dart';
-import 'package:cheng_eng_3/core/models/maintenance_model.dart';
 import 'package:cheng_eng_3/ui/widgets/datepicker.dart';
 import 'package:cheng_eng_3/ui/widgets/snackbar.dart';
 import 'package:cheng_eng_3/ui/widgets/textformfield.dart';
@@ -7,21 +6,21 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
-class MaintenanceUpdateScreen extends ConsumerStatefulWidget {
-  const MaintenanceUpdateScreen({
+class MaintenanceCreateScreen extends ConsumerStatefulWidget {
+  const MaintenanceCreateScreen({
     super.key,
-    required this.maintenance,
+    this.vehicleId,
   });
 
-  final Maintenance maintenance;
+  final String? vehicleId;
 
   @override
   ConsumerState<ConsumerStatefulWidget> createState() =>
-      _MaintenanceUpdateScreenState();
+      _MaintenanceCreateScreenState();
 }
 
-class _MaintenanceUpdateScreenState
-    extends ConsumerState<MaintenanceUpdateScreen> {
+class _MaintenanceCreateScreenState
+    extends ConsumerState<MaintenanceCreateScreen> {
   final _formKey = GlobalKey<FormState>();
   final _dateFormatter = DateFormat('dd/MM/yyyy');
 
@@ -33,28 +32,8 @@ class _MaintenanceUpdateScreenState
   final _nextDist = TextEditingController();
   final _remarks = TextEditingController();
 
-  late DateTime _currentDate;
-  late DateTime _nextDate;
-
-  @override
-  void initState() {
-    _loadMaintenance();
-    super.initState();
-  }
-
-  void _loadMaintenance() {
-    _title.text = widget.maintenance.title;
-    _desc.text = widget.maintenance.description ?? '';
-    _currentDist.text = widget.maintenance.currentServDistance.toString();
-    _nextDist.text = widget.maintenance.nextServDistance.toString();
-    _remarks.text = widget.maintenance.remarks ?? '';
-    _currentDate = widget.maintenance.currentServDate;
-    _currentDateCtrl.text = _dateFormatter.format(
-      widget.maintenance.currentServDate,
-    );
-    _nextDate = widget.maintenance.nextServDate;
-    _nextDateCtrl.text = _dateFormatter.format(widget.maintenance.nextServDate);
-  }
+  DateTime? _currentDate;
+  DateTime? _nextDate;
 
   @override
   void dispose() {
@@ -75,9 +54,7 @@ class _MaintenanceUpdateScreenState
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(
-          'Update Maintenance',
-        ),
+        title: Text('Add Maintenance'),
       ),
       body: SafeArea(
         child: SingleChildScrollView(
@@ -158,23 +135,32 @@ class _MaintenanceUpdateScreenState
                     if (!_formKey.currentState!.validate()) return;
                     bool success;
 
-                    success = await maintenanceNotifier.updateMaintenance(
-                      id: widget.maintenance.id,
+                    if (_currentDate == null || _nextDate == null) {
+                      showAppSnackBar(
+                        context: context,
+                        content: 'Please select service dates',
+                        isError: true,
+                      );
+                      return;
+                    }
+
+                    success = await maintenanceNotifier.addMaintenance(
                       title: _title.text.trim(),
-                      currentServDate: _currentDate,
+                      currentServDate: _currentDate!,
                       currentServDistance: double.parse(
                         _currentDist.text.trim(),
                       ),
-                      nextServDate: _nextDate,
+                      nextServDate: _nextDate!,
                       nextServDistance: double.parse(_nextDist.text.trim()),
+                      vehicleId: widget.vehicleId!,
                     );
 
                     if (!context.mounted) return;
                     showAppSnackBar(
                       context: context,
                       content: success == true
-                          ? 'Maintenance record updated'
-                          : 'Failed to update maintenance record',
+                          ? 'Maintenance record added'
+                          : 'Failed to add maintenance record',
                       isError: !success,
                     );
 
@@ -186,7 +172,9 @@ class _MaintenanceUpdateScreenState
                           width: 15,
                           child: CircularProgressIndicator(),
                         )
-                      : Text('Update Maintenance'),
+                      : Text(
+                          'Create Maintenance',
+                        ),
                 ),
               ],
             ),

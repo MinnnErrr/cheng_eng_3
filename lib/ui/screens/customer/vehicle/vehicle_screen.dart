@@ -1,4 +1,5 @@
 import 'package:cheng_eng_3/core/controllers/vehicle/customer_vehicle_notifier.dart';
+import 'package:cheng_eng_3/ui/screens/customer/vehicle/vehicle_create_screen.dart';
 import 'package:cheng_eng_3/ui/screens/customer/vehicle/vehicle_details_screen.dart';
 import 'package:cheng_eng_3/ui/screens/customer/vehicle/vehicle_update_screen.dart';
 import 'package:cheng_eng_3/ui/widgets/snackbar.dart';
@@ -22,7 +23,7 @@ class VehicleScreen extends ConsumerWidget {
         data: (vehicleList) {
           final vehicles = vehicleList.vehicles;
 
-         return vehicles.isEmpty
+          return vehicles.isEmpty
               ? const Center(
                   child: Text('No vehicles found'),
                 )
@@ -37,12 +38,12 @@ class VehicleScreen extends ConsumerWidget {
                           padding: const EdgeInsets.only(bottom: 10),
                           child: InkWell(
                             onTap: () => Navigator.of(context).push(
-                                MaterialPageRoute(
-                                  builder: (context) => VehicleDetailsScreen(
-                                    vehicleId: vehicle.id,
-                                  ),
+                              MaterialPageRoute(
+                                builder: (context) => VehicleDetailsScreen(
+                                  vehicleId: vehicle.id,
                                 ),
                               ),
+                            ),
                             child: VehicleListitem(
                               vehicle: vehicle,
                               descriptionRequired: true,
@@ -63,7 +64,7 @@ class VehicleScreen extends ConsumerWidget {
                                   );
                                 },
                                 icon: Icon(Icons.delete),
-                              ), 
+                              ),
                             ),
                           ),
                         );
@@ -80,7 +81,7 @@ class VehicleScreen extends ConsumerWidget {
       floatingActionButton: FloatingActionButton(
         onPressed: () => Navigator.of(context).push(
           MaterialPageRoute(
-            builder: (context) => VehicleUpdateScreen(),
+            builder: (context) => VehicleCreateScreen(),
           ),
         ),
         child: const Icon(Icons.add),

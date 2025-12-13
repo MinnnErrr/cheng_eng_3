@@ -1,7 +1,5 @@
 import 'dart:io';
 import 'package:cheng_eng_3/core/controllers/vehicle/customer_vehicle_notifier.dart';
-import 'package:cheng_eng_3/core/models/vehicle_model.dart';
-import 'package:cheng_eng_3/core/services/image_service.dart';
 import 'package:cheng_eng_3/ui/widgets/snackbar.dart';
 import 'package:cheng_eng_3/ui/widgets/textformfield.dart';
 import 'package:cheng_eng_3/ui/widgets/yearpicker.dart';
@@ -9,25 +7,23 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 
-class VehicleUpdateScreen extends ConsumerStatefulWidget {
-  const VehicleUpdateScreen({super.key, required this.vehicle});
-  final Vehicle vehicle;
+class VehicleCreateScreen extends ConsumerStatefulWidget {
+  const VehicleCreateScreen({super.key});
 
   @override
-  ConsumerState<VehicleUpdateScreen> createState() =>
-      _VehicleUpdateScreenState();
+  ConsumerState<VehicleCreateScreen> createState() =>
+      _VehicleCreateScreenState();
 }
 
-class _VehicleUpdateScreenState extends ConsumerState<VehicleUpdateScreen> {
+class _VehicleCreateScreenState extends ConsumerState<VehicleCreateScreen> {
   final TextEditingController _description = TextEditingController();
   final TextEditingController _regNum = TextEditingController();
   final TextEditingController _make = TextEditingController();
   final TextEditingController _model = TextEditingController();
   final TextEditingController _colour = TextEditingController();
   final TextEditingController _yearController = TextEditingController();
-  late int _year;
+  int? _year;
   File? _pickedImage;
-  String? _imageUrl;
 
   final _imagePicker = ImagePicker();
   final _formKey = GlobalKey<FormState>();
@@ -37,29 +33,6 @@ class _VehicleUpdateScreenState extends ConsumerState<VehicleUpdateScreen> {
     if (picked != null) {
       setState(() => _pickedImage = File(picked.path));
     }
-  }
-
-  void _loadVehicle(Vehicle vehicle) {
-    final imageService = ref.read(imageServiceProvider);
-
-    _description.text = vehicle.description ?? "";
-    _regNum.text = vehicle.regNum;
-    _make.text = vehicle.make;
-    _model.text = vehicle.model;
-    _colour.text = vehicle.colour;
-
-    _year = vehicle.year;
-    _yearController.text = vehicle.year.toString();
-
-    if (vehicle.photoPath != null) {
-      _imageUrl = imageService.retrieveImageUrl(vehicle.photoPath!);
-    }
-  }
-
-  @override
-  void initState() {
-    _loadVehicle(widget.vehicle);
-    super.initState();
   }
 
   @override
@@ -80,7 +53,7 @@ class _VehicleUpdateScreenState extends ConsumerState<VehicleUpdateScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('Update Vehicle'),
+        title: Text('Create Vehicle'),
       ),
       body: SafeArea(
         child: SingleChildScrollView(
@@ -94,11 +67,7 @@ class _VehicleUpdateScreenState extends ConsumerState<VehicleUpdateScreen> {
                 _buildImagePicker(),
 
                 //FIELDS
-                textFormField(
-                  controller: _description,
-                  label: 'Description',
-                  validationRequired: false,
-                ),
+                textFormField(controller: _description, label: 'Description', validationRequired: false),
                 textFormField(
                   controller: _regNum,
                   label: 'Registration Number',
@@ -132,16 +101,12 @@ class _VehicleUpdateScreenState extends ConsumerState<VehicleUpdateScreen> {
                   onPressed: () async {
                     if (!_formKey.currentState!.validate()) return;
 
-                    final success = await vehicleNotifier.updateVehicle(
-                      id: widget.vehicle.id,
-                      description: _description.text.trim().isEmpty
-                          ? null
-                          : _description.text.trim(),
+                    final success = await vehicleNotifier.addVehicle(
                       regNum: _regNum.text.trim(),
                       make: _make.text.trim(),
                       model: _model.text.trim(),
                       colour: _colour.text.trim(),
-                      year: _year,
+                      year: _year!,
                       photo: _pickedImage,
                     );
 
@@ -149,8 +114,8 @@ class _VehicleUpdateScreenState extends ConsumerState<VehicleUpdateScreen> {
                     showAppSnackBar(
                       context: context,
                       content: success == true
-                          ? 'Vehicle updated'
-                          : 'Failed to update vehicle',
+                          ? 'Vehicle added'
+                          : 'Failed to add vehicle',
                       isError: !success,
                     );
 
@@ -162,7 +127,8 @@ class _VehicleUpdateScreenState extends ConsumerState<VehicleUpdateScreen> {
                           width: 15,
                           child: CircularProgressIndicator(),
                         )
-                      : Text('Update Vehicle'),
+                      : Text('Create Vehicle',
+                        ),
                 ),
               ],
             ),
@@ -178,23 +144,6 @@ class _VehicleUpdateScreenState extends ConsumerState<VehicleUpdateScreen> {
     if (_pickedImage != null) {
       // User picked new image
       imageContent = Image.file(_pickedImage!, fit: BoxFit.cover);
-    } else if (_imageUrl != null) {
-      // Existing stored URL loaded from db
-      imageContent = Image.network(
-        _imageUrl!,
-        fit: BoxFit.cover,
-        errorBuilder: (context, error, stackTrace) => Center(
-          child: const Icon(Icons.image_not_supported),
-        ),
-        loadingBuilder: (context, child, loadingProgress) =>
-            loadingProgress == null
-            ? child
-            : Center(
-                child: CircularProgressIndicator(
-                  strokeWidth: 3,
-                ),
-              ),
-      );
     } else {
       // None
       imageContent = const Center(child: Text("No image selected"));

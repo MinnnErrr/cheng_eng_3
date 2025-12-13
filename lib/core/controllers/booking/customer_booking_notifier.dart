@@ -1,6 +1,6 @@
 
 import 'package:cheng_eng_3/core/controllers/auth/auth_notifier.dart';
-import 'package:cheng_eng_3/core/controllers/vehicle/customer_vehicle_notifier.dart';
+import 'package:cheng_eng_3/core/controllers/vehicle/customer_vehicle_by_id_provider.dart';
 import 'package:cheng_eng_3/core/models/booking_model.dart';
 import 'package:cheng_eng_3/core/models/message_model.dart';
 import 'package:cheng_eng_3/core/services/booking_service.dart';

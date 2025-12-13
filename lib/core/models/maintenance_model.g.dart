@@ -30,6 +30,9 @@ _Maintenance _$MaintenanceFromJson(Map<String, dynamic> json) => _Maintenance(
       ? null
       : DateTime.parse(json['deletedAt'] as String),
   vehicleId: json['vehicleId'] as String,
+  updatedAt: json['updatedAt'] == null
+      ? null
+      : DateTime.parse(json['updatedAt'] as String),
 );
 
 Map<String, dynamic> _$MaintenanceToJson(_Maintenance instance) =>
@@ -45,4 +48,5 @@ Map<String, dynamic> _$MaintenanceToJson(_Maintenance instance) =>
       'status': instance.status,
       'deletedAt': instance.deletedAt?.toIso8601String(),
       'vehicleId': instance.vehicleId,
+      'updatedAt': instance.updatedAt?.toIso8601String(),
     };

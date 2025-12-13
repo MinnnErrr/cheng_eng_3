@@ -1,5 +1,6 @@
+import 'package:cheng_eng_3/core/controllers/maintenance/maintenance_by_id_provider.dart';
 import 'package:cheng_eng_3/core/controllers/maintenance/maintenance_notifier.dart';
-import 'package:cheng_eng_3/core/controllers/vehicle/customer_vehicle_notifier.dart';
+import 'package:cheng_eng_3/core/controllers/vehicle/customer_vehicle_by_id_provider.dart';
 import 'package:cheng_eng_3/core/models/maintenance_model.dart';
 import 'package:cheng_eng_3/ui/screens/customer/maintenance/maintenance_update_screen.dart';
 import 'package:cheng_eng_3/utils/status_colour.dart';
@@ -74,6 +75,7 @@ class MaintenanceDetailsScreen extends ConsumerWidget {
       required Maintenance maintenance,
     }) {
       final dateFormatter = DateFormat('dd//MM/yyyy');
+      final timeFormatter = DateFormat('dd/MM/yyyy').add_jm();
 
       return Container(
         width: double.infinity,
@@ -100,7 +102,7 @@ class MaintenanceDetailsScreen extends ConsumerWidget {
                     onPressed: () => Navigator.of(context).push(
                       MaterialPageRoute(
                         builder: (_) => MaintenanceUpdateScreen(
-                          maintenanceId: maintenance.id,
+                          maintenance: maintenance,
                         ),
                       ),
                     ),
@@ -142,7 +144,16 @@ class MaintenanceDetailsScreen extends ConsumerWidget {
                     maintenanceDetailsItem(
                       title: 'Status',
                       value: maintenance.status,
-                      textcolor: getMaintenanceStatusColor(maintenance.status, context),
+                      textcolor: getMaintenanceStatusColor(
+                        maintenance.status,
+                        context,
+                      ),
+                    ),
+                    maintenanceDetailsItem(
+                      title: 'Updated At',
+                      value: maintenance.updatedAt != null
+                          ? timeFormatter.format(maintenance.updatedAt!)
+                          : '-',
                     ),
 
                     Container(
@@ -218,6 +229,7 @@ class MaintenanceDetailsScreen extends ConsumerWidget {
                         content: success
                             ? 'Status updated'
                             : 'Failed to update status',
+                        isError: !success,
                       );
                     },
                     child: Text(
