@@ -41,13 +41,29 @@ class BookingService {
   }
 
   Future<void> update(Booking booking) async {
-    await supabase.from('bookings').update(booking.toJson()).eq('id', booking.id);
+    await supabase
+        .from('bookings')
+        .update(booking.toJson())
+        .eq('id', booking.id);
   }
 
-  Future<void> updateStatus(BookingStatus status, String towingId) async {
+  Future<void> updateStatus(
+    BookingStatus status,
+    String towingId,
+    String? message,
+  ) async {
     await supabase
-        .from('tows')
-        .update({'status': status, 'updatedAt': DateTime.now()})
+        .from('bookings')
+        .update({
+          'status': status,
+          'updatedAt': DateTime.now(),
+          'staffMessage': message,
+        })
         .eq('id', towingId);
+  }
+
+  Future<List<Booking>> getBookingByDate(DateTime date) async {
+    final data = await supabase.from('bookings').select().eq('date', date).isFilter('deletedAt', null);
+    return data.map<Booking>((b) => Booking.fromJson(b)).toList();
   }
 }

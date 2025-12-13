@@ -35,33 +35,35 @@ class VehicleScreen extends ConsumerWidget {
                         final vehicle = vehicles[index];
                         return Padding(
                           padding: const EdgeInsets.only(bottom: 10),
-                          child: VehicleListitem(
-                            vehicle: vehicle,
-                            descriptionRequired: true,
-                            colourRequired: false,
-                            yearRequired: false,
-                            icon: IconButton(
-                              onPressed: () async {
-                                final success = await vehicleListNotifier
-                                    .deleteVehicle(
-                                      vehicle.id,
-                                    );
-                                if (!context.mounted) return;
-                                showAppSnackBar(
-                                  context: context,
-                                  content: success
-                                      ? 'Vehicle deleted'
-                                      : 'Failed to delete vehicle',
-                                );
-                              },
-                              icon: Icon(Icons.delete),
-                            ),
-                            tapAction: () => Navigator.of(context).push(
-                              MaterialPageRoute(
-                                builder: (context) => VehicleDetailsScreen(
-                                  vehicleId: vehicle.id,
+                          child: InkWell(
+                            onTap: () => Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder: (context) => VehicleDetailsScreen(
+                                    vehicleId: vehicle.id,
+                                  ),
                                 ),
                               ),
+                            child: VehicleListitem(
+                              vehicle: vehicle,
+                              descriptionRequired: true,
+                              colourRequired: false,
+                              yearRequired: false,
+                              icon: IconButton(
+                                onPressed: () async {
+                                  final success = await vehicleListNotifier
+                                      .deleteVehicle(
+                                        vehicle.id,
+                                      );
+                                  if (!context.mounted) return;
+                                  showAppSnackBar(
+                                    context: context,
+                                    content: success
+                                        ? 'Vehicle deleted'
+                                        : 'Failed to delete vehicle',
+                                  );
+                                },
+                                icon: Icon(Icons.delete),
+                              ), 
                             ),
                           ),
                         );

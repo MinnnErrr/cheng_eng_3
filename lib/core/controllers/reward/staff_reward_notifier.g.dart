@@ -34,7 +34,7 @@ final class StaffRewardNotifierProvider
 }
 
 String _$staffRewardNotifierHash() =>
-    r'1f5a07dcdef90735c63d1b6b947f9d35109a19f0';
+    r'7fa38cc66e644e8071b66e63e9fa69305ebfc85b';
 
 abstract class _$StaffRewardNotifier extends $AsyncNotifier<List<Reward>> {
   FutureOr<List<Reward>> build();

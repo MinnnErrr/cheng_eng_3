@@ -1,3 +1,6 @@
+import 'package:cheng_eng_3/core/controllers/booking/booking_by_date_provider.dart';
+import 'package:cheng_eng_3/core/controllers/booking/customer_booking_notifier.dart';
+import 'package:cheng_eng_3/core/controllers/booking/staff_booking_notifier.dart';
 import 'package:cheng_eng_3/core/controllers/point/customer_point_history_notifier.dart';
 import 'package:cheng_eng_3/core/controllers/product/customer_product_notifier.dart';
 import 'package:cheng_eng_3/core/controllers/product/staff_product_notifier.dart';
@@ -122,4 +125,29 @@ final redeemedRewardRealTimeProvider = Provider<void>((ref) {
   });
 });
 
+final bookingRealTimeProvider = Provider<void>((ref) {
+  final supabase = Supabase.instance.client;
 
+  final channel = supabase
+      .channel('booking-realtime')
+      .onPostgresChanges(
+        event: PostgresChangeEvent.all,
+        schema: 'public',
+        table: 'bookings',
+        callback: (payload) {
+          // staff refresh
+          ref.invalidate(staffBookingProvider);
+
+          final date = payload.newRecord['date'];
+          ref.invalidate(bookingPerSlotProvider(date));
+
+          //customer refresh
+          final userId = payload.newRecord['userId'];
+          ref.invalidate(customerBookingProvider(userId));
+        },
+      )
+      .subscribe();
+  ref.onDispose(() {
+    supabase.removeChannel(channel);
+  });
+});
