@@ -1,4 +1,4 @@
-import 'package:cheng_eng_3/core/controllers/towing/staff_towing_notifier.dart';
+import 'package:cheng_eng_3/core/controllers/towing/staff_towings_notifier.dart';
 import 'package:cheng_eng_3/ui/screens/staff/towing/staff_towing_details_screen.dart';
 import 'package:cheng_eng_3/ui/widgets/towing_listitem.dart';
 import 'package:flutter/material.dart';
@@ -15,7 +15,7 @@ class StaffTowingScreen extends ConsumerStatefulWidget {
 class _StaffTowingScreenState extends ConsumerState<StaffTowingScreen> {
   @override
   Widget build(BuildContext context) {
-    final towingList = ref.watch(staffTowingProvider);
+    final towingList = ref.watch(staffTowingsProvider);
 
     return Scaffold(
       appBar: AppBar(
@@ -41,7 +41,7 @@ class _StaffTowingScreenState extends ConsumerState<StaffTowingScreen> {
                             tapAction: () => Navigator.of(context).push(
                               MaterialPageRoute(
                                 builder: (context) => StaffTowingDetailsScreen(
-                                  towingId: towing.id,
+                                  towing: towing,
                                 ),
                               ),
                             ),

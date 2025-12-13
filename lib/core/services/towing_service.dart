@@ -47,7 +47,10 @@ class TowingService {
   Future<void> updateStatus(String status, String towingId) async {
     await supabase
         .from('tows')
-        .update({'status': status, 'updatedAt': DateTime.now()})
+        .update({
+          'status': status,
+          'updatedAt': DateTime.now().toIso8601String(),
+        })
         .eq('id', towingId);
   }
 

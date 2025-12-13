@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'customer_towing_notifier.dart';
+part of 'customer_towings_notifier.dart';
 
 // **************************************************************************
 // RiverpodGenerator
@@ -9,39 +9,39 @@ part of 'customer_towing_notifier.dart';
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // ignore_for_file: type=lint, type=warning
 
-@ProviderFor(CustomerTowingNotifier)
-const customerTowingProvider = CustomerTowingNotifierFamily._();
+@ProviderFor(CustomerTowingsNotifier)
+const customerTowingsProvider = CustomerTowingsNotifierFamily._();
 
-final class CustomerTowingNotifierProvider
-    extends $AsyncNotifierProvider<CustomerTowingNotifier, List<Towing>> {
-  const CustomerTowingNotifierProvider._({
-    required CustomerTowingNotifierFamily super.from,
+final class CustomerTowingsNotifierProvider
+    extends $AsyncNotifierProvider<CustomerTowingsNotifier, List<Towing>> {
+  const CustomerTowingsNotifierProvider._({
+    required CustomerTowingsNotifierFamily super.from,
     required String super.argument,
   }) : super(
          retry: null,
-         name: r'customerTowingProvider',
+         name: r'customerTowingsProvider',
          isAutoDispose: true,
          dependencies: null,
          $allTransitiveDependencies: null,
        );
 
   @override
-  String debugGetCreateSourceHash() => _$customerTowingNotifierHash();
+  String debugGetCreateSourceHash() => _$customerTowingsNotifierHash();
 
   @override
   String toString() {
-    return r'customerTowingProvider'
+    return r'customerTowingsProvider'
         ''
         '($argument)';
   }
 
   @$internal
   @override
-  CustomerTowingNotifier create() => CustomerTowingNotifier();
+  CustomerTowingsNotifier create() => CustomerTowingsNotifier();
 
   @override
   bool operator ==(Object other) {
-    return other is CustomerTowingNotifierProvider &&
+    return other is CustomerTowingsNotifierProvider &&
         other.argument == argument;
   }
 
@@ -51,35 +51,35 @@ final class CustomerTowingNotifierProvider
   }
 }
 
-String _$customerTowingNotifierHash() =>
-    r'2ad648ed4f18d620722cdb289f6c11f340c47906';
+String _$customerTowingsNotifierHash() =>
+    r'99ff53616f44dc16ccc5fe72038d0fd4598af79c';
 
-final class CustomerTowingNotifierFamily extends $Family
+final class CustomerTowingsNotifierFamily extends $Family
     with
         $ClassFamilyOverride<
-          CustomerTowingNotifier,
+          CustomerTowingsNotifier,
           AsyncValue<List<Towing>>,
           List<Towing>,
           FutureOr<List<Towing>>,
           String
         > {
-  const CustomerTowingNotifierFamily._()
+  const CustomerTowingsNotifierFamily._()
     : super(
         retry: null,
-        name: r'customerTowingProvider',
+        name: r'customerTowingsProvider',
         dependencies: null,
         $allTransitiveDependencies: null,
         isAutoDispose: true,
       );
 
-  CustomerTowingNotifierProvider call(String userId) =>
-      CustomerTowingNotifierProvider._(argument: userId, from: this);
+  CustomerTowingsNotifierProvider call(String userId) =>
+      CustomerTowingsNotifierProvider._(argument: userId, from: this);
 
   @override
-  String toString() => r'customerTowingProvider';
+  String toString() => r'customerTowingsProvider';
 }
 
-abstract class _$CustomerTowingNotifier extends $AsyncNotifier<List<Towing>> {
+abstract class _$CustomerTowingsNotifier extends $AsyncNotifier<List<Towing>> {
   late final _$args = ref.$arg as String;
   String get userId => _$args;
 

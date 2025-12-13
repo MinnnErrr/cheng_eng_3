@@ -1,6 +1,9 @@
 import 'dart:collection';
 
-import 'package:cheng_eng_3/core/controllers/towing/staff_towing_notifier.dart';
+import 'package:cheng_eng_3/core/controllers/realtime_provider.dart';
+import 'package:cheng_eng_3/core/controllers/towing/staff_towings_notifier.dart';
+import 'package:cheng_eng_3/core/controllers/towing/towing_notifier.dart';
+import 'package:cheng_eng_3/core/models/towing_model.dart';
 import 'package:cheng_eng_3/ui/widgets/snackbar.dart';
 import 'package:cheng_eng_3/ui/widgets/towing_details.dart';
 import 'package:flutter/material.dart';
@@ -26,9 +29,9 @@ enum TowingStatus {
 }
 
 class StaffTowingDetailsScreen extends ConsumerStatefulWidget {
-  const StaffTowingDetailsScreen({super.key, required this.towingId});
+  const StaffTowingDetailsScreen({super.key, required this.towing});
 
-  final String towingId;
+  final Towing towing;
 
   @override
   ConsumerState<StaffTowingDetailsScreen> createState() =>
@@ -37,17 +40,31 @@ class StaffTowingDetailsScreen extends ConsumerStatefulWidget {
 
 class _StaffTowingDetailsScreenState
     extends ConsumerState<StaffTowingDetailsScreen> {
+  late Towing displayedTowing;
   String? _status;
 
   @override
-  Widget build(BuildContext context) {
-    final towing = ref.watch(staffTowingByIdProvider(widget.towingId));
-    final towingNotifier = ref.read(staffTowingProvider.notifier);
+  void initState() {
+    displayedTowing = widget.towing;
+    super.initState();
+  }
 
-    return Scaffold(
-      body: towing.when(
-        data: (towing) {
-          return CustomScrollView(
+  @override
+  Widget build(BuildContext context) {
+    // Subscribe to real-time updates
+    ref.watch(towingRealtimeProvider);
+
+    // Watch the towing provider for updates
+    final towingAsync = ref.watch(towingProvider(widget.towing.id));
+
+    towingAsync.whenData((updatedTowing) {
+      displayedTowing = updatedTowing;
+    });
+
+    final towingNotifier =
+        ref.read(staffTowingsProvider.notifier);
+
+    return CustomScrollView(
             slivers: [
               SliverAppBar(
                 pinned: true,
@@ -59,7 +76,7 @@ class _StaffTowingDetailsScreenState
                   style: Theme.of(context).textTheme.titleLarge,
                 ),
 
-                bottom: towing.status.toLowerCase() == 'cancelled'
+                bottom: displayedTowing.status.toLowerCase() == 'cancelled'
                     ? null
                     : PreferredSize(
                         preferredSize: const Size.fromHeight(70),
@@ -85,7 +102,7 @@ class _StaffTowingDetailsScreenState
                                     ? () async {
                                         final success = await towingNotifier
                                             .updateStatus(
-                                              id: widget.towingId,
+                                              id: displayedTowing.id,
                                               status: _status!,
                                             );
 
@@ -112,19 +129,13 @@ class _StaffTowingDetailsScreenState
                   child: Column(
                     children: [
                       //details
-                      TowingDetailsScreen(towing: towing),
+                      TowingDetailsScreen(towing: displayedTowing),
                     ],
                   ),
                 ),
               ),
             ],
           );
-        },
-        error: (error, stackTrace) => Center(
-          child: Text(error.toString()),
-        ),
-        loading: () => const Center(child: CircularProgressIndicator()),
-      ),
-    );
+        }
   }
-}
+

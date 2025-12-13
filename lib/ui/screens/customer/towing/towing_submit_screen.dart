@@ -1,7 +1,7 @@
 import 'dart:io';
 
 import 'package:cheng_eng_3/core/controllers/auth/auth_notifier.dart';
-import 'package:cheng_eng_3/core/controllers/towing/customer_towing_notifier.dart';
+import 'package:cheng_eng_3/core/controllers/towing/customer_towings_notifier.dart';
 import 'package:cheng_eng_3/core/controllers/vehicle/customer_vehicle_notifier.dart';
 import 'package:cheng_eng_3/core/models/vehicle_model.dart';
 import 'package:cheng_eng_3/ui/screens/customer/towing/towing_screen.dart';
@@ -55,7 +55,7 @@ class _TowingSubmitScreenState extends ConsumerState<TowingSubmitScreen> {
     final vehicles = vehicleList?.vehicles ?? [];
 
     final user = ref.watch(authProvider).value;
-    final towingNotifier = ref.read(customerTowingProvider(user!.id).notifier);
+    final towingNotifier = ref.read(customerTowingsProvider(user!.id).notifier);
 
     return Scaffold(
       appBar: AppBar(
@@ -257,18 +257,20 @@ class _TowingSubmitScreenState extends ConsumerState<TowingSubmitScreen> {
                     itemBuilder: (context, index) {
                       final vehicle = vehicles[index];
 
-                      return VehicleListitem(
-                        vehicle: vehicle,
-                        descriptionRequired: false,
-                        colourRequired: false,
-                        yearRequired: false,
-                        tapAction: () {
-                          setState(() {
-                            _vehicleId = vehicle.id;
-                            _vehicleCtrl.text = vehicle.regNum;
-                          });
-                          Navigator.pop(context);
+                      return InkWell(
+                        onTap: () {
+                           setState(() {
+                              _vehicleId = vehicle.id;
+                              _vehicleCtrl.text = vehicle.regNum;
+                            });
+                            Navigator.pop(context);
                         },
+                        child: VehicleListitem(
+                          vehicle: vehicle,
+                          descriptionRequired: false,
+                          colourRequired: false,
+                          yearRequired: false,
+                        ),
                       );
                     },
                   ),

@@ -1,5 +1,5 @@
 import 'package:cheng_eng_3/core/controllers/auth/auth_notifier.dart';
-import 'package:cheng_eng_3/core/controllers/towing/customer_towing_notifier.dart';
+import 'package:cheng_eng_3/core/controllers/towing/customer_towings_notifier.dart';
 import 'package:cheng_eng_3/ui/screens/customer/towing/customer_towing_details_screen.dart';
 import 'package:cheng_eng_3/ui/screens/customer/towing/towing_map_screen.dart';
 import 'package:cheng_eng_3/ui/widgets/towing_listitem.dart';
@@ -12,7 +12,7 @@ class TowingScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final user = ref.watch(authProvider).value;
-    final towingList = ref.watch(customerTowingProvider(user!.id));
+    final towingList = ref.watch(customerTowingsProvider(user!.id));
 
     return Scaffold(
       appBar: AppBar(
@@ -38,7 +38,7 @@ class TowingScreen extends ConsumerWidget {
                             tapAction: () => Navigator.of(context).push(
                               MaterialPageRoute(
                                 builder: (context) => CustomerTowingDetailsScreen(
-                                  towingId: towing.id,
+                                  towing: towing,
                                 ),
                               ),
                             ),

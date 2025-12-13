@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'staff_towing_notifier.dart';
+part of 'staff_towings_notifier.dart';
 
 // **************************************************************************
 // RiverpodGenerator
@@ -9,34 +9,34 @@ part of 'staff_towing_notifier.dart';
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // ignore_for_file: type=lint, type=warning
 
-@ProviderFor(StaffTowingNotifier)
-const staffTowingProvider = StaffTowingNotifierProvider._();
+@ProviderFor(StaffTowingsNotifier)
+const staffTowingsProvider = StaffTowingsNotifierProvider._();
 
-final class StaffTowingNotifierProvider
-    extends $AsyncNotifierProvider<StaffTowingNotifier, List<Towing>> {
-  const StaffTowingNotifierProvider._()
+final class StaffTowingsNotifierProvider
+    extends $AsyncNotifierProvider<StaffTowingsNotifier, List<Towing>> {
+  const StaffTowingsNotifierProvider._()
     : super(
         from: null,
         argument: null,
         retry: null,
-        name: r'staffTowingProvider',
+        name: r'staffTowingsProvider',
         isAutoDispose: true,
         dependencies: null,
         $allTransitiveDependencies: null,
       );
 
   @override
-  String debugGetCreateSourceHash() => _$staffTowingNotifierHash();
+  String debugGetCreateSourceHash() => _$staffTowingsNotifierHash();
 
   @$internal
   @override
-  StaffTowingNotifier create() => StaffTowingNotifier();
+  StaffTowingsNotifier create() => StaffTowingsNotifier();
 }
 
-String _$staffTowingNotifierHash() =>
-    r'65b2aee42c9e907c90151ffd530d3d861cfbc30f';
+String _$staffTowingsNotifierHash() =>
+    r'09d055041d4e3373b7cb0112e1a5d47ade7bcdba';
 
-abstract class _$StaffTowingNotifier extends $AsyncNotifier<List<Towing>> {
+abstract class _$StaffTowingsNotifier extends $AsyncNotifier<List<Towing>> {
   FutureOr<List<Towing>> build();
   @$mustCallSuper
   @override

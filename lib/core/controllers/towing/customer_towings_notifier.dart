@@ -1,18 +1,17 @@
 import 'dart:io';
 
 import 'package:cheng_eng_3/core/controllers/auth/auth_notifier.dart';
-import 'package:cheng_eng_3/core/controllers/vehicle/customer_vehicle_notifier.dart';
+import 'package:cheng_eng_3/core/controllers/vehicle/customer_vehicle_by_id_provider.dart';
 import 'package:cheng_eng_3/core/models/towing_model.dart';
 import 'package:cheng_eng_3/core/services/image_service.dart';
 import 'package:cheng_eng_3/core/services/towing_service.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:uuid/uuid.dart';
 
-part 'customer_towing_notifier.g.dart';
+part 'customer_towings_notifier.g.dart';
 
 @riverpod
-class CustomerTowingNotifier extends _$CustomerTowingNotifier {
+class CustomerTowingsNotifier extends _$CustomerTowingsNotifier {
   TowingService get _towingService => ref.read(towingServiceProvider);
   ImageService get _imageService => ref.read(imageServiceProvider);
 
@@ -103,16 +102,15 @@ class CustomerTowingNotifier extends _$CustomerTowingNotifier {
   }
 }
 
-final customerTowingByIdProvider = FutureProvider.family<Towing, ({String userId, String towingId})>(
-  (ref, params) async {
-    final towingList = await ref.watch(customerTowingProvider(params.userId).future);
+// final customerTowingByIdProvider = FutureProvider.family<Towing, ({String userId, String towingId})>(
+//   (ref, params) async {
+//     final towingList = await ref.watch(customerTowingProvider(params.userId).future);
 
-    final towing = towingList.firstWhere(
-      (t) => t.id == params.towingId,
-      orElse: () => throw Exception('Towing not found'),
-    );
+//     final towing = towingList.firstWhere(
+//       (t) => t.id == params.towingId,
+//       orElse: () => throw Exception('Towing not found'),
+//     );
 
-    return towing;
-  },
-);
-
+//     return towing;
+//   },
+// );
