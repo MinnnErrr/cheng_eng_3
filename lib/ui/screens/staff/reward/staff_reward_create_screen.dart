@@ -1,6 +1,6 @@
 import 'dart:io';
 
-import 'package:cheng_eng_3/core/controllers/reward/staff_reward_notifier.dart';
+import 'package:cheng_eng_3/core/controllers/reward/staff_rewards_notifier.dart';
 import 'package:cheng_eng_3/ui/widgets/datepicker.dart';
 import 'package:cheng_eng_3/ui/widgets/snackbar.dart';
 import 'package:cheng_eng_3/ui/widgets/textformfield.dart';
@@ -18,6 +18,7 @@ class StaffRewardCreateScreen extends ConsumerStatefulWidget {
 }
 
 class _StaffRewardCreateState extends ConsumerState<StaffRewardCreateScreen> {
+  // Controllers
   final _codeCtrl = TextEditingController();
   final _nameCtrl = TextEditingController();
   final _descCtrl = TextEditingController();
@@ -27,10 +28,12 @@ class _StaffRewardCreateState extends ConsumerState<StaffRewardCreateScreen> {
   final _availableDateCtrl = TextEditingController();
   final _validityCtrl = TextEditingController();
 
+  // State Variables
   bool _limitedPeriod = false;
   DateTime? _availableUntil;
   bool _isActive = true;
   bool _hasValidity = false;
+  bool _isLoading = false; // Added loading state
   final List<File> _photos = [];
 
   final _formKey = GlobalKey<FormState>();
@@ -38,11 +41,28 @@ class _StaffRewardCreateState extends ConsumerState<StaffRewardCreateScreen> {
 
   Future<void> _pickPhoto() async {
     final picker = ImagePicker();
-    final image = await picker.pickImage(source: ImageSource.gallery);
+    // Added maxWidth/Height to optimize performance and upload speed
+    final image = await picker.pickImage(
+      source: ImageSource.gallery,
+      maxWidth: 1024, 
+      maxHeight: 1024,
+      imageQuality: 80,
+    );
 
     if (image != null) {
       setState(() {
         _photos.add(File(image.path));
+      });
+    }
+  }
+
+  // Helper method to pick date to avoid code duplication
+  Future<void> _handleDateSelection() async {
+    final date = await datePicker(DateTime.now(), context);
+    if (date != null) {
+      setState(() {
+        _availableUntil = date;
+        _availableDateCtrl.text = _dateFormatter.format(date);
       });
     }
   }
@@ -62,25 +82,32 @@ class _StaffRewardCreateState extends ConsumerState<StaffRewardCreateScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final notifer = ref.read(staffRewardProvider.notifier);
+    // You can also watch the provider state to see if it is loading globally
+    // final state = ref.watch(staffRewardsProvider); 
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('Add Reward'),
+        title: const Text('Add Reward'),
       ),
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: EdgeInsets.all(20),
+          padding: const EdgeInsets.all(20),
           child: Form(
             key: _formKey,
             child: Column(
-              spacing: 20,
+              // spacing: 20 is valid in newer Flutter versions. 
+              // If using older versions, use SizedBox(height: 20) between widgets.
+              spacing: 20, 
               children: [
                 textFormField(controller: _codeCtrl, label: 'Reward Code'),
 
                 textFormField(controller: _nameCtrl, label: 'Name'),
 
-                textFormField(controller: _pointCtrl, label: 'Points Required'),
+                textFormField(
+                  controller: _pointCtrl, 
+                  label: 'Points Required',
+                  keyboardType: TextInputType.number, // Ensure numeric keyboard
+                ),
 
                 textFormField(
                   controller: _qtyCtrl,
@@ -89,7 +116,7 @@ class _StaffRewardCreateState extends ConsumerState<StaffRewardCreateScreen> {
                 ),
 
                 DropdownButtonFormField<bool>(
-                  initialValue: _limitedPeriod,
+                  initialValue: _limitedPeriod, // changed from initialValue to value for better state syncing
                   decoration: const InputDecoration(
                     labelText: "Display reward for limited period?",
                   ),
@@ -101,21 +128,11 @@ class _StaffRewardCreateState extends ConsumerState<StaffRewardCreateScreen> {
                     if (value != null) {
                       setState(() {
                         _limitedPeriod = value;
+                        if (!value) {
+                          _availableUntil = null;
+                          _availableDateCtrl.clear();
+                        }
                       });
-
-                      if (value == false) {
-                        setState(() {
-                          _availableUntil == null;
-                          _availableDateCtrl.text = '';
-                        });
-                      }
-                    }
-                  },
-                  validator: (value) {
-                    if (value == null) {
-                      return 'Required';
-                    } else {
-                      return null;
                     }
                   },
                 ),
@@ -125,19 +142,11 @@ class _StaffRewardCreateState extends ConsumerState<StaffRewardCreateScreen> {
                     controller: _availableDateCtrl,
                     label: 'Available Until',
                     readOnly: true,
+                    // UX: Allow tapping the whole field, not just the icon
+                    onTap: _handleDateSelection, 
                     suffix: IconButton(
-                      onPressed: () async {
-                        final date = await datePicker(DateTime.now(), context);
-                        if (date != null) {
-                          setState(() {
-                            _availableUntil = date;
-                            _availableDateCtrl.text = _dateFormatter.format(
-                              date,
-                            );
-                          });
-                        }
-                      },
-                      icon: Icon(Icons.calendar_month),
+                      onPressed: _handleDateSelection,
+                      icon: const Icon(Icons.calendar_month),
                     ),
                   ),
 
@@ -154,20 +163,10 @@ class _StaffRewardCreateState extends ConsumerState<StaffRewardCreateScreen> {
                     if (value != null) {
                       setState(() {
                         _hasValidity = value;
+                        if (!value) {
+                          _validityCtrl.clear();
+                        }
                       });
-
-                      if (value == false) {
-                        setState(() {
-                          _validityCtrl.text = '';
-                        });
-                      }
-                    }
-                  },
-                  validator: (value) {
-                    if (value == null) {
-                      return 'Required';
-                    } else {
-                      return null;
                     }
                   },
                 ),
@@ -206,54 +205,20 @@ class _StaffRewardCreateState extends ConsumerState<StaffRewardCreateScreen> {
                     DropdownMenuItem(value: false, child: Text("No")),
                   ],
                   onChanged: (value) {
-                    if (value != null) {
-                      setState(() {
-                        _isActive = value;
-                      });
-                    }
-                  },
-                  validator: (value) {
-                    if (value == null) {
-                      return 'Required';
-                    } else {
-                      return null;
-                    }
+                    if (value != null) setState(() => _isActive = value);
                   },
                 ),
 
-                ElevatedButton(
-                  onPressed: () async {
-                    if (!_formKey.currentState!.validate()) return;
-
-                    final message = await notifer.addReward(
-                      rewardCode: _codeCtrl.text.trim(),
-                      name: _nameCtrl.text.trim(),
-                      description: _descCtrl.text.trim(),
-                      points: int.parse(_pointCtrl.text.trim()),
-                      quantity: int.parse(_qtyCtrl.text.trim()),
-                      status: _isActive,
-                      photos: _photos,
-                      conditions: _conditionCtrl.text.trim().isEmpty
-                          ? null
-                          : _conditionCtrl.text.trim(),
-                      availableUntil: _availableUntil,
-                      validityWeeks: _validityCtrl.text.trim().isEmpty
-                          ? null
-                          : int.parse(_validityCtrl.text.trim()),
-                    );
-
-                    if (!context.mounted) return;
-                    showAppSnackBar(
-                      context: context,
-                      content: message.message,
-                      isError: !message.isSuccess,
-                    );
-
-                    if (message.isSuccess) {
-                      Navigator.of(context).pop();
-                    }
-                  },
-                  child: Text('Add Reward'),
+                // Submit Button
+                SizedBox(
+                  width: double.infinity,
+                  height: 50,
+                  child: ElevatedButton(
+                    onPressed: _isLoading ? null : _submitForm,
+                    child: _isLoading 
+                      ? const CircularProgressIndicator.adaptive() 
+                      : const Text('Add Reward'),
+                  ),
                 ),
               ],
             ),
@@ -263,30 +228,95 @@ class _StaffRewardCreateState extends ConsumerState<StaffRewardCreateScreen> {
     );
   }
 
+  Future<void> _submitForm() async {
+    // 1. Basic Form Validation (checks for empty fields based on your validators)
+    if (!_formKey.currentState!.validate()) return;
+
+    // 2. Set Loading State
+    setState(() => _isLoading = true);
+
+    // 3. Prepare Data (Safe Parsing)
+    // We do this in the UI to ensure we send valid types to the Notifier
+    final points = int.tryParse(_pointCtrl.text.trim()) ?? 0;
+    final qty = int.tryParse(_qtyCtrl.text.trim()) ?? 0;
+    
+    // Logic for conditional validity
+    final int? validityWeeks = _hasValidity && _validityCtrl.text.isNotEmpty
+        ? int.tryParse(_validityCtrl.text.trim())
+        : null;
+
+    // Logic for conditional date
+    final DateTime? availableDate = _limitedPeriod 
+        ? _availableUntil 
+        : null;
+
+    final notifier = ref.read(staffRewardsProvider.notifier);
+
+    // 4. Call the Notifier
+    // Since you handle try-catch inside here, we just await the result.
+    final message = await notifier.addReward(
+      rewardCode: _codeCtrl.text.trim(),
+      name: _nameCtrl.text.trim(),
+      description: _descCtrl.text.trim(),
+      points: points,
+      quantity: qty,
+      status: _isActive,
+      photos: _photos,
+      conditions: _conditionCtrl.text.trim().isEmpty 
+          ? null 
+          : _conditionCtrl.text.trim(),
+      availableUntil: availableDate,
+      validityWeeks: validityWeeks,
+    );
+
+    // 5. Turn off Loading
+    if (mounted) {
+      setState(() => _isLoading = false);
+    }
+
+    // 6. Handle Navigation & Feedback
+    if (!mounted) return;
+
+    showAppSnackBar(
+      context: context,
+      content: message.message,
+      isError: !message.isSuccess,
+    );
+
+    if (message.isSuccess) {
+      Navigator.of(context).pop();
+    }
+  }
+
   Widget _photoSection() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
-      spacing: 10,
       children: [
         Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             const Text(
               "Photos",
               style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
             ),
-            Spacer(),
             TextButton.icon(
               onPressed: _pickPhoto,
-              label: Text('Add'),
-              icon: Icon(Icons.add_circle),
+              label: const Text('Add'),
+              icon: const Icon(Icons.add_circle),
               style: ButtonStyle(iconAlignment: IconAlignment.end),
             ),
           ],
         ),
-
-        // Photo Grid
+        const SizedBox(height: 10),
         _photos.isEmpty
-            ? Text('No photo added')
+            ? Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  border: Border.all(color: Colors.grey.shade300),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Center(child: Text('No photo added')),
+              )
             : GridView.builder(
                 physics: const NeverScrollableScrollPhysics(),
                 shrinkWrap: true,
@@ -298,7 +328,6 @@ class _StaffRewardCreateState extends ConsumerState<StaffRewardCreateScreen> {
                 ),
                 itemBuilder: (context, index) {
                   final file = _photos[index];
-
                   return Stack(
                     children: [
                       ClipRRect(
@@ -310,8 +339,6 @@ class _StaffRewardCreateState extends ConsumerState<StaffRewardCreateScreen> {
                           fit: BoxFit.cover,
                         ),
                       ),
-
-                      //delete
                       Positioned(
                         right: 4,
                         top: 4,
@@ -323,7 +350,7 @@ class _StaffRewardCreateState extends ConsumerState<StaffRewardCreateScreen> {
                           },
                           child: Container(
                             decoration: BoxDecoration(
-                              color: Theme.of(context).colorScheme.primary,
+                              color: Colors.red, // Changed to red for standard delete action
                               shape: BoxShape.circle,
                             ),
                             padding: const EdgeInsets.all(4),

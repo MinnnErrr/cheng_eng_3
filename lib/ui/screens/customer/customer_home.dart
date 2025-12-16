@@ -1,11 +1,11 @@
 import 'package:cheng_eng_3/core/controllers/auth/auth_notifier.dart';
 import 'package:cheng_eng_3/core/controllers/maintenance/maintenance_nearest_date_provider.dart';
-import 'package:cheng_eng_3/core/controllers/point/customer_point_history_notifier.dart';
+import 'package:cheng_eng_3/core/controllers/point/total_points_provider.dart';
 import 'package:cheng_eng_3/core/models/maintenance_model.dart';
-import 'package:cheng_eng_3/main.dart';
 import 'package:cheng_eng_3/ui/screens/customer/cart/cart_screen.dart';
 import 'package:cheng_eng_3/ui/screens/customer/maintenance/maintenance_details_screen.dart';
 import 'package:cheng_eng_3/ui/screens/customer/product/customer_product_screen.dart';
+import 'package:cheng_eng_3/ui/screens/customer/redeemed_reward/customer_redeemed_reward_screen.dart';
 import 'package:cheng_eng_3/ui/screens/customer/reward/customer_reward_screen.dart';
 import 'package:cheng_eng_3/ui/screens/profile_screen.dart';
 import 'package:cheng_eng_3/ui/screens/customer/towing/towing_screen.dart';
@@ -20,152 +20,190 @@ class CustomerHome extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final user = ref.watch(authProvider).value;
+    final userState = ref.watch(authProvider);
+    final user = userState.value;
 
+    // Handle loading or null user gracefully in UI while listener redirects
     if (user == null) {
-      Navigator.of(context).pushAndRemoveUntil(
-        MaterialPageRoute(
-          builder: (context) => Main(),
-        ),
-        (route) => false,
+      return const Scaffold(
+        body: Center(child: Text('No user found')),
       );
     }
 
-    final totalPoints = ref.watch(totalPointsProvider(user!.id));
+    final totalPoints = ref.watch(totalPointsProvider(user.id));
     final nearestMaintenance = ref.watch(maintenanceByNearestDateProvider);
 
     return Scaffold(
       body: SafeArea(
-        child: SingleChildScrollView(
-          padding: EdgeInsets.all(20),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Customer Home',
-                style: Theme.of(context).textTheme.headlineSmall!.copyWith(
-                  fontWeight: FontWeight.bold,
+        child: RefreshIndicator(
+          onRefresh: () async {
+            // Refresh data when user pulls down
+            ref.invalidate(totalPointsProvider(user.id));
+            ref.invalidate(maintenanceByNearestDateProvider);
+            // Optional: wait a bit to show the loading spinner
+            await Future.delayed(const Duration(seconds: 1));
+          },
+          child: SingleChildScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Customer Home',
+                  style: Theme.of(context).textTheme.headlineSmall!.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
-              ),
-              SizedBox(height: 20),
+                const SizedBox(height: 20),
 
-              // Navigation buttons
-              Row(
-                children: [
-                  Expanded(
-                    child: ElevatedButton(
-                      onPressed: () {
-                        Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (context) => ProfileScreen(),
-                          ),
-                        );
-                      },
-                      child: Text('Profile'),
-                    ),
-                  ),
-                  SizedBox(width: 10),
-                  Expanded(
-                    child: ElevatedButton(
-                      onPressed: () {
-                        Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (context) => VehicleScreen(),
-                          ),
-                        );
-                      },
-                      child: Text('Vehicles'),
-                    ),
-                  ),
-                  Expanded(
-                    child: ElevatedButton(
-                      onPressed: () {
-                        Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (context) => TowingScreen(),
-                          ),
-                        );
-                      },
-                      child: Text('Towing'),
-                    ),
-                  ),
-                  Expanded(
-                    child: ElevatedButton(
-                      onPressed: () {
-                        Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (context) => CustomerProductScreen(),
-                          ),
-                        );
-                      },
-                      child: Text('Products'),
-                    ),
-                  ),
-                  GestureDetector(
-                    onTap: () => Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (context) => CartScreen(),
+                // Navigation buttons
+                Row(
+                  children: [
+                    Expanded(
+                      child: _navButton(
+                        context,
+                        'Profile',
+                        const ProfileScreen(),
                       ),
                     ),
-                    child: cartIcon(ref, context),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: _navButton(
+                        context,
+                        'Vehicles',
+                        const VehicleScreen(),
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: _navButton(
+                        context,
+                        'Towing',
+                        const TowingScreen(),
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: _navButton(
+                        context,
+                        'Products',
+                        const CustomerProductScreen(),
+                      ),
+                    ),
+                    Expanded(
+                      child: _navButton(
+                        context,
+                        'My Rewards',
+                        const CustomerRedeemedRewardScreen(),
+                      ),
+                    ),
+                  ],
+                ),
+
+                const SizedBox(height: 15),
+
+                // Second Row for Cart & Rewards (Optional cleanup to prevent overcrowding)
+                Row(
+                  children: [
+                    Expanded(
+                      child: ElevatedButton(
+                        onPressed: () {
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (context) =>
+                                  const CustomerRewardScreen(),
+                            ),
+                          );
+                        },
+                        child: const Text('Rewards'),
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    GestureDetector(
+                      onTap: () => Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (context) => const CartScreen(),
+                        ),
+                      ),
+                      child: cartIcon(ref, context),
+                    ),
+                  ],
+                ),
+
+                const SizedBox(height: 30),
+
+                // Point Dashboard
+                Container(
+                  width: double.infinity,
+                  clipBehavior: Clip.hardEdge,
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).colorScheme.primary,
+                    borderRadius: BorderRadius.circular(12),
                   ),
-                  Expanded(
-                    child: ElevatedButton(
-                      onPressed: () {
-                        Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (context) => CustomerRewardScreen(),
-                          ),
-                        );
-                      },
-                      child: Text('Rewards'),
+                  child: totalPoints.when(
+                    data: (total) => _pointDashboard(
+                      context: context,
+                      totalPoints: total,
+                    ),
+                    // Handle error gracefully with 0 points or error text
+                    error: (error, _) =>
+                        _pointDashboard(context: context, totalPoints: 0),
+                    loading: () => const Padding(
+                      padding: EdgeInsets.all(40.0),
+                      child: Center(
+                        child: CircularProgressIndicator(color: Colors.white),
+                      ),
                     ),
                   ),
-                ],
-              ),
-
-              SizedBox(height: 30),
-
-              // point dashboard
-              Container(
-                width: double.infinity,
-                clipBehavior: Clip.hardEdge,
-                decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.primary,
-                  borderRadius: BorderRadius.circular(12),
                 ),
-                child: totalPoints.when(
-                  data: (total) {
-                    return _pointDashboard(context: context, totalPoints: total);
-                  },
-                  error: (error, stackTrace) => Text("Error"),
-                  loading: () =>
-                      const Center(child: CircularProgressIndicator()),
-                ),
-              ),
 
-              // Maintenance notification
-              Container(
-                padding: EdgeInsets.all(15),
-                decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.primaryContainer,
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: nearestMaintenance.when(
-                  data: (list) {
-                    final nearest = list.maintenances;
+                const SizedBox(height: 30),
 
-                    return _maintenanceNotification(nearest, context);
-                  },
-                  error: (error, stackTrace) => Text("Error"),
-                  loading: () => const Center(
-                    child: CircularProgressIndicator(),
+                // Maintenance Notification
+                Container(
+                  padding: const EdgeInsets.all(15),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).colorScheme.primaryContainer,
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: nearestMaintenance.when(
+                    data: (list) {
+                      // Assuming your provider returns an object with a .maintenances list
+                      final nearest = list.maintenances;
+                      return _maintenanceNotification(nearest, context);
+                    },
+                    error: (error, stackTrace) => Center(
+                      child: Text("Error loading maintenance: $error"),
+                    ),
+                    loading: () => const Center(
+                      child: CircularProgressIndicator(),
+                    ),
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
+      ),
+    );
+  }
+
+  // Helper for cleaner buttons
+  Widget _navButton(BuildContext context, String label, Widget screen) {
+    return ElevatedButton(
+      style: ElevatedButton.styleFrom(
+        padding: const EdgeInsets.symmetric(horizontal: 5), // Prevent overflow
+      ),
+      onPressed: () {
+        Navigator.of(context).push(
+          MaterialPageRoute(builder: (context) => screen),
+        );
+      },
+      child: Text(
+        label,
+        overflow: TextOverflow.ellipsis,
+        style: const TextStyle(fontSize: 12),
       ),
     );
   }
@@ -198,7 +236,7 @@ class CustomerHome extends ConsumerWidget {
               ElevatedButton(
                 onPressed: () => Navigator.of(context).push(
                   MaterialPageRoute(
-                    builder: (context) => CustomerRewardScreen(),
+                    builder: (context) => const CustomerRewardScreen(),
                   ),
                 ),
                 style: ElevatedButton.styleFrom(
@@ -214,10 +252,10 @@ class CustomerHome extends ConsumerWidget {
           ),
         ),
 
-        /// IMAGE ON RIGHT WITH CLIPPING
+        // Image with error handling
         Positioned(
-          right: 5, // slight overflow for nice effect
-          bottom: -17, // will be clipped
+          right: 5,
+          bottom: -17,
           child: SizedBox(
             height: MediaQuery.of(context).size.height * 0.18,
             child: Image.asset(
@@ -239,25 +277,23 @@ class CustomerHome extends ConsumerWidget {
       children: [
         Text(
           'Upcoming Maintenance',
-          style: Theme.of(
-            context,
-          ).textTheme.titleMedium!.copyWith(fontWeight: FontWeight.bold),
+          style: Theme.of(context).textTheme.titleMedium!.copyWith(
+            fontWeight: FontWeight.bold,
+          ),
         ),
-        SizedBox(height: 15),
-
+        const SizedBox(height: 15),
         nearestMaintenance.isEmpty
-            ? Center(
+            ? const Center(
                 child: Padding(
                   padding: EdgeInsets.all(15),
                   child: Text('No upcoming maintenance'),
                 ),
               )
             : ListView.separated(
-                shrinkWrap: true, // Important: lets it take only needed height
-                physics:
-                    NeverScrollableScrollPhysics(), // Prevent conflicts with outer scroll
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
                 itemCount: nearestMaintenance.length,
-                separatorBuilder: (_, __) => SizedBox(height: 12),
+                separatorBuilder: (_, __) => const SizedBox(height: 12),
                 itemBuilder: (context, index) {
                   final m = nearestMaintenance[index];
                   return MaintenanceListItem(
@@ -265,7 +301,7 @@ class CustomerHome extends ConsumerWidget {
                     tapAction: () => Navigator.of(context).push(
                       MaterialPageRoute(
                         builder: (context) => MaintenanceDetailsScreen(
-                          maintenanceId: m.id,
+                          maintenance: m,
                         ),
                       ),
                     ),

@@ -1,4 +1,3 @@
-
 import 'package:cheng_eng_3/core/models/towing_model.dart';
 import 'package:cheng_eng_3/core/services/image_service.dart';
 import 'package:cheng_eng_3/ui/widgets/imagebuilder.dart';
@@ -6,149 +5,147 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
-class TowingDetailsScreen extends ConsumerWidget {
-  const TowingDetailsScreen({super.key, required this.towing});
+class TowingDetailsWidget extends ConsumerWidget {
+  const TowingDetailsWidget({super.key, required this.towing});
 
   final Towing towing;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final screenSize = MediaQuery.sizeOf(context);
-
     final imageService = ref.read(imageServiceProvider);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
-      spacing: 30,
       children: [
-        //vehicle
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          spacing: 10,
-          children: [
-            Text(
-              'Vehicle Details',
-              style: Theme.of(
-                context,
-              ).textTheme.bodyLarge!.copyWith(fontWeight: FontWeight.bold),
-            ),
-            _vehicle(context, towing, imageService, screenSize),
-          ],
+        // --- Vehicle Section ---
+        Text(
+          'Vehicle Details',
+          style: Theme.of(
+            context,
+          ).textTheme.bodyLarge!.copyWith(fontWeight: FontWeight.bold),
         ),
+        const SizedBox(height: 10),
+        _vehicle(context, towing, imageService, screenSize),
 
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          spacing: 10,
-          children: [
-            Text(
-              'Towing Details',
-              style: Theme.of(
-                context,
-              ).textTheme.bodyLarge!.copyWith(fontWeight: FontWeight.bold),
-            ),
-            _towingDetails(context, towing),
-          ],
+        const SizedBox(height: 30),
+
+        // --- Towing Details Section ---
+        Text(
+          'Towing Details',
+          style: Theme.of(
+            context,
+          ).textTheme.bodyLarge!.copyWith(fontWeight: FontWeight.bold),
         ),
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          spacing: 10,
-          children: [
-            Text(
-              'Picture of Surrounding',
-              style: Theme.of(
-                context,
-              ).textTheme.bodyLarge!.copyWith(fontWeight: FontWeight.bold),
-            ),
-            _image(context, towing, imageService, screenSize),
-          ],
+        const SizedBox(height: 10),
+        _towingDetails(context, towing),
+
+        const SizedBox(height: 30),
+
+        // --- Image Section ---
+        Text(
+          'Picture of Surrounding',
+          style: Theme.of(
+            context,
+          ).textTheme.bodyLarge!.copyWith(fontWeight: FontWeight.bold),
         ),
+        const SizedBox(height: 10),
+        _image(context, towing, imageService, screenSize),
       ],
     );
   }
 
   Widget _towingDetails(BuildContext context, Towing towing) {
     final dateFormatter = DateFormat('dd/MM/yyyy').add_jm();
-    Widget towingDetailsItem({required String title, required String value}) {
-      return Row(
+
+    // inside lib/ui/widgets/towing_details.dart
+
+  Widget towingDetailsItem({required String title, required String value}) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 10.0),
+      child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        spacing: 10,
+        crossAxisAlignment: CrossAxisAlignment.start, // Align to top in case of wrapping
         children: [
           Text(
             title,
-            style: TextStyle(fontWeight: FontWeight.bold),
+            style: const TextStyle(fontWeight: FontWeight.bold),
           ),
-          Text(
-            value,
-            softWrap: true,
+          const SizedBox(width: 20), 
+          
+          // FIX D: Use Expanded instead of Flexible to force wrapping
+          Expanded( 
+            child: Text(
+              value,
+              textAlign: TextAlign.end,
+              softWrap: true, // Ensure wrapping is enabled
+            ),
           ),
         ],
-      );
-    }
+      ),
+    );
+  }
 
     return Container(
       width: double.infinity,
-      color: Theme.of(context).colorScheme.surfaceContainer,
-      child: Column(
-        children: [
-          SizedBox(
-            width: double.infinity,
-            child: Padding(
-              padding: EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surfaceContainer,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          children: [
+            towingDetailsItem(
+              title: 'Address',
+              value: towing.address,
+            ),
+            towingDetailsItem(
+              title: 'Coordinates',
+              value: '${towing.longitude}, ${towing.latitude}',
+            ),
+            towingDetailsItem(
+              title: 'Created At',
+              value: dateFormatter.format(towing.createdAt),
+            ),
+            towingDetailsItem(
+              title: 'Updated At',
+              value: towing.updatedAt != null
+                  ? dateFormatter.format(towing.updatedAt!)
+                  : '-',
+            ),
+            towingDetailsItem(
+              title: 'Status',
+              value: towing.status,
+            ),
+
+            // Remarks
+            Container(
+              padding: const EdgeInsets.all(12),
+              width: double.infinity,
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.errorContainer,
+                borderRadius: BorderRadius.circular(8),
+              ),
               child: Column(
-                spacing: 20,
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  towingDetailsItem(
-                    title: 'Address',
-                    value: towing.address,
+                  const Text(
+                    'Remarks',
+                    style: TextStyle(fontWeight: FontWeight.bold),
                   ),
-                  towingDetailsItem(
-                    title: 'Coordinates',
-                    value: '${towing.longitude}, ${towing.latitude}',
-                  ),
-                  towingDetailsItem(
-                    title: 'Created At',
-                    value: dateFormatter.format(towing.createdAt),
-                  ),
-                  towingDetailsItem(
-                    title: 'Updated At',
-                    value: towing.updatedAt != null
-                        ? dateFormatter.format(towing.updatedAt!)
-                        : '-',
-                  ),
-                  towingDetailsItem(
-                    title: 'Status',
-                    value: towing.status,
-                  ),
-                  Container(
-                    padding: EdgeInsets.all(10),
-                    width: double.infinity,
-                    decoration: BoxDecoration(
-                      color: Theme.of(context).colorScheme.errorContainer,
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Remarks',
-                          style: TextStyle(fontWeight: FontWeight.bold),
-                        ),
-                        Text(
-                          towing.remarks ?? '-',
-                          style: TextStyle(
-                            color: Theme.of(
-                              context,
-                            ).colorScheme.onErrorContainer,
-                          ),
-                        ),
-                      ],
+                  const SizedBox(height: 4),
+                  Text(
+                    towing.remarks ?? '-',
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.onErrorContainer,
                     ),
                   ),
                 ],
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -159,25 +156,28 @@ class TowingDetailsScreen extends ConsumerWidget {
     ImageService imageService,
     Size screenSize,
   ) {
-    return imageBuilder(
-      url: towing.photoPath != null
-          ? imageService.retrieveImageUrl(
-              towing.photoPath!,
-            )
-          : null,
-      containerWidth: double.infinity,
-      containerHeight: screenSize.height * 0.3,
-      noImageContent: Container(
-        color: Colors.white,
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.image_not_supported),
-            Text('No image found'),
-          ],
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(12),
+      child: imageBuilder(
+        url: towing.photoPath != null
+            ? imageService.retrieveImageUrl(towing.photoPath!)
+            : null,
+        containerWidth: double.infinity,
+        containerHeight: screenSize.height * 0.3,
+        noImageContent: Container(
+          width: double.infinity,
+          color: Colors.grey.shade200,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: const [
+              Icon(Icons.image_not_supported, color: Colors.grey),
+              SizedBox(height: 8),
+              Text('No image found', style: TextStyle(color: Colors.grey)),
+            ],
+          ),
         ),
+        context: context,
       ),
-      context: context,
     );
   }
 
@@ -187,63 +187,64 @@ class TowingDetailsScreen extends ConsumerWidget {
     ImageService imageService,
     Size screenSize,
   ) {
-    return InkWell(
-      child: Card(
-        color: Theme.of(context).colorScheme.surfaceContainer,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-        child: Padding(
-          padding: EdgeInsets.all(10),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              //picture
-              imageBuilder(
+    return Card(
+      color: Theme.of(context).colorScheme.surfaceContainer,
+      elevation: 0,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Vehicle Image
+            ClipRRect(
+              borderRadius: BorderRadius.circular(8),
+              child: imageBuilder(
                 url: towing.photoPath != null
                     ? imageService.retrieveImageUrl(towing.photoPath!)
                     : null,
-                containerWidth: screenSize.width * 0.15,
-                containerHeight: screenSize.height * 0.1,
+                containerWidth: screenSize.width * 0.2, // Slightly larger
+                containerHeight: screenSize.width * 0.2,
                 noImageContent: Container(
-                  color: Colors.white,
-                  child: Icon(Icons.directions_car),
+                  color: Colors.grey.shade300,
+                  child: const Icon(Icons.directions_car),
                 ),
                 context: context,
               ),
+            ),
 
-              const SizedBox(
-                width: 20,
+            const SizedBox(width: 16),
+
+            // Vehicle Details
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    towing.regNum,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    '${towing.make}, ${towing.model}',
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: Theme.of(context).textTheme.bodyMedium,
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    towing.colour,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: Theme.of(context).textTheme.bodySmall,
+                  ),
+                ],
               ),
-
-              //details
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      towing.regNum,
-                      style: TextStyle(fontWeight: FontWeight.bold),
-                    ),
-
-                    const SizedBox(
-                      height: 10,
-                    ),
-
-                    Text(
-                      '${towing.make}, ${towing.model}',
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-
-                    Text(
-                      towing.colour,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );

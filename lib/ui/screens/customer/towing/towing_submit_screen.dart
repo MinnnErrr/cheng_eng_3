@@ -33,11 +33,15 @@ class TowingSubmitScreen extends ConsumerStatefulWidget {
 class _TowingSubmitScreenState extends ConsumerState<TowingSubmitScreen> {
   final _remarksCtrl = TextEditingController();
   final _vehicleCtrl = TextEditingController();
+  
+  // Local loading state for the submit button
+  bool _isLoading = false;
+
   String _countryCode = 'MY';
   String _dialCode = '+60';
   String? _phoneNum;
   File? _pickedImage;
-  String? _vehicleId;
+  Vehicle? _vehicle;
 
   final _imagePicker = ImagePicker();
   final _formKey = GlobalKey<FormState>();
@@ -51,27 +55,37 @@ class _TowingSubmitScreenState extends ConsumerState<TowingSubmitScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // 1. Safety Check: Ensure user is loaded
+    final userState = ref.watch(authProvider);
+    final user = userState.value;
+
+    if (user == null) {
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
+
     final vehicleList = ref.watch(customerVehicleProvider).value;
     final vehicles = vehicleList?.vehicles ?? [];
-
-    final user = ref.watch(authProvider).value;
-    final towingNotifier = ref.read(customerTowingsProvider(user!.id).notifier);
+    
+    // We only read the notifier here, we don't watch the state for loading
+    // because we handle button loading locally
+    final towingNotifier = ref.read(customerTowingsProvider(user.id).notifier);
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('Submit Towing Request'),
+        title: const Text('Submit Towing Request'),
       ),
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: EdgeInsets.all(20),
+          padding: const EdgeInsets.all(20),
           child: Form(
             key: _formKey,
             child: Column(
-              spacing: 20,
+              spacing: 20, // Requires Flutter 3.27+
               children: [
-                //address
+                // Address Box
                 Container(
-                  padding: EdgeInsets.all(20),
+                  padding: const EdgeInsets.all(20),
+                  width: double.infinity,
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(10),
                     color: Theme.of(context).colorScheme.surfaceContainer,
@@ -79,7 +93,7 @@ class _TowingSubmitScreenState extends ConsumerState<TowingSubmitScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
+                      const Text(
                         'Address:',
                         style: TextStyle(fontWeight: FontWeight.bold),
                       ),
@@ -87,49 +101,48 @@ class _TowingSubmitScreenState extends ConsumerState<TowingSubmitScreen> {
                         widget.address,
                         softWrap: true,
                       ),
-                      const SizedBox(
-                        height: 10,
-                      ),
+                      const SizedBox(height: 10),
                       Row(
                         children: [
-                          Icon(
-                            Icons.location_on,
-                            size: 20,
+                          const Icon(Icons.location_on, size: 20, color: Colors.red),
+                          const SizedBox(width: 5),
+                          Expanded(
+                            child: Text(
+                              '${widget.latitude.toStringAsFixed(5)}, ${widget.longitude.toStringAsFixed(5)}',
+                              style: Theme.of(context).textTheme.bodySmall,
+                            ),
                           ),
-                          const SizedBox(
-                            width: 5,
-                          ),
-                          Text('${widget.longitude}, ${widget.latitude}'),
                         ],
                       ),
                     ],
                   ),
                 ),
 
-                //emergency number
+                // Emergency number
                 IntlPhoneField(
-                  initialCountryCode: _countryCode,
+                  initialCountryCode: 'MY',
                   initialValue: _phoneNum,
-                  decoration: InputDecoration(
+                  decoration: const InputDecoration(
                     labelText: 'Emergency Phone Number',
+                    border: OutlineInputBorder(),
                   ),
                   onChanged: (value) {
-                    setState(() {
-                      _dialCode = value.countryCode;
-                      _countryCode = value.countryISOCode;
-                      _phoneNum = value.number;
-                    });
+                    // Update state variables directly
+                    _dialCode = value.countryCode;
+                    _countryCode = value.countryISOCode;
+                    _phoneNum = value.number;
                   },
                 ),
 
-                //vehicle
+                // Vehicle Selection
                 textFormField(
                   controller: _vehicleCtrl,
                   label: 'Vehicle',
+                  readOnly: true, 
                   onTap: () => _showVehicleModal(context, vehicles),
                 ),
 
-                //remarks
+                // Remarks
                 textFormField(
                   controller: _remarksCtrl,
                   label: 'Remarks',
@@ -138,53 +151,78 @@ class _TowingSubmitScreenState extends ConsumerState<TowingSubmitScreen> {
                   validationRequired: false,
                 ),
 
-                //picture
+                // Picture
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   spacing: 10,
                   children: [
-                    Text(
+                    const Text(
                       'Picture of surrounding',
                       style: TextStyle(fontWeight: FontWeight.bold),
                     ),
                     _buildImagePicker(),
                   ],
                 ),
+                
+                const SizedBox(height: 10),
 
-                ElevatedButton(
-                  onPressed: () async {
-                    if (!_formKey.currentState!.validate()) return;
+                // Submit Button
+                SizedBox(
+                  width: double.infinity,
+                  height: 50,
+                  child: ElevatedButton(
+                    onPressed: _isLoading 
+                      ? null 
+                      : () async {
+                        if (!_formKey.currentState!.validate()) return;
+                        
+                        if (_phoneNum == null || _phoneNum!.isEmpty) {
+                           showAppSnackBar(context: context, content: "Please enter a phone number", isError: true);
+                           return;
+                        }
 
-                    final success = await towingNotifier.addTowing(
-                      latitude: widget.latitude,
-                      longitude: widget.longitude,
-                      address: widget.address,
-                      phoneNum: _phoneNum!,
-                      dialCode: _dialCode,
-                      countryCode: _countryCode,
-                      remarks: _remarksCtrl.text.trim().isEmpty ? null : _remarksCtrl.text.trim(),
-                      vehicleId: _vehicleId!,
-                    );
+                        setState(() => _isLoading = true);
 
-                    if (!context.mounted) return;
-                    showAppSnackBar(
-                      context: context,
-                      content: success
-                          ? 'Towing request submitted'
-                          : 'Failed to submit towing request',
-                      isError: !success,
-                    );
+                        // FIX: Pass the picked image to the notifier
+                        final success = await towingNotifier.addTowing(
+                          latitude: widget.latitude,
+                          longitude: widget.longitude,
+                          address: widget.address,
+                          phoneNum: _phoneNum!,
+                          dialCode: _dialCode,
+                          countryCode: _countryCode,
+                          remarks: _remarksCtrl.text.trim().isEmpty 
+                              ? null 
+                              : _remarksCtrl.text.trim(),
+                          vehicle: _vehicle!,
+                          photo: _pickedImage, // <--- CRITICAL FIX
+                        );
 
-                    if (success) {
-                      Navigator.of(context).pushAndRemoveUntil(
-                        MaterialPageRoute(
-                          builder: (context) => TowingScreen(),
-                        ),
-                        (route) => route.isFirst,
-                      );
-                    }
-                  },
-                  child: Text('Submit'),
+                        if (!context.mounted) return;
+                        
+                        setState(() => _isLoading = false);
+
+                        showAppSnackBar(
+                          context: context,
+                          content: success
+                              ? 'Towing request submitted'
+                              : 'Failed to submit towing request',
+                          isError: !success,
+                        );
+
+                        if (success) {
+                          Navigator.of(context).pushAndRemoveUntil(
+                            MaterialPageRoute(
+                              builder: (context) => const TowingScreen(),
+                            ),
+                            (route) => route.isFirst,
+                          );
+                        }
+                      },
+                    child: _isLoading
+                        ? const SizedBox(height: 24, width: 24, child: CircularProgressIndicator())
+                        : const Text('Submit Request'),
+                  ),
                 ),
               ],
             ),
@@ -198,11 +236,15 @@ class _TowingSubmitScreenState extends ConsumerState<TowingSubmitScreen> {
     Widget imageContent;
 
     if (_pickedImage != null) {
-      // User picked new image
       imageContent = Image.file(_pickedImage!, fit: BoxFit.cover);
     } else {
-      // None
-      imageContent = const Center(child: Text("No image selected"));
+      imageContent = Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: const [
+          Icon(Icons.camera_alt, color: Colors.grey, size: 40),
+          Text("No image selected", style: TextStyle(color: Colors.grey)),
+        ],
+      );
     }
 
     return ClipRRect(
@@ -213,10 +255,13 @@ class _TowingSubmitScreenState extends ConsumerState<TowingSubmitScreen> {
         decoration: BoxDecoration(
           color: Theme.of(context).colorScheme.surfaceContainer,
           borderRadius: BorderRadius.circular(10),
+          border: Border.all(color: Colors.grey.shade300),
         ),
         child: Stack(
           children: [
-            imageContent,
+            // FIX: Ensure image fills the container
+            Positioned.fill(child: imageContent),
+            
             Positioned(
               right: 10,
               bottom: 10,
@@ -232,43 +277,50 @@ class _TowingSubmitScreenState extends ConsumerState<TowingSubmitScreen> {
   }
 
   void _showVehicleModal(BuildContext context, List<Vehicle> vehicles) {
+    if (vehicles.isEmpty) {
+      showAppSnackBar(context: context, content: "No vehicles found. Please add a vehicle first.", isError: true);
+      return;
+    }
+
     showModalBottomSheet(
       context: context,
+      isScrollControlled: true, // Allows controlling height better
       builder: (context) {
         return SizedBox(
-          width: double.infinity, // 🔥 forces full-width
+          height: MediaQuery.of(context).size.height * 0.6, // Take up 60% of screen
+          width: double.infinity,
           child: Padding(
             padding: const EdgeInsets.all(20),
             child: Column(
-              mainAxisSize: MainAxisSize.min, // keeps system behavior
-              spacing: 20,
               children: [
                 Text(
                   'Choose a Vehicle',
-                  style: Theme.of(
-                    context,
-                  ).textTheme.bodyLarge!.copyWith(fontWeight: FontWeight.bold),
+                  style: Theme.of(context)
+                      .textTheme
+                      .titleLarge!
+                      .copyWith(fontWeight: FontWeight.bold),
                 ),
-
+                const SizedBox(height: 20),
                 Expanded(
                   child: ListView.separated(
                     itemCount: vehicles.length,
-                    separatorBuilder: (_, __) => SizedBox(height: 10),
+                    separatorBuilder: (_, __) => const SizedBox(height: 10),
                     itemBuilder: (context, index) {
                       final vehicle = vehicles[index];
 
                       return InkWell(
+                        borderRadius: BorderRadius.circular(12),
                         onTap: () {
-                           setState(() {
-                              _vehicleId = vehicle.id;
-                              _vehicleCtrl.text = vehicle.regNum;
-                            });
-                            Navigator.pop(context);
+                          setState(() {
+                            _vehicle = vehicle;
+                            _vehicleCtrl.text = "${vehicle.regNum} (${vehicle.model})";
+                          });
+                          Navigator.pop(context);
                         },
                         child: VehicleListitem(
                           vehicle: vehicle,
                           descriptionRequired: false,
-                          colourRequired: false,
+                          colourRequired: true, // Useful to identify vehicle
                           yearRequired: false,
                         ),
                       );

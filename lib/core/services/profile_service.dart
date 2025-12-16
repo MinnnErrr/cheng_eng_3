@@ -41,12 +41,15 @@ class ProfileService {
     return Profile.fromJson(result);
   }
 
-  Future<Profile> getProfileByEmail(String email) async {
+  Future<Profile?> getProfileByEmail(String email) async {
     final result = await supabase
         .from('profiles')
         .select()
         .eq('email', email)
-        .single();
+        .maybeSingle();
+    if (result == null) {
+      return null;
+    }
     return Profile.fromJson(result);
   }
 }

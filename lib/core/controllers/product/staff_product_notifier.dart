@@ -1,9 +1,9 @@
 import 'dart:io';
 
+import 'package:cheng_eng_3/core/models/message_model.dart';
 import 'package:cheng_eng_3/core/models/product_model.dart';
 import 'package:cheng_eng_3/core/services/image_service.dart';
 import 'package:cheng_eng_3/core/services/product_service.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:uuid/uuid.dart';
 
@@ -21,7 +21,7 @@ class StaffProductNotifier extends _$StaffProductNotifier {
 
   // void refresh() => ref.invalidateSelf();
 
-  Future<bool> addProduct({
+  Future<Message> addProduct({
     required String name,
     required String category,
     required String brand,
@@ -52,7 +52,10 @@ class StaffProductNotifier extends _$StaffProductNotifier {
           );
           photoPaths.add(photoPath);
         } catch (e) {
-          return false;
+          return Message(
+            isSuccess: false,
+            message: 'Failed to upload pictures',
+          );
         }
       }
     }
@@ -78,14 +81,14 @@ class StaffProductNotifier extends _$StaffProductNotifier {
 
     try {
       await _productService.create(product);
-      return true;
+      return Message(isSuccess: true, message: 'Product added');
     } catch (e) {
-      return false;
+      return Message(isSuccess: false, message: 'Failed to add product');
     }
   }
 
-  Future<bool> updateProduct({
-    required String id,
+  Future<Message> updateProduct({
+    required Product currentProduct,
     required String name,
     required String category,
     required String brand,
@@ -100,12 +103,6 @@ class StaffProductNotifier extends _$StaffProductNotifier {
     String? remarks,
     required List<dynamic> photos,
   }) async {
-    final previous = state.value ?? [];
-    final currentProduct = previous.firstWhere(
-      (p) => p.id == id,
-      orElse: () => throw Exception('Product not found'),
-    );
-
     String extractPathFromUrl(String url) {
       final uri = Uri.parse(url);
       final idx = uri.pathSegments.indexOf('images');
@@ -122,11 +119,18 @@ class StaffProductNotifier extends _$StaffProductNotifier {
         path = extractPathFromUrl(photo);
       } else if (photo is File) {
         final photoId = Uuid().v4();
-        path = await _imageService.uploadImage(
-          photoFile: photo,
-          tableName: 'products',
-          id: '$id/$photoId',
-        );
+        try {
+          path = await _imageService.uploadImage(
+            photoFile: photo,
+            tableName: 'products',
+            id: '${currentProduct.id}/$photoId',
+          );
+        } catch (e) {
+          return Message(
+            isSuccess: false,
+            message: 'Failed to upload pictures',
+          );
+        }
       } else {
         continue;
       }
@@ -152,77 +156,50 @@ class StaffProductNotifier extends _$StaffProductNotifier {
 
     try {
       await _productService.update(product);
-      return true;
+      return Message(isSuccess: true, message: 'Product updated');
     } catch (e) {
-      return false;
+      return Message(isSuccess: false, message: 'Failed to update product');
     }
   }
 
-  Future<bool> updateStatus({
+  Future<Message> updateStatus({
     required String id,
     required bool isActive,
   }) async {
     try {
       await _productService.updateStatus(isActive, id);
 
-      return true;
+      return Message(isSuccess: true, message: 'Status updated');
     } catch (e) {
-      return false;
+      return Message(isSuccess: false, message: 'Failed to update status');
     }
   }
 
-  Future<bool> descreaseQuantity({
-    required String id,
+  Future<Message> decreaseQuantity({
+    required Product product,
   }) async {
     try {
-      final previous = state.value ?? [];
-      final currentProduct = previous.firstWhere(
-        (p) => p.id == id,
-        orElse: () => throw Exception('Product not found'),
-      );
-
-      late int newQty;
-
-      if (currentProduct.quantity != null) {
-        newQty = currentProduct.quantity! - 1;
-      } else {
-        return false;
+      if (product.quantity == null || product.quantity == 0) {
+        return Message(isSuccess: false, message: 'Quantitiy is not set or quantity is 0');
       }
 
-      await _productService.updateQuantity(newQty, id);
+      final newQty = product.quantity! - 1;
 
-      return true;
+      await _productService.updateQuantity(newQty, product.id);
+
+      return Message(isSuccess: true, message: 'Quantity updated');
     } catch (e) {
-      return false;
+      return Message(isSuccess: false, message: 'Failed to update quantity');
     }
   }
 
-  Future<bool> deleteProduct(String id) async {
+  Future<Message> deleteProduct(String id) async {
     try {
       await _productService.delete(id);
 
-      return true;
+      return Message(isSuccess: true, message: 'Product deleted');
     } catch (e) {
-      return false;
+      return Message(isSuccess: false, message: 'Failed to delete product');
     }
   }
 }
-
-final staffProductByIdProvider = Provider.family<AsyncValue<Product>, String>((
-  ref,
-  productId,
-) {
-  final productList = ref.watch(staffProductProvider);
-
-  return productList.when(
-    data: (list) {
-      final product = list.firstWhere(
-        (p) => p.id == productId,
-        orElse: () => throw Exception('Product not found'),
-      );
-      return AsyncValue.data(product);
-    },
-    loading: () => const AsyncValue.loading(),
-    error: (err, st) => AsyncValue.error(err, st),
-  );
-});

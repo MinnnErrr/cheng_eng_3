@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'customer_point_history_notifier.dart';
+part of 'point_history_notifier.dart';
 
 // **************************************************************************
 // RiverpodGenerator
@@ -51,7 +51,7 @@ final class PointHistoryNotifierProvider
 }
 
 String _$pointHistoryNotifierHash() =>
-    r'abe0f3d8e0c77212fde7b0bd6c9618c1974a7652';
+    r'e1735ab2a3b0ff8f6cae3ccaa195ab7633563460';
 
 final class PointHistoryNotifierFamily extends $Family
     with

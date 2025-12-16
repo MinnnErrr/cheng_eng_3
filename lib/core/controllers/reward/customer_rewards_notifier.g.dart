@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'customer_reward_notifier.dart';
+part of 'customer_rewards_notifier.dart';
 
 // **************************************************************************
 // RiverpodGenerator
@@ -9,34 +9,34 @@ part of 'customer_reward_notifier.dart';
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // ignore_for_file: type=lint, type=warning
 
-@ProviderFor(CustomerRewardNotifier)
-const customerRewardProvider = CustomerRewardNotifierProvider._();
+@ProviderFor(CustomerRewardsNotifier)
+const customerRewardsProvider = CustomerRewardsNotifierProvider._();
 
-final class CustomerRewardNotifierProvider
-    extends $AsyncNotifierProvider<CustomerRewardNotifier, List<Reward>> {
-  const CustomerRewardNotifierProvider._()
+final class CustomerRewardsNotifierProvider
+    extends $AsyncNotifierProvider<CustomerRewardsNotifier, List<Reward>> {
+  const CustomerRewardsNotifierProvider._()
     : super(
         from: null,
         argument: null,
         retry: null,
-        name: r'customerRewardProvider',
+        name: r'customerRewardsProvider',
         isAutoDispose: true,
         dependencies: null,
         $allTransitiveDependencies: null,
       );
 
   @override
-  String debugGetCreateSourceHash() => _$customerRewardNotifierHash();
+  String debugGetCreateSourceHash() => _$customerRewardsNotifierHash();
 
   @$internal
   @override
-  CustomerRewardNotifier create() => CustomerRewardNotifier();
+  CustomerRewardsNotifier create() => CustomerRewardsNotifier();
 }
 
-String _$customerRewardNotifierHash() =>
-    r'ab54e190c7959f0b8fdaad3b199bbdcadfac6d73';
+String _$customerRewardsNotifierHash() =>
+    r'e06dfdae081349e34f27c2c7d91844bcd50a4d6f';
 
-abstract class _$CustomerRewardNotifier extends $AsyncNotifier<List<Reward>> {
+abstract class _$CustomerRewardsNotifier extends $AsyncNotifier<List<Reward>> {
   FutureOr<List<Reward>> build();
   @$mustCallSuper
   @override

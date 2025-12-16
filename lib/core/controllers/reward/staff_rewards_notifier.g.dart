@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'staff_reward_notifier.dart';
+part of 'staff_rewards_notifier.dart';
 
 // **************************************************************************
 // RiverpodGenerator
@@ -9,34 +9,34 @@ part of 'staff_reward_notifier.dart';
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // ignore_for_file: type=lint, type=warning
 
-@ProviderFor(StaffRewardNotifier)
-const staffRewardProvider = StaffRewardNotifierProvider._();
+@ProviderFor(StaffRewardsNotifier)
+const staffRewardsProvider = StaffRewardsNotifierProvider._();
 
-final class StaffRewardNotifierProvider
-    extends $AsyncNotifierProvider<StaffRewardNotifier, List<Reward>> {
-  const StaffRewardNotifierProvider._()
+final class StaffRewardsNotifierProvider
+    extends $AsyncNotifierProvider<StaffRewardsNotifier, List<Reward>> {
+  const StaffRewardsNotifierProvider._()
     : super(
         from: null,
         argument: null,
         retry: null,
-        name: r'staffRewardProvider',
+        name: r'staffRewardsProvider',
         isAutoDispose: true,
         dependencies: null,
         $allTransitiveDependencies: null,
       );
 
   @override
-  String debugGetCreateSourceHash() => _$staffRewardNotifierHash();
+  String debugGetCreateSourceHash() => _$staffRewardsNotifierHash();
 
   @$internal
   @override
-  StaffRewardNotifier create() => StaffRewardNotifier();
+  StaffRewardsNotifier create() => StaffRewardsNotifier();
 }
 
-String _$staffRewardNotifierHash() =>
-    r'7fa38cc66e644e8071b66e63e9fa69305ebfc85b';
+String _$staffRewardsNotifierHash() =>
+    r'225a03cb56d12f3f343d533087bd62a9dbdfedef';
 
-abstract class _$StaffRewardNotifier extends $AsyncNotifier<List<Reward>> {
+abstract class _$StaffRewardsNotifier extends $AsyncNotifier<List<Reward>> {
   FutureOr<List<Reward>> build();
   @$mustCallSuper
   @override

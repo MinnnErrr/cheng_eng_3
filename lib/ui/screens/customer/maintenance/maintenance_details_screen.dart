@@ -10,247 +10,242 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
-class MaintenanceDetailsScreen extends ConsumerWidget {
-  const MaintenanceDetailsScreen({super.key, required this.maintenanceId});
+class MaintenanceDetailsScreen extends ConsumerStatefulWidget {
+  const MaintenanceDetailsScreen({super.key, required this.maintenance});
 
-  final String maintenanceId;
+  final Maintenance maintenance;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final maintenance = ref.watch(maintenanceByIdProvider(maintenanceId));
+  ConsumerState<MaintenanceDetailsScreen> createState() =>
+      _MaintenanceDetailsScreenState();
+}
+
+class _MaintenanceDetailsScreenState
+    extends ConsumerState<MaintenanceDetailsScreen> {
+  // To handle button loading state locally
+  bool _isUpdatingStatus = false;
+
+  @override
+  Widget build(BuildContext context) {
+    // 1. OPTIMISTIC UI: Use widget data first, update with provider data if available
+    final maintenanceAsync = ref.watch(maintenanceByIdProvider(widget.maintenance.id));
+    final maintenance = maintenanceAsync.value ?? widget.maintenance;
+
     final maintenanceNotifier = ref.read(maintenanceProvider.notifier);
 
-    Widget maintenanceDetailsItem({
-      required String title,
-      required String value,
-      Color? textcolor,
-    }) {
-      return Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        spacing: 10,
-        children: [
-          Text(
-            title,
-            style: TextStyle(fontWeight: FontWeight.bold),
-          ),
-          Text(
-            value,
-            softWrap: true,
-            style: TextStyle(color: textcolor),
-          ),
-        ],
-      );
-    }
-
-    Widget vehicleDetails(String vehicleId) {
-      final vehicleAsync = ref.watch(customerVehicleByIdProvider(vehicleId));
-
-      return vehicleAsync.when(
-        data: (vehicle) {
-          return VehicleListitem(
-            vehicle: vehicle,
-            descriptionRequired: false,
-            colourRequired: false,
-            yearRequired: false,
-          );
-        },
-        loading: () => const SizedBox(
-          height: 80,
-          child: Center(child: CircularProgressIndicator()),
-        ),
-        error: (err, st) => Container(
-          height: 80,
-          width: double.infinity,
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(10),
-            color: Colors.white,
-          ),
-          child: Center(child: Text('Failed to load vehicle')),
-        ),
-      );
-    }
-
-    Widget details({
-      required BuildContext context,
-      required Maintenance maintenance,
-    }) {
-      final dateFormatter = DateFormat('dd//MM/yyyy');
-      final timeFormatter = DateFormat('dd/MM/yyyy').add_jm();
-
-      return Container(
-        width: double.infinity,
-        color: Theme.of(context).colorScheme.surfaceContainer,
-        child: Column(
-          children: [
-            Container(
-              padding: EdgeInsets.all(20),
-              width: double.infinity,
-              color: Theme.of(context).colorScheme.surfaceContainerHighest,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    maintenance.title,
-                    style:
-                        Theme.of(
-                          context,
-                        ).textTheme.bodyLarge!.copyWith(
-                          fontWeight: FontWeight.bold,
-                        ),
-                  ),
-                  IconButton(
-                    onPressed: () => Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (_) => MaintenanceUpdateScreen(
-                          maintenance: maintenance,
-                        ),
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Maintenance Details'),
+      ),
+      body: SafeArea(
+        child: SingleChildScrollView(
+          child: Column(
+            children: [
+              // --- HEADER SECTION ---
+              Container(
+                padding: const EdgeInsets.all(20),
+                width: double.infinity,
+                color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Expanded(
+                      child: Text(
+                        maintenance.title,
+                        style: Theme.of(context).textTheme.titleLarge!.copyWith(
+                              fontWeight: FontWeight.bold,
+                            ),
                       ),
                     ),
-                    icon: Icon(Icons.edit),
-                  ),
-                ],
+                    IconButton(
+                      onPressed: () => Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) => MaintenanceUpdateScreen(
+                            maintenance: maintenance,
+                          ),
+                        ),
+                      ),
+                      icon: const Icon(Icons.edit),
+                    ),
+                  ],
+                ),
               ),
-            ),
 
-            //details
-            SizedBox(
-              width: double.infinity,
-              child: Padding(
+              // --- BODY SECTION ---
+              Padding(
                 padding: const EdgeInsets.all(20.0),
                 child: Column(
-                  spacing: 20,
+                  spacing: 20, // Requires Flutter 3.27+
                   children: [
-                    vehicleDetails(maintenance.vehicleId),
-                    maintenanceDetailsItem(
-                      title: 'Description',
-                      value: maintenance.description ?? '-',
-                    ),
-                    maintenanceDetailsItem(
-                      title: 'Last Service Date',
-                      value: dateFormatter.format(maintenance.currentServDate),
-                    ),
-                    maintenanceDetailsItem(
-                      title: 'Last Service Distance',
-                      value: '${maintenance.currentServDistance} KM',
-                    ),
-                    maintenanceDetailsItem(
-                      title: 'Next Service Date',
-                      value: dateFormatter.format(maintenance.nextServDate),
-                    ),
-                    maintenanceDetailsItem(
-                      title: 'Next Service Distance',
-                      value: '${maintenance.nextServDistance} KM',
-                    ),
-                    maintenanceDetailsItem(
-                      title: 'Status',
-                      value: maintenance.status,
-                      textcolor: getMaintenanceStatusColor(
-                        maintenance.status,
-                        context,
-                      ),
-                    ),
-                    maintenanceDetailsItem(
-                      title: 'Updated At',
-                      value: maintenance.updatedAt != null
-                          ? timeFormatter.format(maintenance.updatedAt!)
-                          : '-',
-                    ),
+                    // Vehicle Card
+                    _VehicleInfoSection(vehicleId: maintenance.vehicleId),
 
-                    Container(
+                    // Details
+                    _buildDetailsList(context, maintenance),
+
+                    // Status Button
+                    SizedBox(
                       width: double.infinity,
-                      padding: EdgeInsets.all(10),
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(10),
-                        color: Theme.of(context).colorScheme.errorContainer,
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Remarks',
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              color: Theme.of(
-                                context,
-                              ).colorScheme.onErrorContainer,
-                            ),
-                          ),
-                          Text(
-                            maintenance.remarks ?? '-',
-                            style: TextStyle(
-                              color: Theme.of(
-                                context,
-                              ).colorScheme.onErrorContainer,
-                            ),
-                          ),
-                        ],
+                      height: 50,
+                      child: ElevatedButton(
+                        onPressed: _isUpdatingStatus
+                            ? null
+                            : () async {
+                                setState(() => _isUpdatingStatus = true);
+
+                                final isComplete =
+                                    maintenance.status.toLowerCase() ==
+                                        'complete';
+                                final newStatus =
+                                    isComplete ? 'Incomplete' : 'Complete';
+
+                                final success =
+                                    await maintenanceNotifier.updateStatus(
+                                  id: maintenance.id,
+                                  status: newStatus,
+                                );
+
+                                if (context.mounted) {
+                                  setState(() => _isUpdatingStatus = false);
+                                  showAppSnackBar(
+                                    context: context,
+                                    content: success
+                                        ? 'Status updated to $newStatus'
+                                        : 'Failed to update status',
+                                    isError: !success,
+                                  );
+                                }
+                              },
+                        child: _isUpdatingStatus
+                            ? const SizedBox(
+                                height: 20,
+                                width: 20,
+                                child: CircularProgressIndicator(strokeWidth: 2),
+                              )
+                            : Text(
+                                maintenance.status.toLowerCase() == 'incomplete'
+                                    ? 'Mark as Complete'
+                                    : 'Mark as Incomplete',
+                              ),
                       ),
                     ),
                   ],
                 ),
               ),
-            ),
-          ],
-        ),
-      );
-    }
-
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Maintenance Details'),
-      ),
-      body: maintenance.when(
-        data: (maintenance) {
-          return SafeArea(
-            child: SingleChildScrollView(
-              padding: EdgeInsets.all(20),
-              child: Column(
-                spacing: 30,
-                children: [
-                  //details
-                  details(context: context, maintenance: maintenance),
-
-                  //status
-                  ElevatedButton(
-                    onPressed: () async {
-                      String status =
-                          maintenance.status.toLowerCase() == 'incomplete'
-                          ? 'Complete'
-                          : 'Incomplete';
-
-                      final success = await maintenanceNotifier.updateStatus(
-                        id: maintenance.id,
-                        status: status,
-                      );
-
-                      if (!context.mounted) return;
-                      showAppSnackBar(
-                        context: context,
-                        content: success
-                            ? 'Status updated'
-                            : 'Failed to update status',
-                        isError: !success,
-                      );
-                    },
-                    child: Text(
-                      maintenance.status.toLowerCase() == 'incomplete'
-                          ? 'Complete'
-                          : 'Incomplete',
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          );
-        },
-        error: (error, stackTrace) => Center(
-          child: Text(error.toString()),
-        ),
-        loading: () => Scaffold(
-          body: Center(
-            child: CircularProgressIndicator(),
+            ],
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildDetailsList(BuildContext context, Maintenance maintenance) {
+    // Fixed Typo: removed double slash
+    final dateFormatter = DateFormat('dd/MM/yyyy'); 
+    final timeFormatter = DateFormat('dd/MM/yyyy').add_jm();
+
+    return Column(
+      spacing: 15,
+      children: [
+        _buildRow('Description', maintenance.description ?? '-'),
+        _buildRow('Last Service Date',
+            dateFormatter.format(maintenance.currentServDate)),
+        _buildRow(
+            'Last Service Distance', '${maintenance.currentServDistance} KM'),
+        _buildRow('Next Service Date',
+            dateFormatter.format(maintenance.nextServDate)),
+        _buildRow(
+            'Next Service Distance', '${maintenance.nextServDistance} KM'),
+        _buildRow(
+          'Status',
+          maintenance.status,
+          textColor: getMaintenanceStatusColor(maintenance.status, context),
+        ),
+        _buildRow(
+          'Updated At',
+          maintenance.updatedAt != null
+              ? timeFormatter.format(maintenance.updatedAt!)
+              : '-',
+        ),
+        
+        // Remarks Box
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(15),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(10),
+            color: Theme.of(context).colorScheme.errorContainer,
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Remarks',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: Theme.of(context).colorScheme.onErrorContainer,
+                ),
+              ),
+              const SizedBox(height: 5),
+              Text(
+                maintenance.remarks ?? '-',
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.onErrorContainer,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildRow(String title, String value, {Color? textColor}) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(
+          title,
+          style: const TextStyle(fontWeight: FontWeight.bold),
+        ),
+        Text(
+          value,
+          style: TextStyle(color: textColor, fontWeight: FontWeight.w500),
+        ),
+      ],
+    );
+  }
+}
+
+// Extracted Vehicle Widget to keep build method clean
+class _VehicleInfoSection extends ConsumerWidget {
+  final String vehicleId;
+  const _VehicleInfoSection({required this.vehicleId});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final vehicleAsync = ref.watch(customerVehicleByIdProvider(vehicleId));
+
+    return vehicleAsync.when(
+      data: (vehicle) => VehicleListitem(
+        vehicle: vehicle,
+        descriptionRequired: false,
+        colourRequired: false,
+        yearRequired: false,
+      ),
+      loading: () => const SizedBox(
+        height: 80,
+        child: Center(child: CircularProgressIndicator()),
+      ),
+      error: (err, st) => Container(
+        height: 80,
+        width: double.infinity,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(10),
+          color: Colors.grey.shade100,
+        ),
+        alignment: Alignment.center,
+        child: const Text('Vehicle info unavailable'),
       ),
     );
   }

@@ -22,6 +22,11 @@ class CartItemService {
     return data.map<CartItem>((p) => CartItem.fromJson(p)).toList();
   }
 
+  Future<CartItem> getByItemId(String id) async {
+    final data = await supabase.from('cart_items').select().eq('id', id).single();
+    return CartItem.fromJson(data);
+  }
+
   Future<CartItem> create(CartItem cartItem) async {
     final data = await supabase
         .from('cart_items')

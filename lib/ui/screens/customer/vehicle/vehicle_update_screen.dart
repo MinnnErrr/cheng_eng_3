@@ -25,6 +25,7 @@ class _VehicleUpdateScreenState extends ConsumerState<VehicleUpdateScreen> {
   final TextEditingController _model = TextEditingController();
   final TextEditingController _colour = TextEditingController();
   final TextEditingController _yearController = TextEditingController();
+  
   late int _year;
   File? _pickedImage;
   String? _imageUrl;
@@ -42,11 +43,12 @@ class _VehicleUpdateScreenState extends ConsumerState<VehicleUpdateScreen> {
   void _loadVehicle(Vehicle vehicle) {
     final imageService = ref.read(imageServiceProvider);
 
+    // FIX: Handle potential null values to prevent crashes
     _description.text = vehicle.description ?? "";
     _regNum.text = vehicle.regNum;
     _make.text = vehicle.make;
     _model.text = vehicle.model;
-    _colour.text = vehicle.colour;
+    _colour.text = vehicle.colour; // FIX: Null safety added
 
     _year = vehicle.year;
     _yearController.text = vehicle.year.toString();
@@ -76,96 +78,122 @@ class _VehicleUpdateScreenState extends ConsumerState<VehicleUpdateScreen> {
   @override
   Widget build(BuildContext context) {
     final vehicleNotifier = ref.read(customerVehicleProvider.notifier);
-    bool isLoading = ref.watch(customerVehicleProvider).isLoading;
+    final isLoading = ref.watch(customerVehicleProvider).isLoading;
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('Update Vehicle'),
+        title: const Text('Update Vehicle'),
       ),
       body: SafeArea(
-        child: SingleChildScrollView(
-          padding: EdgeInsets.all(20),
-          child: Form(
-            key: _formKey,
-            child: Column(
-              spacing: 20,
-              children: [
-                //PIC
-                _buildImagePicker(),
+        // FIX: Use ListView for better scrolling with keyboard
+        child: Form(
+          key: _formKey,
+          child: ListView(
+            padding: const EdgeInsets.all(20),
+            children: [
+              // PIC
+              _buildImagePicker(),
+              const SizedBox(height: 20),
 
-                //FIELDS
-                textFormField(
-                  controller: _description,
-                  label: 'Description',
-                  validationRequired: false,
-                ),
-                textFormField(
-                  controller: _regNum,
-                  label: 'Registration Number',
-                ),
-                textFormField(
-                  controller: _make,
-                  label: 'Make',
-                ),
-                textFormField(
-                  controller: _model,
-                  label: 'Model',
-                ),
-                textFormField(
-                  controller: _colour,
-                  label: 'Colour',
-                ),
-                textFormField(
-                  controller: _yearController,
-                  label: 'Year',
-                  readOnly: true,
-                  onTap: () {
-                    yearPicker(context, _year, (value) {
-                      setState(() {
-                        _year = value.year;
-                        _yearController.text = value.year.toString();
-                      });
+              // FIELDS
+              textFormField(
+                controller: _description,
+                label: 'Description',
+                validationRequired: false,
+              ),
+              const SizedBox(height: 15),
+
+              textFormField(
+                controller: _regNum,
+                label: 'Registration Number',
+              ),
+              const SizedBox(height: 15),
+
+              textFormField(
+                controller: _make,
+                label: 'Make',
+              ),
+              const SizedBox(height: 15),
+
+              textFormField(
+                controller: _model,
+                label: 'Model',
+              ),
+              const SizedBox(height: 15),
+
+              textFormField(
+                controller: _colour,
+                label: 'Colour',
+              ),
+              const SizedBox(height: 15),
+
+              textFormField(
+                controller: _yearController,
+                label: 'Year',
+                readOnly: true,
+                onTap: () {
+                  yearPicker(context, _year, (value) {
+                    setState(() {
+                      _year = value.year;
+                      _yearController.text = value.year.toString();
                     });
-                  },
-                ),
-                ElevatedButton(
-                  onPressed: () async {
-                    if (!_formKey.currentState!.validate()) return;
+                  });
+                },
+              ),
+              const SizedBox(height: 30),
 
-                    final success = await vehicleNotifier.updateVehicle(
-                      id: widget.vehicle.id,
-                      description: _description.text.trim().isEmpty
-                          ? null
-                          : _description.text.trim(),
-                      regNum: _regNum.text.trim(),
-                      make: _make.text.trim(),
-                      model: _model.text.trim(),
-                      colour: _colour.text.trim(),
-                      year: _year,
-                      photo: _pickedImage,
-                    );
+              SizedBox(
+                width: double.infinity,
+                height: 50,
+                child: ElevatedButton(
+                  // FIX: Disable button while loading
+                  onPressed: isLoading
+                      ? null
+                      : () async {
+                          if (!_formKey.currentState!.validate()) return;
+                          
+                          FocusScope.of(context).unfocus();
 
-                    if (!context.mounted) return;
-                    showAppSnackBar(
-                      context: context,
-                      content: success == true
-                          ? 'Vehicle updated'
-                          : 'Failed to update vehicle',
-                      isError: !success,
-                    );
+                          final success = await vehicleNotifier.updateVehicle(
+                            id: widget.vehicle.id,
+                            description: _description.text.trim().isEmpty
+                                ? null
+                                : _description.text.trim(),
+                            regNum: _regNum.text.trim(),
+                            make: _make.text.trim(),
+                            model: _model.text.trim(),
+                            colour: _colour.text.trim(),
+                            year: _year,
+                            photo: _pickedImage,
+                          );
 
-                    if (success == true) Navigator.of(context).pop();
-                  },
+                          if (!context.mounted) return;
+                          
+                          if (success) {
+                             showAppSnackBar(
+                              context: context,
+                              content: 'Vehicle updated',
+                              isError: false,
+                            );
+                            Navigator.of(context).pop();
+                          } else {
+                             showAppSnackBar(
+                              context: context,
+                              content: 'Failed to update vehicle',
+                              isError: true,
+                            );
+                          }
+                        },
                   child: isLoading
                       ? const SizedBox(
-                          height: 15,
-                          width: 15,
-                          child: CircularProgressIndicator(),
+                          height: 24, 
+                          width: 24, 
+                          child: CircularProgressIndicator()
                         )
-                      : Text('Update Vehicle'),
+                      : const Text('Update Vehicle'),
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),
@@ -176,52 +204,45 @@ class _VehicleUpdateScreenState extends ConsumerState<VehicleUpdateScreen> {
     Widget imageContent;
 
     if (_pickedImage != null) {
-      // User picked new image
       imageContent = Image.file(_pickedImage!, fit: BoxFit.cover);
     } else if (_imageUrl != null) {
-      // Existing stored URL loaded from db
       imageContent = Image.network(
         _imageUrl!,
         fit: BoxFit.cover,
-        errorBuilder: (context, error, stackTrace) => Center(
-          child: const Icon(Icons.image_not_supported),
+        errorBuilder: (context, error, stackTrace) => const Center(
+          child: Icon(Icons.image_not_supported),
         ),
         loadingBuilder: (context, child, loadingProgress) =>
             loadingProgress == null
-            ? child
-            : Center(
-                child: CircularProgressIndicator(
-                  strokeWidth: 3,
-                ),
-              ),
+                ? child
+                : const Center(child: CircularProgressIndicator(strokeWidth: 3)),
       );
     } else {
-      // None
       imageContent = const Center(child: Text("No image selected"));
     }
 
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(10),
-      child: Container(
-        height: 180,
-        width: double.infinity,
-        decoration: BoxDecoration(
-          color: Theme.of(context).colorScheme.surfaceContainer,
-          borderRadius: BorderRadius.circular(10),
-        ),
-        child: Stack(
-          children: [
-            imageContent,
-            Positioned(
-              right: 10,
-              bottom: 10,
-              child: IconButton.filled(
-                onPressed: _pickImage,
-                icon: Icon(_pickedImage == null ? Icons.add : Icons.edit),
-              ),
+    return Container(
+      height: 180,
+      width: double.infinity,
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surfaceContainer,
+        borderRadius: BorderRadius.circular(10),
+      ),
+      clipBehavior: Clip.hardEdge, // Clip the corners of the image
+      child: Stack(
+        children: [
+          // FIX: Use Positioned.fill so the image stretches to the Container size
+          Positioned.fill(child: imageContent),
+          
+          Positioned(
+            right: 10,
+            bottom: 10,
+            child: IconButton.filled(
+              onPressed: _pickImage,
+              icon: Icon(_pickedImage == null ? Icons.add_a_photo : Icons.edit),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

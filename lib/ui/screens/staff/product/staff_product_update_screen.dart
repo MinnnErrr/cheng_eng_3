@@ -11,9 +11,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 
 class StaffProductUpdateScreen extends ConsumerStatefulWidget {
-  const StaffProductUpdateScreen({super.key, required this.productId});
+  const StaffProductUpdateScreen({super.key, required this.product});
 
-  final String productId;
+  final Product product;
 
   @override
   ConsumerState<ConsumerStatefulWidget> createState() =>
@@ -21,6 +21,7 @@ class StaffProductUpdateScreen extends ConsumerStatefulWidget {
 }
 
 class _StaffProductUpdateState extends ConsumerState<StaffProductUpdateScreen> {
+  // Controllers
   final _nameCtrl = TextEditingController();
   final _categoryCtrl = TextEditingController();
   final _brandCtrl = TextEditingController();
@@ -32,56 +33,72 @@ class _StaffProductUpdateState extends ConsumerState<StaffProductUpdateScreen> {
   final _installFeeCtrl = TextEditingController();
   final _remarksCtrl = TextEditingController();
 
-  late bool _hasInstallation;
-  late ProductAvailability _availability;
+  // State Variables (Initialized to defaults to avoid 'late' errors)
+  bool _hasInstallation = false;
+  ProductAvailability _availability = ProductAvailability.ready;
+  bool _isLoading = false; // Added loading state
+  
+  // Mixed list: Can contain Strings (URLs) or Files (New photos)
   final List<dynamic> _photos = [];
 
   final _formKey = GlobalKey<FormState>();
-  bool _initialized = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadProduct(widget.product);
+  }
 
   void _loadProduct(Product product) {
+    // Note: Don't watch providers in initState, just read.
     final imageService = ref.read(imageServiceProvider);
 
     _nameCtrl.text = product.name;
     _categoryCtrl.text = product.category;
     _brandCtrl.text = product.brand;
-    if (product.model != null) {
-      _modelCtrl.text = product.model!;
-    }
-    if (product.colour != null) {
-      _colourCtrl.text = product.colour!;
-    }
-
+    _modelCtrl.text = product.model ?? '';
+    _colourCtrl.text = product.colour ?? '';
     _descCtrl.text = product.description;
     _priceCtrl.text = product.price.toString();
-    _quantityCtrl.text = product.quantity.toString();
-    _installFeeCtrl.text = product.installationFee.toString();
+    _quantityCtrl.text = product.quantity?.toString() ?? '';
+    _installFeeCtrl.text = product.installationFee?.toString() ?? '';
     _remarksCtrl.text = product.remarks ?? '';
-    _hasInstallation = product.installation;
-    _availability = product.availability;
-
-    if (product.photoPaths.isNotEmpty) {
-      for (final path in product.photoPaths) {
-        final url = imageService.retrieveImageUrl(path);
-        _photos.add(url);
+    
+    // Update state variables
+    setState(() {
+      _hasInstallation = product.installation;
+      _availability = product.availability;
+      
+      if (product.photoPaths.isNotEmpty) {
+        for (final path in product.photoPaths) {
+          final url = imageService.retrieveImageUrl(path);
+          _photos.add(url);
+        }
       }
-    }
+    });
   }
 
   Future<void> _pickPhoto() async {
     final picker = ImagePicker();
-    final image = await picker.pickImage(source: ImageSource.gallery);
+    // Optimized image picking
+    final image = await picker.pickImage(
+      source: ImageSource.gallery,
+      maxWidth: 1024, 
+      maxHeight: 1024,
+      imageQuality: 80,
+    );
 
     if (image != null) {
       setState(() {
-        _photos.add(File(image.path)); // FILE
+        _photos.add(File(image.path));
       });
     }
   }
 
+  // Helper to handle mixed types (File vs String URL)
   ImageProvider _getImage(dynamic item) {
     if (item is File) return FileImage(item);
-    return NetworkImage(item);
+    return NetworkImage(item as String);
   }
 
   @override
@@ -101,216 +118,227 @@ class _StaffProductUpdateState extends ConsumerState<StaffProductUpdateScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final productState = ref.read(staffProductByIdProvider(widget.productId));
-    final notifier = ref.read(staffProductProvider.notifier);
-
     return Scaffold(
       appBar: AppBar(
-        title: Text('Update Product'),
+        title: const Text('Update Product'),
       ),
-      body: productState.when(
-        data: (product) {
-          if (_initialized != true) {
-            _initialized = true;
-            _loadProduct(product);
-          }
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(20),
+          child: Form(
+            key: _formKey,
+            child: Column(
+              children: [
+                textFormField(controller: _nameCtrl, label: 'Name'),
+                const SizedBox(height: 20),
 
-          return SafeArea(
-            child: SingleChildScrollView(
-              padding: EdgeInsets.all(20),
-              child: Form(
-                key: _formKey,
-                child: Column(
-                  spacing: 20,
-                  children: [
-                    textFormField(controller: _nameCtrl, label: 'Name'),
+                textFormField(controller: _categoryCtrl, label: 'Category'),
+                const SizedBox(height: 20),
 
-                    textFormField(controller: _categoryCtrl, label: 'Category'),
+                textFormField(controller: _brandCtrl, label: 'Brand'),
+                const SizedBox(height: 20),
 
-                    textFormField(controller: _brandCtrl, label: 'Brand'),
+                textFormField(controller: _modelCtrl, label: 'Model'),
+                const SizedBox(height: 20),
 
-                    textFormField(controller: _modelCtrl, label: 'Model'),
+                textFormField(controller: _colourCtrl, label: 'Colour'),
+                const SizedBox(height: 20),
 
-                    textFormField(controller: _colourCtrl, label: 'Colour'),
+                textFormField(
+                  controller: _descCtrl,
+                  minLines: 5,
+                  maxLines: null,
+                  label: 'Description',
+                ),
+                const SizedBox(height: 20),
 
-                    textFormField(
-                      controller: _descCtrl,
-                      minLines: 5,
-                      maxLines: null,
-                      label: 'Description',
-                    ),
+                textFormField(
+                  controller: _remarksCtrl,
+                  minLines: 3,
+                  maxLines: null,
+                  label: 'Remarks',
+                  validationRequired: false,
+                ),
+                const SizedBox(height: 20),
 
-                    textFormField(
-                      controller: _remarksCtrl,
-                      minLines: 3,
-                      maxLines: null,
-                      label: 'Remarks',
-                      validationRequired: false,
-                    ),
+                textFormField(
+                  controller: _priceCtrl,
+                  label: 'Price (RM)',
+                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                ),
+                const SizedBox(height: 20),
 
-                    textFormField(
-                      controller: _priceCtrl,
-                      label: 'Price (RM)',
-                      keyboardType: TextInputType.numberWithOptions(),
-                    ),
-
-                    DropdownButtonFormField<ProductAvailability>(
-                      initialValue: _availability,
-                      decoration: const InputDecoration(
-                        labelText: "Availability",
-                      ),
-                      items: ProductAvailability.values
-                          .map(
-                            (availability) => DropdownMenuItem(
-                              value: availability,
-                              child: Text(availability.label),
-                            ),
-                          )
-                          .toList(),
-                      onChanged: (value) {
-                        if (value != null) {
-                          setState(() {
-                            _availability = value;
-
-                            if (_availability != ProductAvailability.ready) {
-                              _quantityCtrl.text = '';
-                            }
-                          });
+                DropdownButtonFormField<ProductAvailability>(
+                  initialValue: _availability, // Use value, NOT initialValue
+                  decoration: const InputDecoration(
+                    labelText: "Availability",
+                  ),
+                  items: ProductAvailability.values
+                      .map(
+                        (availability) => DropdownMenuItem(
+                          value: availability,
+                          child: Text(availability.label),
+                        ),
+                      )
+                      .toList(),
+                  onChanged: (value) {
+                    if (value != null) {
+                      setState(() {
+                        _availability = value;
+                        if (_availability != ProductAvailability.ready) {
+                          _quantityCtrl.clear();
                         }
-                      },
-                      validator: (value) {
-                        if (value == null) {
-                          return 'Required';
-                        } else {
-                          return null;
-                        }
-                      },
-                    ),
-                    if (_availability == ProductAvailability.ready)
+                      });
+                    }
+                  },
+                ),
+                const SizedBox(height: 20),
+
+                if (_availability == ProductAvailability.ready)
+                  Column(
+                    children: [
                       textFormField(
                         controller: _quantityCtrl,
                         label: 'Quantity',
                         keyboardType: TextInputType.number,
                       ),
+                      const SizedBox(height: 20),
+                    ],
+                  ),
 
-                    DropdownButtonFormField<bool>(
-                      initialValue: _hasInstallation,
-                      decoration: const InputDecoration(
-                        labelText: "Is installation service provided?",
-                      ),
-                      items: const [
-                        DropdownMenuItem(value: true, child: Text("Yes")),
-                        DropdownMenuItem(value: false, child: Text("No")),
-                      ],
-                      onChanged: (value) {
-                        if (value != null) {
-                          setState(() {
-                            _hasInstallation = value;
+                DropdownButtonFormField<bool>(
+                  initialValue: _hasInstallation, // Use value, NOT initialValue
+                  decoration: const InputDecoration(
+                    labelText: "Is installation service provided?",
+                  ),
+                  items: const [
+                    DropdownMenuItem(value: true, child: Text("Yes")),
+                    DropdownMenuItem(value: false, child: Text("No")),
+                  ],
+                  onChanged: (value) {
+                    if (value != null) {
+                      setState(() {
+                        _hasInstallation = value;
+                        if (!_hasInstallation) {
+                          _installFeeCtrl.clear();
+                        }
+                      });
+                    }
+                  },
+                ),
+                const SizedBox(height: 20),
 
-                            if (_hasInstallation == false) {
-                              _installFeeCtrl.text = '';
-                            }
-                          });
-                        }
-                      },
-                      validator: (value) {
-                        if (value == null) {
-                          return 'Required';
-                        } else {
-                          return null;
-                        }
-                      },
-                    ),
-                    if (_hasInstallation == true)
+                if (_hasInstallation)
+                  Column(
+                    children: [
                       textFormField(
                         controller: _installFeeCtrl,
                         label: 'Installation Fees (RM)',
-                        keyboardType: TextInputType.numberWithOptions(),
+                        keyboardType: const TextInputType.numberWithOptions(decimal: true),
                       ),
+                      const SizedBox(height: 20),
+                    ],
+                  ),
 
-                    _photoSection(),
+                _photoSection(),
+                const SizedBox(height: 20),
 
-                    ElevatedButton(
-                      onPressed: () async {
-                        if (!_formKey.currentState!.validate()) return;
-
-                        final success = await notifier.updateProduct(
-                          id: product.id,
-                          name: _nameCtrl.text.trim(),
-                          category: _categoryCtrl.text.trim(),
-                          brand: _brandCtrl.text.trim(),
-                          model: _modelCtrl.text.trim().isEmpty
-                              ? null
-                              : _modelCtrl.text.trim(),
-                          colour: _colourCtrl.text.trim().isEmpty
-                              ? null
-                              : _colourCtrl.text.trim(),
-                          description: _descCtrl.text.trim(),
-                          availability: _availability,
-                          quantity: _availability == ProductAvailability.ready
-                              ? int.parse(_quantityCtrl.text.trim())
-                              : null,
-                          installation: _hasInstallation,
-                          installationFee: _hasInstallation
-                              ? double.parse(
-                                  _installFeeCtrl.text.trim(),
-                                )
-                              : null,
-                          price: double.parse(_priceCtrl.text.trim()),
-                          photos: _photos,
-                          remarks: _remarksCtrl.text.trim().isEmpty ? null : _remarksCtrl.text.trim(),
-                        );
-
-                        if (!context.mounted) return;
-                        showAppSnackBar(
-                          context: context,
-                          content: success
-                              ? 'Product added'
-                              : 'Failed to add product',
-                          isError: !success,
-                        );
-
-                        if (success) {
-                          Navigator.of(context).pop();
-                        }
-                      },
-                      child: Text('Update Product'),
-                    ),
-                  ],
+                SizedBox(
+                  width: double.infinity,
+                  height: 50,
+                  child: ElevatedButton(
+                    onPressed: _isLoading ? null : _submitUpdate,
+                    child: _isLoading 
+                      ? const CircularProgressIndicator.adaptive()
+                      : const Text('Update Product'),
+                  ),
                 ),
-              ),
+              ],
             ),
-          );
-        },
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, _) => Center(child: Text('Error: $e')),
+          ),
+        ),
       ),
     );
+  }
+
+  Future<void> _submitUpdate() async {
+    if (!_formKey.currentState!.validate()) return;
+
+    setState(() => _isLoading = true);
+
+    final notifier = ref.read(staffProductProvider.notifier);
+
+    // Safe Parsing
+    final quantity = int.tryParse(_quantityCtrl.text.trim()) ?? 0;
+    final price = double.tryParse(_priceCtrl.text.trim()) ?? 0.0;
+    
+    final installFee = _hasInstallation
+        ? double.tryParse(_installFeeCtrl.text.trim())
+        : null;
+
+    final message = await notifier.updateProduct(
+      currentProduct: widget.product,
+      name: _nameCtrl.text.trim(),
+      category: _categoryCtrl.text.trim(),
+      brand: _brandCtrl.text.trim(),
+      model: _modelCtrl.text.trim().isEmpty ? null : _modelCtrl.text.trim(),
+      colour: _colourCtrl.text.trim().isEmpty ? null : _colourCtrl.text.trim(),
+      description: _descCtrl.text.trim(),
+      availability: _availability,
+      quantity: _availability == ProductAvailability.ready ? quantity : null,
+      installation: _hasInstallation,
+      installationFee: installFee,
+      price: price,
+      photos: _photos,
+      remarks: _remarksCtrl.text.trim().isEmpty ? null : _remarksCtrl.text.trim(),
+    );
+
+    if (mounted) {
+      setState(() => _isLoading = false);
+
+      showAppSnackBar(
+        context: context,
+        content: message.message,
+        isError: !message.isSuccess,
+      );
+
+      if (message.isSuccess) {
+        Navigator.of(context).pop();
+      }
+    }
   }
 
   Widget _photoSection() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
-      spacing: 10,
       children: [
         Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             const Text(
               "Photos",
               style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
             ),
-            Spacer(),
             TextButton.icon(
               onPressed: _pickPhoto,
-              label: Text('Add'),
-              icon: Icon(Icons.add),
+              label: const Text('Add'),
+              icon: const Icon(Icons.add),
             ),
           ],
         ),
+        
+        const SizedBox(height: 10),
 
-        // Photo Grid
         _photos.isEmpty
-            ? Text('No photo added')
+            ? Container(
+                padding: const EdgeInsets.all(16),
+                width: double.infinity,
+                decoration: BoxDecoration(
+                  border: Border.all(color: Colors.grey.shade400),
+                  borderRadius: BorderRadius.circular(8)
+                ),
+                child: const Center(child: Text('No photo added')),
+              )
             : GridView.builder(
                 physics: const NeverScrollableScrollPhysics(),
                 shrinkWrap: true,
@@ -332,10 +360,16 @@ class _StaffProductUpdateState extends ConsumerState<StaffProductUpdateScreen> {
                           width: double.infinity,
                           height: double.infinity,
                           fit: BoxFit.cover,
+                          // Handle loading for network images
+                          loadingBuilder: (context, child, loadingProgress) {
+                            if (loadingProgress == null) return child;
+                            return const Center(child: CircularProgressIndicator());
+                          },
+                          errorBuilder: (context, error, stackTrace) {
+                            return const Center(child: Icon(Icons.broken_image));
+                          },
                         ),
                       ),
-
-                      //delete
                       Positioned(
                         right: 4,
                         top: 4,
@@ -346,8 +380,8 @@ class _StaffProductUpdateState extends ConsumerState<StaffProductUpdateScreen> {
                             });
                           },
                           child: Container(
-                            decoration: BoxDecoration(
-                              color: Theme.of(context).colorScheme.primary,
+                            decoration: const BoxDecoration(
+                              color: Colors.red,
                               shape: BoxShape.circle,
                             ),
                             padding: const EdgeInsets.all(4),

@@ -11,35 +11,54 @@ class TowingScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final user = ref.watch(authProvider).value;
-    final towingList = ref.watch(customerTowingsProvider(user!.id));
+    final userState = ref.watch(authProvider);
+    final user = userState.value;
+
+    // FIX 1: Safety check to prevent crash on 'user!.id'
+    if (user == null) {
+      return const Scaffold(
+        body: Center(child: Text('No user found')),
+      );
+    }
+
+    final towingList = ref.watch(customerTowingsProvider(user.id));
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('Towing'),
+        title: const Text('Towing'),
       ),
       body: towingList.when(
         data: (towings) {
-          return towings.isEmpty
-              ? const Center(
-                  child: Text('No towing record found'),
-                )
-              : SafeArea(
-                  child: Padding(
-                    padding: EdgeInsets.all(20),
-                    child: ListView.builder(
+          // FIX 2: Add RefreshIndicator
+          return RefreshIndicator(
+            onRefresh: () async =>
+                ref.refresh(customerTowingsProvider(user.id).future),
+            child: towings.isEmpty
+                // FIX 3: Empty state must be scrollable to allow Refresh
+                ? ListView(
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    children: [
+                      SizedBox(
+                          height: MediaQuery.of(context).size.height * 0.3),
+                      const Center(child: Text('No towing record found')),
+                    ],
+                  )
+                : SafeArea(
+                    child: ListView.separated(
+                      padding: const EdgeInsets.all(20),
+                      physics: const AlwaysScrollableScrollPhysics(),
                       itemCount: towings.length,
+                      separatorBuilder: (context, index) =>
+                          const SizedBox(height: 10),
                       itemBuilder: (context, index) {
                         final towing = towings[index];
-                        return Padding(
-                          padding: const EdgeInsets.only(bottom: 10),
-                          child: TowingListItem(
-                            towing: towing,
-                            tapAction: () => Navigator.of(context).push(
-                              MaterialPageRoute(
-                                builder: (context) => CustomerTowingDetailsScreen(
-                                  towing: towing,
-                                ),
+                        return TowingListItem(
+                          towing: towing,
+                          tapAction: () => Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (context) =>
+                                  CustomerTowingDetailsScreen(
+                                towing: towing,
                               ),
                             ),
                           ),
@@ -47,10 +66,11 @@ class TowingScreen extends ConsumerWidget {
                       },
                     ),
                   ),
-                );
+          );
         },
-        error: (error, stackTrace) => Center(
-          child: Text(error.toString()),
+        // Error handling with Retry button
+         error: (error, stackTrace) => Center(
+          child: Text('Error: $error'),
         ),
         loading: () => const Center(child: CircularProgressIndicator()),
       ),

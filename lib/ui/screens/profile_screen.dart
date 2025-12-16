@@ -1,9 +1,9 @@
 import 'package:cheng_eng_3/core/controllers/auth/auth_notifier.dart';
-import 'package:cheng_eng_3/core/controllers/point/customer_point_history_notifier.dart';
+import 'package:cheng_eng_3/core/controllers/point/total_points_provider.dart';
 import 'package:cheng_eng_3/core/controllers/profile/profile_notifier.dart';
 import 'package:cheng_eng_3/core/controllers/reset_provider.dart';
 import 'package:cheng_eng_3/core/models/profile_model.dart';
-import 'package:cheng_eng_3/main.dart';
+import 'package:cheng_eng_3/ui/screens/customer/points_history/customer_points_history_screen.dart';
 import 'package:cheng_eng_3/ui/screens/login_screen.dart';
 import 'package:cheng_eng_3/ui/screens/profile_update_screen.dart';
 import 'package:flutter/material.dart';
@@ -18,15 +18,14 @@ class ProfileScreen extends ConsumerWidget {
     final user = ref.read(authProvider).value;
 
     if (user == null) {
-      Navigator.of(context).pushAndRemoveUntil(
-        MaterialPageRoute(
-          builder: (context) => Main(),
+      return Scaffold(
+        body: Center(
+          child: CircularProgressIndicator(),
         ),
-        (route) => false,
       );
     }
 
-    final totalPoints = ref.watch(totalPointsProvider(user!.id));
+    final totalPoints = ref.watch(totalPointsProvider(user.id));
     final profile = ref.watch(profileProvider);
     final authNotifier = ref.read(authProvider.notifier);
 
@@ -77,7 +76,6 @@ class ProfileScreen extends ConsumerWidget {
                             color: Theme.of(
                               context,
                             ).colorScheme.surfaceContainer,
-                            padding: EdgeInsets.all(20),
                             child: totalPoints.when(
                               data: (total) {
                                 return _pointsFiled(total, context);
@@ -155,7 +153,11 @@ class ProfileScreen extends ConsumerWidget {
               foregroundColor: Theme.of(context).colorScheme.onPrimary,
               iconAlignment: IconAlignment.end,
             ),
-            onPressed: () {},
+            onPressed: () => Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (context) => CustomerPointsHistoryScreen(),
+              ),
+            ),
             label: Text('Points History'),
             icon: Icon(Icons.arrow_forward),
           ),

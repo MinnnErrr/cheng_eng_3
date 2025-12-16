@@ -1,4 +1,6 @@
 import 'package:cheng_eng_3/ui/screens/profile_screen.dart';
+import 'package:cheng_eng_3/ui/screens/staff/claim_reward/staff_claim_reward_screen.dart';
+import 'package:cheng_eng_3/ui/screens/staff/point/staff_point_history_screen.dart';
 import 'package:cheng_eng_3/ui/screens/staff/product/staff_product_screen.dart';
 import 'package:cheng_eng_3/ui/screens/staff/reward/staff_reward_screen.dart';
 import 'package:cheng_eng_3/ui/screens/staff/towing/staff_towing_screen.dart';
@@ -52,6 +54,26 @@ class StaffHome extends ConsumerWidget {
                 );
               },
               child: Text('Reward Management'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (context) => StaffPointsHistoryScreen(),
+                  ),
+                );
+              },
+              child: Text('Point Management'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (context) => StaffClaimRewardScreen(),
+                  ),
+                );
+              },
+              child: Text('Redeemed Reward Management'),
             ),
           ],
         ),

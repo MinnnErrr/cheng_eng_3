@@ -42,9 +42,11 @@ class _StaffProductScreenState extends ConsumerState<StaffProductScreen> {
       appBar: AppBar(title: const Text('Products')),
       body: productsAsync.when(
         data: (products) {
+          // Extract unique categories
           _filterCategories = products.map((p) => p.category).toSet().toList()
             ..sort();
 
+          // Filter the list
           final filtered = productSearchSortFilter(
             products: products,
             search: _search,
@@ -54,24 +56,22 @@ class _StaffProductScreenState extends ConsumerState<StaffProductScreen> {
             isActive: _isActive,
           );
 
-          //statistics
-          final outOfStock = products
-              .where(
-                (p) =>
-                    p.availability == ProductAvailability.ready &&
-                    (p.quantity ?? 0) <= 0,
-              )
-              .length;
-          final readyStock = products
-              .where(
-                (p) =>
-                    p.availability == ProductAvailability.ready &&
-                    (p.quantity ?? 0) > 0,
-              )
-              .length;
-          final preorder = products
-              .where((p) => p.availability == ProductAvailability.preorder)
-              .length;
+          // --- Statistics Calculation ---
+          int outOfStock = 0;
+          int readyStock = 0;
+          int preorder = 0;
+
+          for (var p in products) {
+            if (p.availability == ProductAvailability.preorder) {
+              preorder++;
+            } else if (p.availability == ProductAvailability.ready) {
+              if ((p.quantity ?? 0) > 0) {
+                readyStock++;
+              } else {
+                outOfStock++;
+              }
+            }
+          }
 
           if (products.isEmpty) {
             return const Center(child: Text('No product found'));
@@ -81,12 +81,12 @@ class _StaffProductScreenState extends ConsumerState<StaffProductScreen> {
             child: Padding(
               padding: const EdgeInsets.all(20.0),
               child: Column(
-                // use SizedBox for spacing instead of a custom spacing param
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  // statistics row
+                  // --- Statistics Row ---
                   Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    // 'spacing' property in Row is available in Flutter 3.27+.
+                    // If using older version, remove this line and use SizedBox between children.
                     spacing: 10,
                     children: [
                       Expanded(
@@ -114,10 +114,12 @@ class _StaffProductScreenState extends ConsumerState<StaffProductScreen> {
                           context: context,
                           label: 'Preorder',
                           value: preorder,
-                          light: Theme.of(context).colorScheme.primaryContainer,
+                          light: Theme.of(
+                            context,
+                          ).colorScheme.tertiaryContainer,
                           dark: Theme.of(
                             context,
-                          ).colorScheme.onPrimaryContainer,
+                          ).colorScheme.onTertiaryContainer,
                         ),
                       ),
                     ],
@@ -125,7 +127,7 @@ class _StaffProductScreenState extends ConsumerState<StaffProductScreen> {
 
                   const SizedBox(height: 20),
 
-                  // search / filter / sort row
+                  // --- Search & Action Bar ---
                   Row(
                     children: [
                       Expanded(
@@ -134,6 +136,10 @@ class _StaffProductScreenState extends ConsumerState<StaffProductScreen> {
                           decoration: InputDecoration(
                             hintText: "Search name...",
                             prefixIcon: const Icon(Icons.search),
+                            contentPadding: const EdgeInsets.symmetric(
+                              vertical: 0,
+                              horizontal: 10,
+                            ),
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(10),
                             ),
@@ -141,12 +147,12 @@ class _StaffProductScreenState extends ConsumerState<StaffProductScreen> {
                         ),
                       ),
                       const SizedBox(width: 8),
-                      IconButton(
+                      IconButton.filledTonal(
                         onPressed: () => _openFilterSheet(),
                         icon: const Icon(Icons.filter_alt_outlined),
                       ),
                       const SizedBox(width: 8),
-                      IconButton(
+                      IconButton.filledTonal(
                         onPressed: () => _openSortSheet(),
                         icon: const Icon(Icons.sort),
                       ),
@@ -155,31 +161,27 @@ class _StaffProductScreenState extends ConsumerState<StaffProductScreen> {
 
                   const SizedBox(height: 20),
 
-                  // product list
+                  // --- Product List ---
                   Expanded(
                     child: filtered.isEmpty
-                        ? Center(
-                            child: Text('No product found'),
+                        ? const Center(
+                            child: Text('No product found based on filters'),
                           )
                         : ListView.separated(
                             itemCount: filtered.length,
+                            separatorBuilder: (_, __) =>
+                                const SizedBox(height: 10),
                             itemBuilder: (_, i) {
                               final p = filtered[i];
                               return InkWell(
-                                child: StaffProductListitem(product: p),
+                                borderRadius: BorderRadius.circular(12),
                                 onTap: () => Navigator.of(context).push(
                                   MaterialPageRoute(
                                     builder: (context) =>
-                                        StaffProductDetailsScreen(
-                                          productId: p.id,
-                                        ),
+                                        StaffProductDetailsScreen(product: p),
                                   ),
                                 ),
-                              );
-                            },
-                            separatorBuilder: (context, i) {
-                              return const SizedBox(
-                                height: 10,
+                                child: StaffProductListitem(product: p),
                               );
                             },
                           ),
@@ -203,7 +205,7 @@ class _StaffProductScreenState extends ConsumerState<StaffProductScreen> {
     );
   }
 
-  //statistics
+  // Statistics Widget
   Widget _statBox({
     required BuildContext context,
     required String label,
@@ -212,19 +214,22 @@ class _StaffProductScreenState extends ConsumerState<StaffProductScreen> {
     required Color dark,
   }) {
     return Container(
-      padding: const EdgeInsets.all(10),
+      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 5),
       decoration: BoxDecoration(
         color: light,
         borderRadius: BorderRadius.circular(10),
       ),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          Text(label, style: TextStyle(color: dark)),
+          Text(
+            label,
+            style: TextStyle(color: dark, fontSize: 12),
+            textAlign: TextAlign.center,
+          ),
           const SizedBox(height: 4),
           Text(
             value.toString(),
-            style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+            style: Theme.of(context).textTheme.titleLarge?.copyWith(
               fontWeight: FontWeight.bold,
               color: dark,
             ),
@@ -234,125 +239,124 @@ class _StaffProductScreenState extends ConsumerState<StaffProductScreen> {
     );
   }
 
-  //filter
+  // Filter Sheet
   void _openFilterSheet() {
-    final tempCategory = _category;
-    final tempAvailability = _availability;
-    final tempIsActive = _isActive;
-
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
+      useSafeArea: true,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       builder: (context) {
-        String? sheetCategory = tempCategory;
-        ProductAvailability? sheetAvailability = tempAvailability;
-        bool? sheetIsActive = tempIsActive;
-
-        return Padding(
-          padding: EdgeInsets.only(
-            left: 20,
-            right: 20,
-            bottom: MediaQuery.of(context).viewInsets.bottom + 20,
-            top: 20,
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                "Filter Products",
-                style: Theme.of(
-                  context,
-                ).textTheme.bodyLarge!.copyWith(fontWeight: FontWeight.bold),
+        // Use StatefulBuilder to update local sheet state (dropdowns)
+        return StatefulBuilder(
+          builder: (context, setSheetState) {
+            return Padding(
+              padding: EdgeInsets.only(
+                left: 20,
+                right: 20,
+                bottom: MediaQuery.of(context).viewInsets.bottom + 20,
+                top: 20,
               ),
-              const SizedBox(height: 16),
-
-              DropdownButtonFormField<String>(
-                initialValue: _filterCategories.contains(sheetCategory)
-                    ? sheetCategory
-                    : null,
-                decoration: const InputDecoration(labelText: "Category"),
-                items: _filterCategories
-                    .map((c) => DropdownMenuItem(value: c, child: Text(c)))
-                    .toList(),
-                onChanged: (v) {
-                  sheetCategory = v;
-                },
-              ),
-              const SizedBox(height: 12),
-
-              // AVAILABILITY
-              DropdownButtonFormField<ProductAvailability>(
-                initialValue: sheetAvailability,
-                decoration: const InputDecoration(labelText: "Availability"),
-                items: ProductAvailability.values
-                    .map(
-                      (availability) => DropdownMenuItem(
-                        value: availability,
-                        child: Text(availability.label),
-                      ),
-                    )
-                    .toList(),
-                onChanged: (v) {
-                  sheetAvailability = v;
-                },
-              ),
-              const SizedBox(height: 12),
-
-              // STATUS
-              DropdownButtonFormField<bool>(
-                initialValue: sheetIsActive,
-                decoration: const InputDecoration(labelText: "Status"),
-                items: const [
-                  DropdownMenuItem(value: true, child: Text("Active")),
-                  DropdownMenuItem(value: false, child: Text("Inactive")),
-                ],
-                onChanged: (v) {
-                  sheetIsActive = v;
-                },
-              ),
-
-              const SizedBox(height: 30),
-
-              Row(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  Expanded(
-                    child: OutlinedButton(
-                      onPressed: () {
-                        resetFilters();
-                        Navigator.pop(context);
-                      },
-                      child: const Text("Reset"),
-                    ),
+                  Text(
+                    "Filter Products",
+                    style: Theme.of(context).textTheme.titleLarge,
+                    textAlign: TextAlign.center,
                   ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: ElevatedButton(
-                      onPressed: () {
-                        // apply selected filters
-                        setState(() {
-                          _category = sheetCategory;
-                          _availability = sheetAvailability;
-                          _isActive = sheetIsActive;
-                        });
-                        Navigator.pop(context);
-                      },
-                      child: const Text("Apply"),
+                  const SizedBox(height: 20),
+
+                  // Category
+                  DropdownButtonFormField<String>(
+                    initialValue: _category,
+                    decoration: const InputDecoration(
+                      labelText: "Category",
+                      border: OutlineInputBorder(),
                     ),
+                    items: _filterCategories
+                        .map((c) => DropdownMenuItem(value: c, child: Text(c)))
+                        .toList(),
+                    onChanged: (v) => setSheetState(() => _category = v),
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Availability
+                  DropdownButtonFormField<ProductAvailability>(
+                    initialValue: _availability,
+                    decoration: const InputDecoration(
+                      labelText: "Availability",
+                      border: OutlineInputBorder(),
+                    ),
+                    items: ProductAvailability.values
+                        .map(
+                          (a) => DropdownMenuItem(
+                            value: a,
+                            child: Text(
+                              a.label,
+                            ), // Assuming enum extension or property
+                          ),
+                        )
+                        .toList(),
+                    onChanged: (v) => setSheetState(() => _availability = v),
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Status
+                  DropdownButtonFormField<bool>(
+                    initialValue: _isActive,
+                    decoration: const InputDecoration(
+                      labelText: "Status",
+                      border: OutlineInputBorder(),
+                    ),
+                    items: const [
+                      DropdownMenuItem(value: true, child: Text("Active")),
+                      DropdownMenuItem(value: false, child: Text("Inactive")),
+                    ],
+                    onChanged: (v) => setSheetState(() => _isActive = v),
+                  ),
+                  const SizedBox(height: 30),
+
+                  // Actions
+                  Row(
+                    children: [
+                      Expanded(
+                        child: OutlinedButton(
+                          onPressed: () {
+                            resetFilters(); // Resets parent state
+                            Navigator.pop(context);
+                          },
+                          child: const Text("Reset Filters"),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: FilledButton(
+                          onPressed: () {
+                            setState(() {
+                              // Variables are already updated via setSheetState
+                              // triggering parent rebuild
+                            });
+                            Navigator.pop(context);
+                          },
+                          child: const Text("Apply"),
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),
-
-              const SizedBox(height: 16),
-            ],
-          ),
+            );
+          },
         );
       },
     );
   }
 
+  // Sort Sheet - FIXED
   void _openSortSheet() {
     showModalBottomSheet(
       context: context,
@@ -361,26 +365,19 @@ class _StaffProductScreenState extends ConsumerState<StaffProductScreen> {
       ),
       builder: (context) {
         return Padding(
-          padding: EdgeInsets.only(
-            left: 20,
-            right: 20,
-            bottom: MediaQuery.of(context).viewInsets.bottom + 20,
-            top: 20,
-          ),
+          padding: const EdgeInsets.symmetric(vertical: 20),
           child: Column(
             mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
                 "Sort By",
-                style: Theme.of(
-                  context,
-                ).textTheme.bodyLarge!.copyWith(fontWeight: FontWeight.bold),
+                style: Theme.of(context).textTheme.titleLarge,
               ),
-              const SizedBox(height: 20),
-
+              const SizedBox(height: 10),
+              // Correct Implementation using RadioListTile directly
               RadioGroup<ProductSorting>(
                 groupValue: _sorting,
+
                 onChanged: (value) {
                   if (value != null) {
                     setState(() {
@@ -390,10 +387,12 @@ class _StaffProductScreenState extends ConsumerState<StaffProductScreen> {
 
                   Navigator.pop(context);
                 },
+
                 child: Column(
                   children: ProductSorting.values.map((sorting) {
                     return RadioListTile<ProductSorting>(
                       title: Text(sorting.title),
+
                       value: sorting,
                     );
                   }).toList(),

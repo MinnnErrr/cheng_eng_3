@@ -31,7 +31,7 @@ class BookingService {
     return data.map<Booking>((b) => Booking.fromJson(b)).toList();
   }
 
-  Future<Booking> getByTowingId(String id) async {
+  Future<Booking> getByBookingId(String id) async {
     final data = await supabase.from('bookings').select().eq('id', id).single();
     return Booking.fromJson(data);
   }

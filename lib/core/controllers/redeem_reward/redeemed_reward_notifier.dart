@@ -1,9 +1,13 @@
-import 'package:cheng_eng_3/core/controllers/point/customer_point_history_notifier.dart';
-import 'package:cheng_eng_3/core/controllers/reward/customer_reward_notifier.dart';
+
+import 'package:cheng_eng_3/core/controllers/point/total_points_provider.dart';
+import 'package:cheng_eng_3/core/controllers/redeem_reward/redeemed_reward_by_id_provider.dart';
+import 'package:cheng_eng_3/core/controllers/reward/reward_by_id_provider.dart';
 import 'package:cheng_eng_3/core/models/message_model.dart';
+import 'package:cheng_eng_3/core/models/point_history_model.dart';
 import 'package:cheng_eng_3/core/models/redeemed_reward_model.dart';
+import 'package:cheng_eng_3/core/services/point_history_service.dart';
 import 'package:cheng_eng_3/core/services/redeemed_reward_service.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:cheng_eng_3/core/services/reward_service.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:uuid/uuid.dart';
 
@@ -13,6 +17,12 @@ part 'redeemed_reward_notifier.g.dart';
 class RedeemedRewardNotifier extends _$RedeemedRewardNotifier {
   RedeemedRewardService get _redeemedRewardService =>
       ref.read(redeemedRewardServiceProvider);
+  // 1. Inject RewardService to handle stock updates
+  RewardService get _rewardService => ref.read(rewardServiceProvider);
+
+  // 2. Inject PointHistoryService to handle point deduction
+  PointHistoryService get _pointHistoryService =>
+      ref.read(pointHistorytServiceProvider);
 
   @override
   FutureOr<List<RedeemedReward>> build(String userId) async {
@@ -25,10 +35,19 @@ class RedeemedRewardNotifier extends _$RedeemedRewardNotifier {
     required String rewardId,
     required String userId,
   }) async {
-    final reward = await ref.read(customerRewardByIdProvider(rewardId).future);
+    // 1. Fetch Reward Data
+    final reward = await ref.read(rewardByIdProvider(rewardId).future);
 
+    // 2. Check Stock (New Logic)
+    if (reward.quantity <= 0) {
+      return Message(
+        isSuccess: false,
+        message: 'Reward is out of stock',
+      );
+    }
+
+    // 3. Check Points Balance
     final userPoint = await ref.read(totalPointsProvider(userId).future);
-
     if (userPoint < reward.points) {
       return Message(
         isSuccess: false,
@@ -36,24 +55,18 @@ class RedeemedRewardNotifier extends _$RedeemedRewardNotifier {
       );
     }
 
-    final redeemedId = Uuid().v4();
+    // --- Prepare Data Objects ---
+    final redeemedId = const Uuid().v4();
     final now = DateTime.now();
 
+    // Validity Logic
     DateTime? expiryDate;
     if (reward.validityWeeks != null) {
-      expiryDate = DateTime(
-        now.year,
-        now.month + reward.validityWeeks!,
-        now.day,
-        now.hour,
-        now.minute,
-        now.second,
-        now.millisecond,
-        now.microsecond,
-      );
+      // Cleaner DateTime calculation
+      expiryDate = now.add(Duration(days: reward.validityWeeks! * 7));
     }
 
-    final redeemed = RedeemedReward(
+    final redeemedReward = RedeemedReward(
       id: redeemedId,
       createdAt: now,
       code: reward.code,
@@ -69,24 +82,43 @@ class RedeemedRewardNotifier extends _$RedeemedRewardNotifier {
       updatedAt: null,
     );
 
+    // Points Deduction Record
+    final pointDeduction = PointHistory(
+      id: const Uuid().v4(),
+      userId: userId,
+      points: -reward.points, // Negative Value
+      type: PointType.use,
+      reason: 'Redeemed: ${reward.name}',
+      isIssuedByStaff: false,
+      createdAt: now,
+      expiredAt: null,
+    );
+
+    // --- Execute Transaction ---
     try {
-      await _redeemedRewardService.create(redeemed);
+      // A. Create the "Voucher"
+      await _redeemedRewardService.create(redeemedReward);
+
+      // B. Deduct the Stock (RPC Call)
+      await _rewardService.decreaseQuantity(rewardId);
+
+      // C. Deduct the Points (Wallet Update)
+      await _pointHistoryService.create(pointDeduction);
 
       return Message(isSuccess: true, message: 'Reward redeemed successfully');
     } catch (e) {
       return Message(
         isSuccess: false,
-        message: 'Failed to redeemed reward',
+        message: 'Failed to redeem reward: $e',
       );
     }
   }
 
   Future<Message> claimReward({
-    required String userId,
     required String redeemedId,
   }) async {
     final redeemed = await ref.watch(
-      redeemedRewardByIdProvider((redeemedId: redeemedId, userId: userId)).future,
+      redeeemdRewardByIdProvider(redeemedId).future,
     );
 
     if (redeemed.isClaimed == true) {
@@ -105,26 +137,3 @@ class RedeemedRewardNotifier extends _$RedeemedRewardNotifier {
     }
   }
 }
-
-final redeemedRewardByIdProvider =
-    FutureProvider.family<RedeemedReward, ({String userId, String redeemedId})>(
-      (ref, params) async {
-        final list = await ref.watch(
-          redeemedRewardProvider(params.userId).future,
-        );
-
-        return list.firstWhere(
-          (r) => r.id == params.redeemedId,
-          orElse: () => throw Exception('Reward not found'),
-        );
-      },
-    );
-
-// final totalPointsProvider = Provider.family<int, String>((ref, userId) {
-//   final asyncRecords = ref.watch(pointHistoryProvider(userId));
-
-//   return asyncRecords.maybeWhen(
-//     data: (records) => records.fold(0, (sum, r) => sum + r.points),
-//     orElse: () => 0,
-//   );
-// });

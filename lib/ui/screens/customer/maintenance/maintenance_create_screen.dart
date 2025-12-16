@@ -9,10 +9,10 @@ import 'package:intl/intl.dart';
 class MaintenanceCreateScreen extends ConsumerStatefulWidget {
   const MaintenanceCreateScreen({
     super.key,
-    this.vehicleId,
+    required this.vehicleId, // FIX 1: Make this required to prevent crashes
   });
 
-  final String? vehicleId;
+  final String vehicleId;
 
   @override
   ConsumerState<ConsumerStatefulWidget> createState() =>
@@ -49,20 +49,23 @@ class _MaintenanceCreateScreenState
 
   @override
   Widget build(BuildContext context) {
-    bool isLoading = ref.watch(maintenanceProvider).isLoading;
+    // Watch the specific AsyncValue to determine loading state
+    final maintenanceState = ref.watch(maintenanceProvider);
+    final isLoading = maintenanceState.isLoading;
+    
     final maintenanceNotifier = ref.read(maintenanceProvider.notifier);
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('Add Maintenance'),
+        title: const Text('Add Maintenance'),
       ),
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: EdgeInsets.all(20),
+          padding: const EdgeInsets.all(20),
           child: Form(
             key: _formKey,
             child: Column(
-              spacing: 20,
+              spacing: 20, // Requires Flutter 3.27+
               children: [
                 textFormField(
                   controller: _title,
@@ -75,6 +78,8 @@ class _MaintenanceCreateScreenState
                   minLines: 3,
                   validationRequired: false,
                 ),
+                
+                // --- CURRENT SERVICE ---
                 textFormField(
                   controller: _currentDateCtrl,
                   label: 'Current Service Date',
@@ -85,20 +90,20 @@ class _MaintenanceCreateScreenState
                       if (date != null) {
                         setState(() {
                           _currentDate = date;
-                          _currentDateCtrl.text = _dateFormatter.format(
-                            date,
-                          );
+                          _currentDateCtrl.text = _dateFormatter.format(date);
                         });
                       }
                     },
-                    icon: Icon(Icons.calendar_month),
+                    icon: const Icon(Icons.calendar_month),
                   ),
                 ),
                 textFormField(
                   controller: _currentDist,
                   label: 'Current Service Distance (KM)',
-                  keyboardType: TextInputType.numberWithOptions(),
+                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
                 ),
+
+                // --- NEXT SERVICE ---
                 textFormField(
                   controller: _nextDateCtrl,
                   label: 'Next Service Date',
@@ -109,20 +114,19 @@ class _MaintenanceCreateScreenState
                       if (date != null) {
                         setState(() {
                           _nextDate = date;
-                          _nextDateCtrl.text = _dateFormatter.format(
-                            date,
-                          );
+                          _nextDateCtrl.text = _dateFormatter.format(date);
                         });
                       }
                     },
-                    icon: Icon(Icons.calendar_month),
+                    icon: const Icon(Icons.calendar_month),
                   ),
                 ),
                 textFormField(
                   controller: _nextDist,
                   label: 'Next Service Distance (KM)',
-                  keyboardType: TextInputType.numberWithOptions(),
+                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
                 ),
+
                 textFormField(
                   controller: _remarks,
                   label: 'Remarks',
@@ -130,51 +134,67 @@ class _MaintenanceCreateScreenState
                   minLines: 3,
                   validationRequired: false,
                 ),
-                ElevatedButton(
-                  onPressed: () async {
-                    if (!_formKey.currentState!.validate()) return;
-                    bool success;
 
-                    if (_currentDate == null || _nextDate == null) {
-                      showAppSnackBar(
-                        context: context,
-                        content: 'Please select service dates',
-                        isError: true,
-                      );
-                      return;
-                    }
+                // --- SUBMIT BUTTON ---
+                SizedBox(
+                  width: double.infinity,
+                  height: 50,
+                  child: ElevatedButton(
+                    // FIX 2: Disable button logic entirely when loading to prevent double-taps
+                    onPressed: isLoading
+                        ? null
+                        : () async {
+                            if (!_formKey.currentState!.validate()) return;
 
-                    success = await maintenanceNotifier.addMaintenance(
-                      title: _title.text.trim(),
-                      currentServDate: _currentDate!,
-                      currentServDistance: double.parse(
-                        _currentDist.text.trim(),
-                      ),
-                      nextServDate: _nextDate!,
-                      nextServDistance: double.parse(_nextDist.text.trim()),
-                      vehicleId: widget.vehicleId!,
-                    );
+                            if (_currentDate == null || _nextDate == null) {
+                              showAppSnackBar(
+                                context: context,
+                                content: 'Please select service dates',
+                                isError: true,
+                              );
+                              return;
+                            }
 
-                    if (!context.mounted) return;
-                    showAppSnackBar(
-                      context: context,
-                      content: success == true
-                          ? 'Maintenance record added'
-                          : 'Failed to add maintenance record',
-                      isError: !success,
-                    );
+                            // Close keyboard
+                            FocusScope.of(context).unfocus();
 
-                    if (success == true) Navigator.of(context).pop();
-                  },
-                  child: isLoading
-                      ? const SizedBox(
-                          height: 15,
-                          width: 15,
-                          child: CircularProgressIndicator(),
-                        )
-                      : Text(
-                          'Create Maintenance',
-                        ),
+                            final success = await maintenanceNotifier.addMaintenance(
+                              title: _title.text.trim(),
+                              // FIX 3: Added missing description parameter
+                              description: _desc.text.trim().isEmpty 
+                                  ? null 
+                                  : _desc.text.trim(),
+                              currentServDate: _currentDate!,
+                              // Safer parsing
+                              currentServDistance: double.tryParse(_currentDist.text.trim()) ?? 0.0,
+                              nextServDate: _nextDate!,
+                              nextServDistance: double.tryParse(_nextDist.text.trim()) ?? 0.0,
+                              remarks: _remarks.text.trim().isEmpty
+                                  ? null
+                                  : _remarks.text.trim(),
+                              vehicleId: widget.vehicleId, // No ! needed anymore
+                            );
+
+                            if (!context.mounted) return;
+                            
+                            showAppSnackBar(
+                              context: context,
+                              content: success
+                                  ? 'Maintenance record added'
+                                  : 'Failed to add maintenance record',
+                              isError: !success,
+                            );
+
+                            if (success) Navigator.of(context).pop();
+                          },
+                    child: isLoading
+                        ? const SizedBox(
+                            height: 24,
+                            width: 24,
+                            child: CircularProgressIndicator(),
+                          )
+                        : const Text('Create Maintenance'),
+                  ),
                 ),
               ],
             ),

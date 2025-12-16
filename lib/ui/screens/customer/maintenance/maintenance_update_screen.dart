@@ -70,22 +70,21 @@ class _MaintenanceUpdateScreenState
 
   @override
   Widget build(BuildContext context) {
-    bool isLoading = ref.watch(maintenanceProvider).isLoading;
+    // Watch specific loading state
+    final isLoading = ref.watch(maintenanceProvider).isLoading;
     final maintenanceNotifier = ref.read(maintenanceProvider.notifier);
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(
-          'Update Maintenance',
-        ),
+        title: const Text('Update Maintenance'),
       ),
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: EdgeInsets.all(20),
+          padding: const EdgeInsets.all(20),
           child: Form(
             key: _formKey,
             child: Column(
-              spacing: 20,
+              spacing: 20, // Requires Flutter 3.27+
               children: [
                 textFormField(
                   controller: _title,
@@ -98,6 +97,8 @@ class _MaintenanceUpdateScreenState
                   minLines: 3,
                   validationRequired: false,
                 ),
+                
+                // --- CURRENT SERVICE ---
                 textFormField(
                   controller: _currentDateCtrl,
                   label: 'Current Service Date',
@@ -108,20 +109,20 @@ class _MaintenanceUpdateScreenState
                       if (date != null) {
                         setState(() {
                           _currentDate = date;
-                          _currentDateCtrl.text = _dateFormatter.format(
-                            date,
-                          );
+                          _currentDateCtrl.text = _dateFormatter.format(date);
                         });
                       }
                     },
-                    icon: Icon(Icons.calendar_month),
+                    icon: const Icon(Icons.calendar_month),
                   ),
                 ),
                 textFormField(
                   controller: _currentDist,
                   label: 'Current Service Distance (KM)',
-                  keyboardType: TextInputType.numberWithOptions(),
+                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
                 ),
+
+                // --- NEXT SERVICE ---
                 textFormField(
                   controller: _nextDateCtrl,
                   label: 'Next Service Date',
@@ -132,20 +133,19 @@ class _MaintenanceUpdateScreenState
                       if (date != null) {
                         setState(() {
                           _nextDate = date;
-                          _nextDateCtrl.text = _dateFormatter.format(
-                            date,
-                          );
+                          _nextDateCtrl.text = _dateFormatter.format(date);
                         });
                       }
                     },
-                    icon: Icon(Icons.calendar_month),
+                    icon: const Icon(Icons.calendar_month),
                   ),
                 ),
                 textFormField(
                   controller: _nextDist,
                   label: 'Next Service Distance (KM)',
-                  keyboardType: TextInputType.numberWithOptions(),
+                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
                 ),
+
                 textFormField(
                   controller: _remarks,
                   label: 'Remarks',
@@ -153,40 +153,57 @@ class _MaintenanceUpdateScreenState
                   minLines: 3,
                   validationRequired: false,
                 ),
-                ElevatedButton(
-                  onPressed: () async {
-                    if (!_formKey.currentState!.validate()) return;
-                    bool success;
 
-                    success = await maintenanceNotifier.updateMaintenance(
-                      id: widget.maintenance.id,
-                      title: _title.text.trim(),
-                      currentServDate: _currentDate,
-                      currentServDistance: double.parse(
-                        _currentDist.text.trim(),
-                      ),
-                      nextServDate: _nextDate,
-                      nextServDistance: double.parse(_nextDist.text.trim()),
-                    );
+                // --- UPDATE BUTTON ---
+                SizedBox(
+                  width: double.infinity,
+                  height: 50,
+                  child: ElevatedButton(
+                    // FIX 1: Disable button while loading
+                    onPressed: isLoading
+                        ? null
+                        : () async {
+                            if (!_formKey.currentState!.validate()) return;
+                            
+                            FocusScope.of(context).unfocus(); // Close keyboard
 
-                    if (!context.mounted) return;
-                    showAppSnackBar(
-                      context: context,
-                      content: success == true
-                          ? 'Maintenance record updated'
-                          : 'Failed to update maintenance record',
-                      isError: !success,
-                    );
+                            final success = await maintenanceNotifier.updateMaintenance(
+                              id: widget.maintenance.id,
+                              title: _title.text.trim(),
+                              // FIX 2: Pass description
+                              description: _desc.text.trim().isEmpty 
+                                  ? null 
+                                  : _desc.text.trim(),
+                              currentServDate: _currentDate,
+                              currentServDistance: double.tryParse(_currentDist.text.trim()) ?? 0.0,
+                              nextServDate: _nextDate,
+                              nextServDistance: double.tryParse(_nextDist.text.trim()) ?? 0.0,
+                              // FIX 3: Pass remarks
+                              remarks: _remarks.text.trim().isEmpty 
+                                  ? null 
+                                  : _remarks.text.trim(),
+                            );
 
-                    if (success == true) Navigator.of(context).pop();
-                  },
-                  child: isLoading
-                      ? const SizedBox(
-                          height: 15,
-                          width: 15,
-                          child: CircularProgressIndicator(),
-                        )
-                      : Text('Update Maintenance'),
+                            if (!context.mounted) return;
+                            
+                            showAppSnackBar(
+                              context: context,
+                              content: success
+                                  ? 'Maintenance record updated'
+                                  : 'Failed to update maintenance record',
+                              isError: !success,
+                            );
+
+                            if (success) Navigator.of(context).pop();
+                          },
+                    child: isLoading
+                        ? const SizedBox(
+                            height: 24,
+                            width: 24,
+                            child: CircularProgressIndicator(),
+                          )
+                        : const Text('Update Maintenance'),
+                  ),
                 ),
               ],
             ),

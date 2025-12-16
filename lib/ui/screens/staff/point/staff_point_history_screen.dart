@@ -1,5 +1,5 @@
-
 import 'package:cheng_eng_3/core/controllers/point/staff_point_history_provider.dart';
+import 'package:cheng_eng_3/core/controllers/realtime_provider.dart';
 import 'package:cheng_eng_3/ui/screens/staff/point/staff_add_point_history.dart';
 import 'package:cheng_eng_3/ui/widgets/point_history_listitem.dart';
 import 'package:flutter/material.dart';
@@ -10,22 +10,28 @@ class StaffPointsHistoryScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    ref.watch(pointHistoryRealTimeProvider);
+
     final pointState = ref.watch(staffPointHistoryProvider);
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('Points History'),
+        title: const Text('Points History'),
       ),
       body: pointState.when(
         data: (records) {
           return SafeArea(
-            child: Padding(
-              padding: EdgeInsets.all(20),
+            child: RefreshIndicator(
+              // Allows user to pull down to refresh the list
+              onRefresh: () async {
+                return ref.refresh(staffPointHistoryProvider.future);
+              },
               child: records.isEmpty
-                  ? Center(
+                  ? const Center(
                       child: Text('No points history recorded'),
                     )
                   : ListView.separated(
+                      padding: const EdgeInsets.all(20),
                       itemCount: records.length,
                       itemBuilder: (context, index) {
                         final record = records[index];
@@ -34,13 +40,13 @@ class StaffPointsHistoryScreen extends ConsumerWidget {
                           isStaff: true,
                         );
                       },
-                      separatorBuilder: (context, index) => Divider(),
+                      separatorBuilder: (context, index) => const Divider(),
                     ),
             ),
           );
         },
         error: (error, stackTrace) => Center(
-          child: Text(error.toString()),
+          child: Text('Error: $error'),
         ),
         loading: () => const Center(
           child: CircularProgressIndicator(),

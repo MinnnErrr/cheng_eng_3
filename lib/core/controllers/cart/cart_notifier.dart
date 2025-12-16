@@ -1,10 +1,9 @@
 import 'package:cheng_eng_3/core/controllers/auth/auth_notifier.dart';
-import 'package:cheng_eng_3/core/controllers/product/customer_product_notifier.dart';
+import 'package:cheng_eng_3/core/controllers/product/product_by_id_provider.dart';
 import 'package:cheng_eng_3/core/models/cart_item_model.dart';
 import 'package:cheng_eng_3/core/models/message_model.dart';
 import 'package:cheng_eng_3/core/models/product_model.dart';
 import 'package:cheng_eng_3/core/services/cart_item_service.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:uuid/uuid.dart';
 
@@ -19,6 +18,9 @@ class CartNotifier extends _$CartNotifier {
     final userState = ref.watch(authProvider);
     final user = userState.value;
     if (user == null) return [];
+    
+    // Note: If you want the cart to update securely, consider passing the userId 
+    // to the provider family instead of reading it inside, but this works for now.
     final data = await _cartItemService.getCartItems(user.id);
     return data;
   }
@@ -33,45 +35,38 @@ class CartNotifier extends _$CartNotifier {
       return Message(isSuccess: false, message: 'User not authenticated');
     }
 
-    final productAsync = ref.read(customerProductByIdProvider(productId));
-    if (productAsync is! AsyncData) {
-      return Message(isSuccess: false, message: 'Product is loading or failed');
-    }
-    final product = productAsync.value;
-
-    if (product == null) {
-      return Message(isSuccess: false, message: 'Invalid product');
-    }
-
-    //verify product is not out of stock
-    if (product.availability == ProductAvailability.ready &&
-        product.quantity != null) {
-      if (product.quantity! <= 0) {
-        return Message(isSuccess: false, message: 'Product is sold out');
-      }
-    }
-
-    //verify installation selected for product with installation service
-    if (product.installation == true && requiredInstallation == null) {
-      return Message(
-        isSuccess: false,
-        message: 'Please choose do you want installation service',
-      );
-    }
-
-    final cartItemId = Uuid().v4();
-
-    final item = CartItem(
-      id: cartItemId,
-      quantity: quantity,
-      installation: requiredInstallation,
-      productId: productId,
-      userId: user.id,
-    );
-
-    final previous = state.value ?? [];
-
     try {
+      // FIX: Use .future to ensure we wait for the product to load if it's not cached
+      final product = await ref.read(productByIdProvider(productId).future);
+
+      // Verify product is not out of stock
+      if (product.availability == ProductAvailability.ready &&
+          product.quantity != null) {
+        if (product.quantity! <= 0) {
+          return Message(isSuccess: false, message: 'Product is sold out');
+        }
+      }
+
+      // Verify installation selection
+      if (product.installation == true && requiredInstallation == null) {
+        return Message(
+          isSuccess: false,
+          message: 'Please choose if you want installation service',
+        );
+      }
+
+      final cartItemId = const Uuid().v4();
+
+      final item = CartItem(
+        id: cartItemId,
+        quantity: quantity,
+        installation: requiredInstallation,
+        productId: productId,
+        userId: user.id,
+      );
+
+      // Optimistic Update Preparation
+      final previous = state.value ?? [];
       state = const AsyncLoading();
 
       final newItem = await _cartItemService.create(item);
@@ -80,9 +75,10 @@ class CartNotifier extends _$CartNotifier {
 
       return Message(isSuccess: true, message: 'Product added to cart');
     } catch (e) {
+      // Handle product fetch errors or service errors
       return Message(
         isSuccess: false,
-        message: 'Failed to add product to cart',
+        message: 'Failed to add product: ${e.toString()}',
       );
     }
   }
@@ -92,34 +88,25 @@ class CartNotifier extends _$CartNotifier {
     required String itemId,
   }) async {
     final previous = state.value ?? [];
-
-    // Find the current cart item
-    final cartItem = previous.firstWhere((item) => item.id == itemId);
-
-    // Get product
-    final productId = cartItem.productId;
-
-    final productAsync = ref.read(customerProductByIdProvider(productId));
-    final product = productAsync.value;
-
-    if (product == null) {
-      return Message(isSuccess: false, message: 'Product not found');
-    }
-
-    // Check stock
-    if (product.quantity != null && quantity > product.quantity!) {
-      return Message(
-        isSuccess: false,
-        message:
-            'Quantity exceeded product stock, please decrease the quantity',
-      );
-    }
-
-    if (quantity <= 0) {
-      return deleteItem(itemId);
-    }
-
+    
     try {
+      final cartItem = previous.firstWhere((item) => item.id == itemId);
+      
+      // FIX: Await the future. If user went straight to cart, product might not be loaded.
+      final product = await ref.read(productByIdProvider(cartItem.productId).future);
+
+      // Check stock limit
+      if (product.quantity != null && quantity > product.quantity!) {
+        return Message(
+          isSuccess: false,
+          message: 'Quantity exceeded product stock',
+        );
+      }
+
+      if (quantity <= 0) {
+        return deleteItem(itemId);
+      }
+
       state = const AsyncLoading();
 
       final updated = await _cartItemService.updateQuantity(quantity, itemId);
@@ -130,14 +117,13 @@ class CartNotifier extends _$CartNotifier {
 
       state = AsyncData(updatedList);
 
-      return Message(
-        isSuccess: true,
-        message: 'Item quantity updated',
-      );
+      return Message(isSuccess: true, message: 'Item quantity updated');
     } catch (e) {
+      // Restore state on error if needed, or just return error message
+      state = AsyncData(previous); 
       return Message(
         isSuccess: false,
-        message: 'Failed to update item quantity',
+        message: 'Failed to update: ${e.toString()}',
       );
     }
   }
@@ -161,22 +147,3 @@ class CartNotifier extends _$CartNotifier {
     }
   }
 }
-
-final cartItemByIdProvider = Provider.family<AsyncValue<CartItem>, String>((
-  ref,
-  itemId,
-) {
-  final cartItems = ref.watch(cartProvider);
-
-  return cartItems.when(
-    data: (items) {
-      final item = items.firstWhere(
-        (item) => item.id == itemId,
-        orElse: () => throw Exception('Cart item not found'),
-      );
-      return AsyncValue.data(item);
-    },
-    loading: () => const AsyncValue.loading(),
-    error: (err, st) => AsyncValue.error(err, st),
-  );
-});

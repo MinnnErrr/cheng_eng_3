@@ -1,4 +1,4 @@
-import 'package:cheng_eng_3/core/controllers/reward/customer_reward_notifier.dart';
+import 'package:cheng_eng_3/core/controllers/reward/customer_rewards_notifier.dart';
 import 'package:cheng_eng_3/ui/screens/customer/reward/customer_reward_details_screen.dart';
 import 'package:cheng_eng_3/ui/widgets/reward_listitem.dart';
 import 'package:cheng_eng_3/utils/search_sort_filter.dart';
@@ -14,11 +14,18 @@ class CustomerRewardScreen extends ConsumerStatefulWidget {
 }
 
 class _CustomerRewardScreenState extends ConsumerState<CustomerRewardScreen> {
+  final TextEditingController _searchCtrl = TextEditingController();
   String _search = "";
 
   @override
+  void dispose() {
+    _searchCtrl.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final rewardState = ref.watch(customerRewardProvider);
+    final rewardState = ref.watch(customerRewardsProvider);
 
     return Scaffold(
       appBar: AppBar(title: const Text('Rewards')),
@@ -35,57 +42,72 @@ class _CustomerRewardScreenState extends ConsumerState<CustomerRewardScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  // search
-                  Row(
-                    children: [
-                      Expanded(
-                        child: TextField(
-                          onChanged: (v) => setState(() => _search = v),
-                          decoration: InputDecoration(
-                            hintText: "Search name...",
-                            prefixIcon: const Icon(Icons.search),
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                          ),
-                        ),
+                  // --- SEARCH BAR ---
+                  TextField(
+                    controller: _searchCtrl,
+                    onChanged: (v) => setState(() => _search = v),
+                    decoration: InputDecoration(
+                      hintText: "Search name...",
+                      prefixIcon: const Icon(Icons.search),
+                      // Added Clear Button
+                      suffixIcon: _search.isNotEmpty
+                          ? IconButton(
+                              icon: const Icon(Icons.clear),
+                              onPressed: () {
+                                _searchCtrl.clear();
+                                setState(() => _search = "");
+                              },
+                            )
+                          : null,
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
                       ),
-                    ],
+                    ),
                   ),
 
                   const SizedBox(height: 20),
 
-                  // reward list
+                  // --- REWARD LIST ---
                   Expanded(
-                    child: searched.isEmpty
-                        ? Center(
-                            child: Text('No reward found'),
-                          )
-                        : ListView.separated(
-                            itemCount: searched.length,
-                            itemBuilder: (_, i) {
-                              final r = searched[i];
-                              return InkWell(
-                                child: RewardListitem(
-                                  reward: r,
-                                  isStaff: false,
-                                ),
-                                onTap: () => Navigator.of(context).push(
-                                  MaterialPageRoute(
-                                    builder: (context) =>
-                                        CustomerRewardDetailsScreen(
-                                          rewardId: r.id,
-                                        ),
+                    child: RefreshIndicator(
+                      onRefresh: () async =>
+                          ref.refresh(customerRewardsProvider.future),
+                      child: searched.isEmpty
+                          // FIX: Scrollable Empty State allows refreshing
+                          ? ListView(
+                              physics: const AlwaysScrollableScrollPhysics(),
+                              children: [
+                                SizedBox(
+                                    height: MediaQuery.of(context).size.height *
+                                        0.3),
+                                const Center(child: Text('No reward found')),
+                              ],
+                            )
+                          : ListView.separated(
+                              physics: const AlwaysScrollableScrollPhysics(),
+                              itemCount: searched.length,
+                              separatorBuilder: (_, __) =>
+                                  const SizedBox(height: 10),
+                              itemBuilder: (_, i) {
+                                final r = searched[i];
+                                return InkWell(
+                                  borderRadius: BorderRadius.circular(10),
+                                  onTap: () => Navigator.of(context).push(
+                                    MaterialPageRoute(
+                                      builder: (context) =>
+                                          CustomerRewardDetailsScreen(
+                                        reward: r,
+                                      ),
+                                    ),
                                   ),
-                                ),
-                              );
-                            },
-                            separatorBuilder: (context, i) {
-                              return const SizedBox(
-                                height: 10,
-                              );
-                            },
-                          ),
+                                  child: RewardListitem(
+                                    reward: r,
+                                    isStaff: false,
+                                  ),
+                                );
+                              },
+                            ),
+                    ),
                   ),
                 ],
               ),
@@ -93,7 +115,10 @@ class _CustomerRewardScreenState extends ConsumerState<CustomerRewardScreen> {
           );
         },
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, _) => Center(child: Text('Error: $e')),
+        // Error State with Retry
+         error: (error, stackTrace) => Center(
+          child: Text('Error: $error'),
+        ),
       ),
     );
   }

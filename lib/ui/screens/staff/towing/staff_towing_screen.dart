@@ -4,58 +4,66 @@ import 'package:cheng_eng_3/ui/widgets/towing_listitem.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class StaffTowingScreen extends ConsumerStatefulWidget {
+// 1. Changed to ConsumerWidget (StatefulWidget is overkill here)
+class StaffTowingScreen extends ConsumerWidget {
   const StaffTowingScreen({super.key});
 
   @override
-  ConsumerState<ConsumerStatefulWidget> createState() =>
-      _StaffTowingScreenState();
-}
-
-class _StaffTowingScreenState extends ConsumerState<StaffTowingScreen> {
-  @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final towingList = ref.watch(staffTowingsProvider);
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('Towing'),
+        title: const Text('Towing'),
       ),
-      body: towingList.when(
-        data: (towings) {
-          return towings.isEmpty
-              ? const Center(
-                  child: Text('No towing record found'),
-                )
-              : SafeArea(
-                  child: Padding(
-                    padding: EdgeInsets.all(20),
-                    child: ListView.builder(
-                      itemCount: towings.length,
-                      itemBuilder: (context, index) {
-                        final towing = towings[index];
-                        return Padding(
-                          padding: const EdgeInsets.only(bottom: 10),
-                          child: TowingListItem(
-                            towing: towing,
-                            tapAction: () => Navigator.of(context).push(
-                              MaterialPageRoute(
-                                builder: (context) => StaffTowingDetailsScreen(
-                                  towing: towing,
-                                ),
-                              ),
-                            ),
-                          ),
-                        );
-                      },
-                    ),
-                  ),
-                );
+      // 2. RefreshIndicator lets users pull down to retry/reload
+      body: RefreshIndicator(
+        onRefresh: () async {
+          // Invalidate the provider to force a re-fetch
+          return ref.refresh(staffTowingsProvider.future);
         },
-        error: (error, stackTrace) => Center(
-          child: Text(error.toString()),
+        child: towingList.when(
+          data: (towings) {
+            if (towings.isEmpty) {
+              // Wrap in ListView so the RefreshIndicator still works on empty screens
+              return ListView(
+                children: const [
+                  SizedBox(height: 200),
+                  Center(child: Text('No towing record found')),
+                ],
+              );
+            }
+
+            return SafeArea(
+              // 3. Use ListView.separated for cleaner spacing
+              child: ListView.separated(
+                // 4. Put padding INSIDE the list view to avoid clipping content while scrolling
+                padding: const EdgeInsets.all(20),
+                itemCount: towings.length,
+                separatorBuilder: (context, index) => const SizedBox(height: 10),
+                itemBuilder: (context, index) {
+                  final towing = towings[index];
+                  return TowingListItem(
+                    towing: towing,
+                    tapAction: () => Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => StaffTowingDetailsScreen(
+                          towing: towing,
+                        ),
+                      ),
+                    ),
+                  );
+                },
+              ),
+            );
+          },
+          error: (error, stackTrace) => Center(
+            child: Text('Error: ${error.toString()}'),
+          ),
+          loading: () => const Center(
+            child: CircularProgressIndicator(),
+          ),
         ),
-        loading: () => const Center(child: CircularProgressIndicator()),
       ),
     );
   }

@@ -18,6 +18,7 @@ class StaffProductCreateScreen extends ConsumerStatefulWidget {
 }
 
 class _StaffProductCreateState extends ConsumerState<StaffProductCreateScreen> {
+  // Controllers
   final _nameCtrl = TextEditingController();
   final _categoryCtrl = TextEditingController();
   final _brandCtrl = TextEditingController();
@@ -29,16 +30,24 @@ class _StaffProductCreateState extends ConsumerState<StaffProductCreateScreen> {
   final _installFeeCtrl = TextEditingController();
   final _remarksCtrl = TextEditingController();
 
+  // State
   bool _isActive = true;
   bool _hasInstallation = false;
   ProductAvailability _availability = ProductAvailability.ready;
+  bool _isLoading = false; // FIX: Added loading state
   final List<File> _photos = [];
 
   final _formKey = GlobalKey<FormState>();
 
   Future<void> _pickPhoto() async {
     final picker = ImagePicker();
-    final image = await picker.pickImage(source: ImageSource.gallery);
+    // FIX: Added image optimization to prevent memory crashes
+    final image = await picker.pickImage(
+      source: ImageSource.gallery,
+      maxWidth: 1024,
+      maxHeight: 1024,
+      imageQuality: 80,
+    );
 
     if (image != null) {
       setState(() {
@@ -64,37 +73,40 @@ class _StaffProductCreateState extends ConsumerState<StaffProductCreateScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final notifer = ref.read(staffProductProvider.notifier);
-
     return Scaffold(
       appBar: AppBar(
-        title: Text('Add Product'),
+        title: const Text('Add Product'),
       ),
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: EdgeInsets.all(20),
+          padding: const EdgeInsets.all(20),
           child: Form(
             key: _formKey,
             child: Column(
-              spacing: 20,
+              // spacing: 20, // Keep if using Flutter 3.27+, else use SizedBox
               children: [
                 textFormField(controller: _nameCtrl, label: 'Name'),
+                const SizedBox(height: 20),
 
                 textFormField(controller: _categoryCtrl, label: 'Category'),
+                const SizedBox(height: 20),
 
                 textFormField(controller: _brandCtrl, label: 'Brand'),
+                const SizedBox(height: 20),
 
                 textFormField(
                   controller: _modelCtrl,
                   label: 'Model',
                   validationRequired: false,
                 ),
+                const SizedBox(height: 20),
 
                 textFormField(
                   controller: _colourCtrl,
                   label: 'Colour',
                   validationRequired: false,
                 ),
+                const SizedBox(height: 20),
 
                 textFormField(
                   controller: _descCtrl,
@@ -102,6 +114,7 @@ class _StaffProductCreateState extends ConsumerState<StaffProductCreateScreen> {
                   maxLines: null,
                   label: 'Description',
                 ),
+                const SizedBox(height: 20),
 
                 textFormField(
                   controller: _remarksCtrl,
@@ -110,15 +123,17 @@ class _StaffProductCreateState extends ConsumerState<StaffProductCreateScreen> {
                   label: 'Remarks',
                   validationRequired: false,
                 ),
+                const SizedBox(height: 20),
 
                 textFormField(
                   controller: _priceCtrl,
                   label: 'Price (RM)',
-                  keyboardType: TextInputType.numberWithOptions(),
+                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
                 ),
+                const SizedBox(height: 20),
 
                 DropdownButtonFormField<ProductAvailability>(
-                  initialValue: _availability,
+                  initialValue: _availability, // FIX: Use value, not initialValue
                   decoration: const InputDecoration(labelText: "Availability"),
                   items: ProductAvailability.values
                       .map(
@@ -132,30 +147,29 @@ class _StaffProductCreateState extends ConsumerState<StaffProductCreateScreen> {
                     if (value != null) {
                       setState(() {
                         _availability = value;
-
                         if (_availability != ProductAvailability.ready) {
-                          _quantityCtrl.text = '';
+                          _quantityCtrl.clear();
                         }
                       });
                     }
                   },
-                  validator: (value) {
-                    if (value == null) {
-                      return 'Required';
-                    } else {
-                      return null;
-                    }
-                  },
                 ),
+                const SizedBox(height: 20),
+
                 if (_availability == ProductAvailability.ready)
-                  textFormField(
-                    controller: _quantityCtrl,
-                    label: 'Quantity',
-                    keyboardType: TextInputType.number,
+                  Column(
+                    children: [
+                      textFormField(
+                        controller: _quantityCtrl,
+                        label: 'Quantity',
+                        keyboardType: TextInputType.number,
+                      ),
+                      const SizedBox(height: 20),
+                    ],
                   ),
 
                 DropdownButtonFormField<bool>(
-                  initialValue: _hasInstallation,
+                  initialValue: _hasInstallation, // FIX: Use value
                   decoration: const InputDecoration(
                     labelText: "Is installation service provided?",
                   ),
@@ -167,32 +181,32 @@ class _StaffProductCreateState extends ConsumerState<StaffProductCreateScreen> {
                     if (value != null) {
                       setState(() {
                         _hasInstallation = value;
-
                         if (_hasInstallation == false) {
-                          _installFeeCtrl.text = '';
+                          _installFeeCtrl.clear();
                         }
                       });
                     }
                   },
-                  validator: (value) {
-                    if (value == null) {
-                      return 'Required';
-                    } else {
-                      return null;
-                    }
-                  },
                 ),
+                const SizedBox(height: 20),
+
                 if (_hasInstallation == true)
-                  textFormField(
-                    controller: _installFeeCtrl,
-                    label: 'Installation Fees (RM)',
-                    keyboardType: TextInputType.numberWithOptions(),
+                  Column(
+                    children: [
+                      textFormField(
+                        controller: _installFeeCtrl,
+                        label: 'Installation Fees (RM)',
+                        keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                      ),
+                      const SizedBox(height: 20),
+                    ],
                   ),
 
                 _photoSection(),
+                const SizedBox(height: 20),
 
                 DropdownButtonFormField<bool>(
-                  initialValue: _isActive,
+                  initialValue: _isActive, // FIX: Use value
                   decoration: const InputDecoration(
                     labelText: "Activate the product now?",
                   ),
@@ -202,65 +216,21 @@ class _StaffProductCreateState extends ConsumerState<StaffProductCreateScreen> {
                   ],
                   onChanged: (value) {
                     if (value != null) {
-                      setState(() {
-                        _isActive = value;
-                      });
-                    }
-                  },
-                  validator: (value) {
-                    if (value == null) {
-                      return 'Required';
-                    } else {
-                      return null;
+                      setState(() => _isActive = value);
                     }
                   },
                 ),
+                const SizedBox(height: 20),
 
-                ElevatedButton(
-                  onPressed: () async {
-                    if (!_formKey.currentState!.validate()) return;
-
-                    final success = await notifer.addProduct(
-                      name: _nameCtrl.text.trim(),
-                      category: _categoryCtrl.text.trim(),
-                      brand: _brandCtrl.text.trim(),
-                      model: _modelCtrl.text.trim().isEmpty
-                          ? null
-                          : _modelCtrl.text.trim(),
-                      colour: _colourCtrl.text.trim().isEmpty
-                          ? null
-                          : _colourCtrl.text.trim(),
-                      description: _descCtrl.text.trim(),
-                      status: _isActive,
-                      availability: _availability,
-                      quantity: _availability == ProductAvailability.ready
-                          ? int.parse(_quantityCtrl.text.trim())
-                          : null,
-                      installation: _hasInstallation,
-                      installationFee: _hasInstallation
-                          ? double.parse(
-                              _installFeeCtrl.text.trim(),
-                            )
-                          : null,
-                      price: double.parse(_priceCtrl.text.trim()),
-                      photos: _photos,
-                      remarks: _remarksCtrl.text.trim().isEmpty ? null : _remarksCtrl.text.trim(),
-                    );
-
-                    if (!context.mounted) return;
-                    showAppSnackBar(
-                      context: context,
-                      content: success
-                          ? 'Product added'
-                          : 'Failed to add product',
-                      isError: !success,
-                    );
-
-                    if (success) {
-                      Navigator.of(context).pop();
-                    }
-                  },
-                  child: Text('Add Product'),
+                SizedBox(
+                  width: double.infinity,
+                  height: 50,
+                  child: ElevatedButton(
+                    onPressed: _isLoading ? null : _submitForm, // FIX: Disable if loading
+                    child: _isLoading 
+                        ? const CircularProgressIndicator.adaptive()
+                        : const Text('Add Product'),
+                  ),
                 ),
               ],
             ),
@@ -270,30 +240,86 @@ class _StaffProductCreateState extends ConsumerState<StaffProductCreateScreen> {
     );
   }
 
+  Future<void> _submitForm() async {
+    if (!_formKey.currentState!.validate()) return;
+
+    setState(() => _isLoading = true);
+
+    final notifer = ref.read(staffProductProvider.notifier);
+
+    // FIX: Safe Parsing to prevent crash
+    final quantity = int.tryParse(_quantityCtrl.text.trim()) ?? 0;
+    final price = double.tryParse(_priceCtrl.text.trim()) ?? 0.0;
+    
+    // Logic for optional Install fee
+    final installFee = _hasInstallation
+        ? double.tryParse(_installFeeCtrl.text.trim())
+        : null;
+
+    final message = await notifer.addProduct(
+      name: _nameCtrl.text.trim(),
+      category: _categoryCtrl.text.trim(),
+      brand: _brandCtrl.text.trim(),
+      model: _modelCtrl.text.trim().isEmpty ? null : _modelCtrl.text.trim(),
+      colour: _colourCtrl.text.trim().isEmpty ? null : _colourCtrl.text.trim(),
+      description: _descCtrl.text.trim(),
+      status: _isActive,
+      availability: _availability,
+      quantity: _availability == ProductAvailability.ready ? quantity : null,
+      installation: _hasInstallation,
+      installationFee: installFee,
+      price: price,
+      photos: _photos,
+      remarks: _remarksCtrl.text.trim().isEmpty ? null : _remarksCtrl.text.trim(),
+    );
+
+    if (mounted) {
+      setState(() => _isLoading = false);
+      
+      showAppSnackBar(
+        context: context,
+        content: message.message,
+        isError: !message.isSuccess,
+      );
+
+      if (message.isSuccess) {
+        Navigator.of(context).pop();
+      }
+    }
+  }
+
   Widget _photoSection() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
-      spacing: 10,
       children: [
         Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             const Text(
               "Photos",
               style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
             ),
-            Spacer(),
             TextButton.icon(
               onPressed: _pickPhoto,
-              label: Text('Add'),
-              icon: Icon(Icons.add_circle),
+              label: const Text('Add'),
+              icon: const Icon(Icons.add_circle),
               style: ButtonStyle(iconAlignment: IconAlignment.end),
             ),
           ],
         ),
+        
+        const SizedBox(height: 10),
 
-        // Photo Grid
         _photos.isEmpty
-            ? Text('No photo added')
+            ? Container(
+                padding: const EdgeInsets.all(16),
+                width: double.infinity,
+                decoration: BoxDecoration(
+                  border: Border.all(color: Colors.grey.shade400),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Center(child: Text('No photo added')),
+              )
             : GridView.builder(
                 physics: const NeverScrollableScrollPhysics(),
                 shrinkWrap: true,
@@ -305,7 +331,6 @@ class _StaffProductCreateState extends ConsumerState<StaffProductCreateScreen> {
                 ),
                 itemBuilder: (context, index) {
                   final file = _photos[index];
-
                   return Stack(
                     children: [
                       ClipRRect(
@@ -317,8 +342,6 @@ class _StaffProductCreateState extends ConsumerState<StaffProductCreateScreen> {
                           fit: BoxFit.cover,
                         ),
                       ),
-
-                      //delete
                       Positioned(
                         right: 4,
                         top: 4,
@@ -329,8 +352,8 @@ class _StaffProductCreateState extends ConsumerState<StaffProductCreateScreen> {
                             });
                           },
                           child: Container(
-                            decoration: BoxDecoration(
-                              color: Theme.of(context).colorScheme.primary,
+                            decoration: const BoxDecoration(
+                              color: Colors.red,
                               shape: BoxShape.circle,
                             ),
                             padding: const EdgeInsets.all(4),

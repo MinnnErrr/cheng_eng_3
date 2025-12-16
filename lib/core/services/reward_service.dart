@@ -1,4 +1,3 @@
-
 import 'package:cheng_eng_3/core/models/reward_model.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -45,17 +44,23 @@ class RewardService {
     await supabase.from('rewards').update(reward.toJson()).eq('id', reward.id);
   }
 
-  Future<void> updateQuantity(int quantity, String rewardId) async {
-    await supabase
-        .from('rewards')
-        .update({'quantity': quantity, 'updatedAt': DateTime.now()})
-        .eq('id', rewardId);
+  Future<void> decreaseQuantity(String rewardId) async {
+    await supabase.rpc(
+      'decrease_reward_quantity',
+      params: {
+        'r_id': rewardId,
+        'amount': 1,
+      },
+    );
   }
 
   Future<void> updateStatus(bool isActive, String rewardId) async {
     await supabase
         .from('rewards')
-        .update({'status': isActive, 'updatedAt': DateTime.now()})
+        .update({
+          'status': isActive,
+          'updatedAt': DateTime.now().toIso8601String(),
+        })
         .eq('id', rewardId);
   }
 

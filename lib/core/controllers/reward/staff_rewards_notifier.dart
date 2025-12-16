@@ -4,14 +4,13 @@ import 'package:cheng_eng_3/core/models/message_model.dart';
 import 'package:cheng_eng_3/core/models/reward_model.dart';
 import 'package:cheng_eng_3/core/services/image_service.dart';
 import 'package:cheng_eng_3/core/services/reward_service.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:uuid/uuid.dart';
 
-part 'staff_reward_notifier.g.dart';
+part 'staff_rewards_notifier.g.dart';
 
 @riverpod
-class StaffRewardNotifier extends _$StaffRewardNotifier {
+class StaffRewardsNotifier extends _$StaffRewardsNotifier {
   RewardService get _rewardService => ref.read(rewardServiceProvider);
   ImageService get _imageService => ref.read(imageServiceProvider);
 
@@ -159,28 +158,28 @@ class StaffRewardNotifier extends _$StaffRewardNotifier {
     }
   }
 
-  Future<Message> descreaseQuantity({
-    required String id,
-  }) async {
-    try {
-      final previous = state.value ?? [];
-      final currentReward = previous.firstWhere(
-        (r) => r.id == id,
-        orElse: () => throw Exception('Reward not found'),
-      );
+  // Future<Message> descreaseQuantity({
+  //   required String id,
+  // }) async {
+  //   try {
+  //     final previous = state.value ?? [];
+  //     final currentReward = previous.firstWhere(
+  //       (r) => r.id == id,
+  //       orElse: () => throw Exception('Reward not found'),
+  //     );
 
-      final newQty = currentReward.quantity - 1;
+  //     final newQty = currentReward.quantity - 1;
 
-      await _rewardService.updateQuantity(newQty, id);
+  //     await _rewardService.updateQuantity(newQty, id);
 
-      return Message(isSuccess: true, message: 'Reward quantity updated');
-    } catch (e) {
-      return Message(
-        isSuccess: false,
-        message: 'Failed to update reward quantity',
-      );
-    }
-  }
+  //     return Message(isSuccess: true, message: 'Reward quantity updated');
+  //   } catch (e) {
+  //     return Message(
+  //       isSuccess: false,
+  //       message: 'Failed to update reward quantity',
+  //     );
+  //   }
+  // }
 
   Future<Message> deleteReward(String id) async {
     try {
@@ -192,16 +191,4 @@ class StaffRewardNotifier extends _$StaffRewardNotifier {
     }
   }
 }
-
-final staffRewardByIdProvider =
-    FutureProvider.family<Reward, String>((ref, rewardId) async {
-  final rewards = await ref.watch(staffRewardProvider.future);
-
-  final reward = rewards.firstWhere(
-    (r) => r.id == rewardId,
-    orElse: () => throw Exception('Reward not found'),
-  );
-
-  return reward;
-});
 

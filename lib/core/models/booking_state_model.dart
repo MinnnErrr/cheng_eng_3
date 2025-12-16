@@ -3,14 +3,15 @@ import 'package:cheng_eng_3/core/models/vehicle_model.dart';
 import 'package:flutter/material.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 
-part 'booking_draft_model.freezed.dart';
+part 'booking_state_model.freezed.dart';
 
 @freezed
-sealed class BookingDraft with _$BookingDraft {
-  const factory BookingDraft({
+sealed class BookingState with _$BookingState {
+  const factory BookingState({
     Vehicle? vehicle,
     BookingServiceType? serviceType,
     DateTime? date,
     TimeOfDay? time,
-  }) = _BookingDraft;
+    String? remarks
+  }) = _BookingState;
 }

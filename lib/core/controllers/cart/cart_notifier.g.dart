@@ -33,7 +33,7 @@ final class CartNotifierProvider
   CartNotifier create() => CartNotifier();
 }
 
-String _$cartNotifierHash() => r'f8ca8efa1a200e26bc436d4e1f32cd294d5b10e2';
+String _$cartNotifierHash() => r'b3867c4824693afaaf023d17aef348e5e7313285';
 
 abstract class _$CartNotifier extends $AsyncNotifier<List<CartItem>> {
   FutureOr<List<CartItem>> build();

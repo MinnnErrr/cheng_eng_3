@@ -1,12 +1,11 @@
 import 'package:cheng_eng_3/core/models/reward_model.dart';
 import 'package:cheng_eng_3/core/services/reward_service.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
-part 'customer_reward_notifier.g.dart';
+part 'customer_rewards_notifier.g.dart';
 
 @riverpod
-class CustomerRewardNotifier extends _$CustomerRewardNotifier {
+class CustomerRewardsNotifier extends _$CustomerRewardsNotifier {
   RewardService get _rewardService => ref.read(rewardServiceProvider);
 
   @override
@@ -35,16 +34,4 @@ class CustomerRewardNotifier extends _$CustomerRewardNotifier {
 
   // void refresh() => ref.invalidateSelf();
 }
-
-final customerRewardByIdProvider =
-    FutureProvider.family<Reward, String>((ref, rewardId) async {
-  final rewards = await ref.watch(customerRewardProvider.future);
-
-  final reward = rewards.firstWhere(
-    (r) => r.id == rewardId,
-    orElse: () => throw Exception('Reward not found'),
-  );
-
-  return reward;
-});
 

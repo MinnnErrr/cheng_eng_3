@@ -52,7 +52,7 @@ final class CustomerTowingsNotifierProvider
 }
 
 String _$customerTowingsNotifierHash() =>
-    r'99ff53616f44dc16ccc5fe72038d0fd4598af79c';
+    r'23413d7fe4ff1921d9e58bfffd15f0936d4ef6dd';
 
 final class CustomerTowingsNotifierFamily extends $Family
     with

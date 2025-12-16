@@ -1,4 +1,6 @@
+import 'package:cheng_eng_3/core/controllers/product/product_by_id_provider.dart';
 import 'package:cheng_eng_3/core/controllers/product/staff_product_notifier.dart';
+import 'package:cheng_eng_3/core/controllers/realtime_provider.dart';
 import 'package:cheng_eng_3/core/models/product_model.dart';
 import 'package:cheng_eng_3/core/services/image_service.dart';
 import 'package:cheng_eng_3/ui/extensions/product_extension.dart';
@@ -10,9 +12,9 @@ import 'package:intl/intl.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 
 class StaffProductDetailsScreen extends ConsumerStatefulWidget {
-  const StaffProductDetailsScreen({super.key, required this.productId});
+  const StaffProductDetailsScreen({super.key, required this.product});
 
-  final String productId;
+  final Product product;
 
   @override
   ConsumerState<StaffProductDetailsScreen> createState() {
@@ -22,83 +24,81 @@ class StaffProductDetailsScreen extends ConsumerStatefulWidget {
 
 class _StaffProductDetailsScreenState
     extends ConsumerState<StaffProductDetailsScreen> {
-  late bool _isActive;
   final PageController _pageController = PageController();
 
   @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final productState = ref.watch(staffProductByIdProvider(widget.productId));
-    final notifier = ref.read(
-      staffProductProvider.notifier,
-    );
-    DateFormat timeFormatter = DateFormat('dd/MM/yyyy').add_jm();
+    ref.watch(productRealTimeProvider);
+    final productState = ref.watch(productByIdProvider(widget.product.id));
+
+    // Optimistic UI
+    final Product displayedProduct = productState.value ?? widget.product;
+    final bool isActive = displayedProduct.status;
+    final notifier = ref.read(staffProductProvider.notifier);
+    final DateFormat timeFormatter = DateFormat('dd/MM/yyyy').add_jm();
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('Product Details'),
+        title: const Text('Product Details'),
       ),
       body: productState.when(
         data: (product) {
-          _isActive = product.status;
-
           return SafeArea(
             child: SingleChildScrollView(
-              padding: EdgeInsets.all(20),
+              padding: const EdgeInsets.all(20),
               child: Column(
-                spacing: 20,
                 children: [
-                  //product status
+                  // --- Status Section ---
                   Container(
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(10),
                       color: Theme.of(context).colorScheme.surfaceContainer,
                     ),
                     width: double.infinity,
-                    padding: EdgeInsets.all(20),
+                    padding: const EdgeInsets.all(20),
                     child: Row(
                       children: [
                         Text(
                           'Status',
-                          style: Theme.of(context).textTheme.bodyLarge!
+                          style: Theme.of(context)
+                              .textTheme
+                              .bodyLarge!
                               .copyWith(fontWeight: FontWeight.bold),
                         ),
-                        Spacer(),
+                        const Spacer(),
                         Text(
-                          _isActive ? "Active" : "Inactive",
+                          isActive ? "Active" : "Inactive",
                           style: TextStyle(
                             fontWeight: FontWeight.w600,
-                            color: _isActive
+                            color: isActive
                                 ? Colors.green
                                 : Theme.of(context).colorScheme.error,
                           ),
                         ),
-                        const SizedBox(
-                          width: 10,
-                        ),
+                        const SizedBox(width: 10),
                         Switch(
-                          value: _isActive,
+                          value: isActive,
                           activeThumbColor: Colors.green,
                           onChanged: (value) async {
-                            setState(() {
-                              _isActive = value;
-                            });
-
-                            final success = await notifier.updateStatus(
-                              id: widget.productId,
+                            final message = await notifier.updateStatus(
+                              id: displayedProduct.id,
                               isActive: value,
                             );
+
                             if (!context.mounted) return;
-                            showAppSnackBar(
-                              context: context,
-                              content: success
-                                  ? "Product status updated"
-                                  : "Failed to update status",
-                              isError: !success,
-                            );
-                            if (!success) {
-                              setState(() {
-                                _isActive = !value;
-                              });
+
+                            if (!message.isSuccess) {
+                              showAppSnackBar(
+                                context: context,
+                                content: message.message,
+                                isError: true,
+                              );
                             }
                           },
                         ),
@@ -106,45 +106,46 @@ class _StaffProductDetailsScreenState
                     ),
                   ),
 
-                  //product details
+                  const SizedBox(height: 20),
+
+                  // --- Product Details Section ---
                   Container(
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(10),
                       color: Theme.of(context).colorScheme.surfaceContainer,
                     ),
                     width: double.infinity,
-                    padding: EdgeInsets.all(20),
+                    padding: const EdgeInsets.all(20),
                     child: Column(
-                      spacing: 20,
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
+                        // Header + Edit Button
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Text(
                               'Profile Details',
-                              style:
-                                  Theme.of(
-                                    context,
-                                  ).textTheme.bodyLarge!.copyWith(
-                                    fontWeight: FontWeight.bold,
-                                  ),
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .bodyLarge!
+                                  .copyWith(fontWeight: FontWeight.bold),
                             ),
                             IconButton(
                               onPressed: () {
                                 Navigator.of(context).push(
                                   MaterialPageRoute(
                                     builder: (_) => StaffProductUpdateScreen(
-                                      productId: product.id,
+                                      product: product,
                                     ),
                                   ),
                                 );
                               },
-                              icon: Icon(Icons.edit),
+                              icon: const Icon(Icons.edit),
                             ),
                           ],
                         ),
-                        //picture section
+                        
+                        // Picture Carousel
                         SizedBox(
                           height: 250,
                           width: double.infinity,
@@ -153,7 +154,7 @@ class _StaffProductDetailsScreenState
                                   color: Colors.white,
                                   child: Column(
                                     mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
+                                    children: const [
                                       Icon(Icons.image_not_supported),
                                       Text('No image found'),
                                     ],
@@ -161,70 +162,63 @@ class _StaffProductDetailsScreenState
                                 )
                               : Column(
                                   children: [
-                                    //image
                                     Expanded(
                                       child: PageView.builder(
                                         controller: _pageController,
                                         itemCount: product.photoPaths.length,
                                         itemBuilder: (context, index) {
-                                          final imageService = ref.read(
-                                            imageServiceProvider,
+                                          final imageService =
+                                              ref.read(imageServiceProvider);
+                                          final imageUrl =
+                                              imageService.retrieveImageUrl(
+                                            product.photoPaths[index],
                                           );
-                                          final imageUrl = imageService
-                                              .retrieveImageUrl(
-                                                product.photoPaths[index],
-                                              );
 
                                           return ClipRRect(
-                                            borderRadius: BorderRadius.circular(
-                                              12,
-                                            ),
+                                            borderRadius:
+                                                BorderRadius.circular(12),
                                             child: Image.network(
                                               imageUrl,
                                               width: double.infinity,
                                               fit: BoxFit.cover,
-                                              loadingBuilder: (context, child, progress) {
-                                                if (progress == null)
-                                                  return child;
+                                              loadingBuilder:
+                                                  (context, child, progress) {
+                                                if (progress == null) return child;
                                                 return Center(
-                                                  child: CircularProgressIndicator(
-                                                    value:
-                                                        progress.expectedTotalBytes !=
+                                                  child:
+                                                      CircularProgressIndicator(
+                                                    value: progress
+                                                                .expectedTotalBytes !=
                                                             null
-                                                        ? progress.cumulativeBytesLoaded /
-                                                              progress
-                                                                  .expectedTotalBytes!
+                                                        ? progress
+                                                                .cumulativeBytesLoaded /
+                                                            progress
+                                                                .expectedTotalBytes!
                                                         : null,
                                                   ),
                                                 );
                                               },
                                               errorBuilder:
-                                                  (
-                                                    context,
-                                                    error,
-                                                    stackTrace,
-                                                  ) => const Icon(
-                                                    Icons.broken_image,
-                                                    size: 40,
-                                                  ),
+                                                  (context, error, stackTrace) =>
+                                                      const Icon(
+                                                Icons.broken_image,
+                                                size: 40,
+                                              ),
                                             ),
                                           );
                                         },
                                       ),
                                     ),
-
                                     const SizedBox(height: 10),
-
-                                    //dots
                                     SmoothPageIndicator(
                                       controller: _pageController,
                                       count: product.photoPaths.length,
                                       effect: ExpandingDotsEffect(
                                         dotHeight: 8,
                                         dotWidth: 8,
-                                        activeDotColor: Theme.of(
-                                          context,
-                                        ).colorScheme.primary,
+                                        activeDotColor: Theme.of(context)
+                                            .colorScheme
+                                            .primary,
                                         dotColor: Colors.grey.shade400,
                                         expansionFactor: 3,
                                       ),
@@ -232,32 +226,29 @@ class _StaffProductDetailsScreenState
                                   ],
                                 ),
                         ),
+                        
+                        const SizedBox(height: 20),
 
-                        //details
+                        // Text Details
                         Text(
                           '${product.brand} ${product.name} ${product.model ?? ''}',
-                          style: Theme.of(context).textTheme.bodyLarge!
-                              .copyWith(
-                                fontWeight: FontWeight.bold,
-                              ),
+                          style: Theme.of(context)
+                              .textTheme
+                              .bodyLarge!
+                              .copyWith(fontWeight: FontWeight.bold),
                         ),
+                        const SizedBox(height: 10),
                         _detail(title: 'Category', content: product.category),
                         _detail(
-                          title: 'Colour',
-                          content: product.colour ?? '-',
-                        ),
+                            title: 'Colour', content: product.colour ?? '-'),
                         _detail(
                           title: 'Price',
                           content: 'RM ${product.price.toStringAsFixed(2)}',
                         ),
                         _detail(
-                          title: 'Description',
-                          content: product.description,
-                        ),
+                            title: 'Description', content: product.description),
                         _detail(
-                          title: 'Remarks',
-                          content: product.remarks ?? '-',
-                        ),
+                            title: 'Remarks', content: product.remarks ?? '-'),
                         _detail(
                           title: 'Created At',
                           content: timeFormatter.format(product.createdAt),
@@ -269,59 +260,28 @@ class _StaffProductDetailsScreenState
                               : '-',
                         ),
 
-                        //availability
+                        const SizedBox(height: 20),
+
+                        // Availability Box
                         Container(
                           decoration: BoxDecoration(
                             borderRadius: BorderRadius.circular(10),
-                            color: Theme.of(
-                              context,
-                            ).colorScheme.surfaceContainerLowest,
+                            color: Theme.of(context)
+                                .colorScheme
+                                .surfaceContainerLowest,
                           ),
                           width: double.infinity,
-                          padding: EdgeInsets.all(10),
+                          padding: const EdgeInsets.all(10),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(
+                              const Text(
                                 'Product Availability Info',
                                 style: TextStyle(fontWeight: FontWeight.bold),
                               ),
-                              const SizedBox(
-                                height: 10,
-                              ),
-                              Text.rich(
-                                TextSpan(
-                                  text: 'Availability: ',
-                                  children: <TextSpan>[
-                                    TextSpan(
-                                      text:
-                                          product.availability ==
-                                              ProductAvailability.ready
-                                          ? product.quantity! > 0
-                                                ? product.availability.label
-                                                : 'Out of Stock'
-                                          : ProductAvailability.preorder.label,
-                                      style: TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        color:
-                                            product.availability ==
-                                                ProductAvailability.ready
-                                            ? product.quantity! > 0
-                                                  ? product.availability.color
-                                                  : Theme.of(
-                                                      context,
-                                                    ).colorScheme.error
-                                            : ProductAvailability
-                                                  .preorder
-                                                  .color,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              const SizedBox(
-                                height: 5,
-                              ),
+                              const SizedBox(height: 10),
+                              _buildAvailabilityText(context, product),
+                              const SizedBox(height: 5),
                               if (product.availability ==
                                   ProductAvailability.ready)
                                 Text.rich(
@@ -334,9 +294,9 @@ class _StaffProductDetailsScreenState
                                           fontWeight: FontWeight.bold,
                                           color: product.quantity! > 0
                                               ? product.availability.color
-                                              : Theme.of(
-                                                  context,
-                                                ).colorScheme.error,
+                                              : Theme.of(context)
+                                                  .colorScheme
+                                                  .error,
                                         ),
                                       ),
                                     ],
@@ -346,32 +306,29 @@ class _StaffProductDetailsScreenState
                           ),
                         ),
 
-                        //installation
+                        const SizedBox(height: 10),
+
+                        // Installation Box
                         Container(
                           decoration: BoxDecoration(
                             borderRadius: BorderRadius.circular(10),
-                            color: Theme.of(
-                              context,
-                            ).colorScheme.surfaceContainerLowest,
+                            color: Theme.of(context)
+                                .colorScheme
+                                .surfaceContainerLowest,
                           ),
                           width: double.infinity,
-                          padding: EdgeInsets.all(10),
+                          padding: const EdgeInsets.all(10),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(
+                              const Text(
                                 'Product Installation Info',
                                 style: TextStyle(fontWeight: FontWeight.bold),
                               ),
-                              const SizedBox(
-                                height: 10,
-                              ),
+                              const SizedBox(height: 10),
                               Text(
-                                'Installation Provided: ${product.installation}',
-                              ),
-                              const SizedBox(
-                                height: 5,
-                              ),
+                                  'Installation Provided: ${product.installation}'),
+                              const SizedBox(height: 5),
                               if (product.installation == true)
                                 Text(
                                   'Installation Price: RM${product.installationFee!.toStringAsFixed(2)}',
@@ -383,24 +340,35 @@ class _StaffProductDetailsScreenState
                     ),
                   ),
 
-                  ElevatedButton(
-                    onPressed: () async {
-                      final success = await notifier.deleteProduct(product.id);
+                  const SizedBox(height: 20),
 
-                      if (!context.mounted) return;
-                      showAppSnackBar(
-                        context: context,
-                        content: success
-                            ? 'Product deleted'
-                            : 'Failed to delete product0',
-                        isError: !success,
-                      );
+                  // Delete Button
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Theme.of(context).colorScheme.error,
+                        foregroundColor: Colors.white,
+                      ),
+                      onPressed: () async {
+                        final message = await notifier.deleteProduct(product.id);
 
-                      if (success) {
-                        Navigator.of(context).pop();
-                      }
-                    },
-                    child: Text('Delete Product'),
+                        if (!context.mounted) return;
+                        
+                        showAppSnackBar(
+                          context: context,
+                          content: message.isSuccess
+                              ? 'Product deleted'
+                              : 'Failed to delete product',
+                          isError: !message.isSuccess,
+                        );
+
+                        if (message.isSuccess) {
+                          Navigator.of(context).pop();
+                        }
+                      },
+                      child: const Text('Delete Product'),
+                    ),
                   ),
                 ],
               ),
@@ -413,19 +381,56 @@ class _StaffProductDetailsScreenState
     );
   }
 
+  // Extracted Helper for the complex availability logic
+  Widget _buildAvailabilityText(BuildContext context, Product product) {
+    String label;
+    Color color;
+
+    if (product.availability == ProductAvailability.ready) {
+      if ((product.quantity ?? 0) > 0) {
+        label = product.availability.label; // e.g., "Ready Stock"
+        color = product.availability.color; // e.g., Green
+      } else {
+        label = 'Out of Stock';
+        color = Theme.of(context).colorScheme.error;
+      }
+    } else {
+      label = ProductAvailability.preorder.label;
+      color = ProductAvailability.preorder.color;
+    }
+
+    return Text.rich(
+      TextSpan(
+        text: 'Availability: ',
+        children: <TextSpan>[
+          TextSpan(
+            text: label,
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              color: color,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _detail({required String title, required String content}) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          title,
-          style: TextStyle(fontWeight: FontWeight.bold),
-        ),
-        Text(
-          content,
-          softWrap: true,
-        ),
-      ],
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            title,
+            style: const TextStyle(fontWeight: FontWeight.bold),
+          ),
+          Text(
+            content,
+            softWrap: true,
+          ),
+        ],
+      ),
     );
   }
 }

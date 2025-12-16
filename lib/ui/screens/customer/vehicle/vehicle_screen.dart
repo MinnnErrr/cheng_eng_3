@@ -1,7 +1,6 @@
 import 'package:cheng_eng_3/core/controllers/vehicle/customer_vehicle_notifier.dart';
 import 'package:cheng_eng_3/ui/screens/customer/vehicle/vehicle_create_screen.dart';
 import 'package:cheng_eng_3/ui/screens/customer/vehicle/vehicle_details_screen.dart';
-import 'package:cheng_eng_3/ui/screens/customer/vehicle/vehicle_update_screen.dart';
 import 'package:cheng_eng_3/ui/widgets/snackbar.dart';
 import 'package:cheng_eng_3/ui/widgets/vehicle_listitem.dart';
 import 'package:flutter/material.dart';
@@ -13,79 +12,113 @@ class VehicleScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final vehicleListState = ref.watch(customerVehicleProvider);
-    final vehicleListNotifier = ref.read(customerVehicleProvider.notifier);
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('My Vehicles'),
+        title: const Text('My Vehicles'),
       ),
       body: vehicleListState.when(
         data: (vehicleList) {
           final vehicles = vehicleList.vehicles;
 
-          return vehicles.isEmpty
-              ? const Center(
-                  child: Text('No vehicles found'),
-                )
-              : SafeArea(
-                  child: Padding(
-                    padding: EdgeInsets.all(20),
-                    child: ListView.builder(
+          return RefreshIndicator(
+            onRefresh: () async => ref.refresh(customerVehicleProvider.future),
+            child: vehicles.isEmpty
+                // FIX: Empty state must be scrollable to allow Refresh
+                ? ListView(
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    children: [
+                      SizedBox(height: MediaQuery.of(context).size.height * 0.3),
+                      const Center(child: Text('No vehicles found')),
+                    ],
+                  )
+                : SafeArea(
+                    child: ListView.separated(
+                      padding: const EdgeInsets.all(20),
+                      // FIX: Ensure physics allows scrolling even if list is short
+                      physics: const AlwaysScrollableScrollPhysics(),
                       itemCount: vehicles.length,
+                      separatorBuilder: (context, index) =>
+                          const SizedBox(height: 10),
                       itemBuilder: (context, index) {
                         final vehicle = vehicles[index];
-                        return Padding(
-                          padding: const EdgeInsets.only(bottom: 10),
-                          child: InkWell(
-                            onTap: () => Navigator.of(context).push(
-                              MaterialPageRoute(
-                                builder: (context) => VehicleDetailsScreen(
-                                  vehicleId: vehicle.id,
-                                ),
+
+                        return InkWell(
+                          borderRadius: BorderRadius.circular(12),
+                          onTap: () => Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (context) => VehicleDetailsScreen(
+                                vehicle: vehicle,
                               ),
                             ),
-                            child: VehicleListitem(
-                              vehicle: vehicle,
-                              descriptionRequired: true,
-                              colourRequired: false,
-                              yearRequired: false,
-                              icon: IconButton(
-                                onPressed: () async {
-                                  final success = await vehicleListNotifier
-                                      .deleteVehicle(
-                                        vehicle.id,
-                                      );
-                                  if (!context.mounted) return;
-                                  showAppSnackBar(
-                                    context: context,
-                                    content: success
-                                        ? 'Vehicle deleted'
-                                        : 'Failed to delete vehicle',
-                                  );
-                                },
-                                icon: Icon(Icons.delete),
-                              ),
+                          ),
+                          child: VehicleListitem(
+                            vehicle: vehicle,
+                            descriptionRequired: true,
+                            colourRequired: false,
+                            yearRequired: false,
+                            icon: IconButton(
+                              icon: const Icon(Icons.delete, color: Colors.grey),
+                              onPressed: () {
+                                _confirmDelete(context, ref, vehicle.id);
+                              },
                             ),
                           ),
                         );
                       },
                     ),
                   ),
-                );
+          );
         },
-        error: (error, stackTrace) => Center(
-          child: Text(error.toString()),
-        ),
+        error: (error, _) => Center(child: Text('Error: $error')),
         loading: () => const Center(child: CircularProgressIndicator()),
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () => Navigator.of(context).push(
           MaterialPageRoute(
-            builder: (context) => VehicleCreateScreen(),
+            builder: (context) => const VehicleCreateScreen(),
           ),
         ),
         child: const Icon(Icons.add),
       ),
     );
+  }
+
+  Future<void> _confirmDelete(
+      BuildContext context, WidgetRef ref, String vehicleId) async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text("Delete Vehicle"),
+        content: const Text(
+            "Are you sure you want to delete this vehicle? This action cannot be undone."),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text("Cancel"),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text(
+              "Delete",
+              style: TextStyle(color: Colors.red),
+            ),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm == true) {
+      final notifier = ref.read(customerVehicleProvider.notifier);
+      final success = await notifier.deleteVehicle(vehicleId);
+
+      if (context.mounted) {
+        showAppSnackBar(
+          context: context,
+          content: success ? 'Vehicle deleted' : 'Failed to delete vehicle',
+          isError: !success,
+        );
+      }
+    }
   }
 }

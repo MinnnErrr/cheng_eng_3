@@ -9,34 +9,38 @@ class ProfileListitem extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return Card(
-      color: Theme.of(context).colorScheme.surfaceContainer,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-      child: Padding(
-        padding: EdgeInsets.all(10),
-        child: profile == null
-            ? Center(
-                child: Text('No profile found'),
-              )
-            : Column(
-                children: [
-                  Text(
-                    profile!.email,
-                    softWrap: true,
-                    style: TextStyle(fontWeight: FontWeight.bold),
-                  ),
-                  Text(
-                    profile!.name,
-                    softWrap: true,
-                  ),
-                  Text(
-                    profile!.phoneNum,
-                  ),
-                  Text(
-                    profile!.gender,
-                  ),
-                ],
-              ),
+    return SizedBox(
+      width: double.infinity,
+      child: Card(
+        color: Theme.of(context).colorScheme.surfaceContainer,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        child: Padding(
+          padding: EdgeInsets.all(10),
+          child: profile == null
+              ? Center(
+                  child: Text('No profile found'),
+                )
+              : Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      profile!.email,
+                      softWrap: true,
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                    Text(
+                      profile!.name,
+                      softWrap: true,
+                    ),
+                    Text(
+                      '${profile!.dialCode} ${profile!.phoneNum}',
+                    ),
+                    Text(
+                      profile!.gender,
+                    ),
+                  ],
+                ),
+        ),
       ),
     );
   }

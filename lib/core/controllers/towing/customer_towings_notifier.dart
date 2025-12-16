@@ -1,8 +1,8 @@
 import 'dart:io';
 
 import 'package:cheng_eng_3/core/controllers/auth/auth_notifier.dart';
-import 'package:cheng_eng_3/core/controllers/vehicle/customer_vehicle_by_id_provider.dart';
 import 'package:cheng_eng_3/core/models/towing_model.dart';
+import 'package:cheng_eng_3/core/models/vehicle_model.dart';
 import 'package:cheng_eng_3/core/services/image_service.dart';
 import 'package:cheng_eng_3/core/services/towing_service.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -30,7 +30,7 @@ class CustomerTowingsNotifier extends _$CustomerTowingsNotifier {
     required String dialCode,
     required String countryCode,
     String? remarks,
-    required String vehicleId,
+    required Vehicle vehicle,
     File? photo,
   }) async {
     final userState = ref.read(authProvider);
@@ -54,10 +54,6 @@ class CustomerTowingsNotifier extends _$CustomerTowingsNotifier {
       }
     }
 
-    final vehicle = ref.read(customerVehicleByIdProvider(vehicleId)).value;
-
-    if (vehicle == null) return false;
-
     final towing = Towing(
       id: towingId,
       latitude: latitude,
@@ -75,7 +71,7 @@ class CustomerTowingsNotifier extends _$CustomerTowingsNotifier {
       remarks: remarks,
       photoPath: photoPath,
       createdAt: DateTime.now(),
-      vehicleId: vehicleId,
+      vehicleId: vehicle.id,
       userId: user.id,
     );
 
@@ -114,3 +110,4 @@ class CustomerTowingsNotifier extends _$CustomerTowingsNotifier {
 //     return towing;
 //   },
 // );
+

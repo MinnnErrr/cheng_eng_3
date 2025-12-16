@@ -14,65 +14,93 @@ class MaintenanceScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final maintenanceList = ref.watch(maintenanceByVehicleProvider(vehicleId));
-    final maintenanceListNotifier = ref.watch(maintenanceProvider.notifier);
+    final maintenanceListNotifier = ref.read(maintenanceProvider.notifier);
 
-    return Container(
-      child: maintenanceList.when(
-        data: (list) {
-          final maintenances = list.maintenances;
+    return maintenanceList.when(
+      data: (list) {
+        if (list.maintenances.isEmpty) {
+          return const Padding(
+            padding: EdgeInsets.all(20),
+            child: Center(child: Text('No maintenance records found.')),
+          );
+        }
 
-          if (maintenances.isEmpty) {
-            return const Center(
-              child: Text('No maintenance records found.'),
-            );
-          }
-
-          return ListView(
-            padding: EdgeInsets.all(10),
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            children: [
-              for (final maintenance in maintenances)
-                MaintenanceListItem(
-                  maintenance: maintenance,
-                  icon: IconButton(
-                    onPressed: () async {
-                      final success = await maintenanceListNotifier
-                          .deleteMaintenance(
-                            maintenance.id,
-                          );
-                      if (!context.mounted) return;
-                      showAppSnackBar(
-                        context: context,
-                        content: success
-                            ? 'Maintenance record deleted'
-                            : 'Failed to delete maintenance record',
-                      );
-                    },
-                    icon: Icon(Icons.delete),
-                  ),
-                  tapAction: () => Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (context) => MaintenanceDetailsScreen(
-                        maintenanceId: maintenance.id,
-                      ),
-                    ),
+        return ListView.separated(
+          padding: const EdgeInsets.all(10),
+          shrinkWrap: true, // Correct for nested lists
+          physics: const NeverScrollableScrollPhysics(), // Let parent handle scrolling
+          itemCount: list.maintenances.length,
+          separatorBuilder: (context, index) => const SizedBox(height: 10),
+          itemBuilder: (context, index) {
+            final maintenance = list.maintenances[index];
+            return MaintenanceListItem(
+              maintenance: maintenance,
+              icon: IconButton(
+                // FIX 1: Add Confirmation Dialog
+                onPressed: () => _confirmDelete(
+                  context,
+                  maintenanceListNotifier,
+                  maintenance.id,
+                ),
+                icon: const Icon(Icons.delete, color: Colors.grey),
+              ),
+              // FIX 2: Pass Object for Optimistic UI
+              tapAction: () => Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (context) => MaintenanceDetailsScreen(
+                    maintenance: maintenance, // Ensure your Details screen accepts this
                   ),
                 ),
-            ],
-          );
-        },
-        error: (error, stackTrace) => Scaffold(
-          body: Center(
-            child: Text(error.toString()),
-          ),
-        ),
-        loading: () => Scaffold(
-          body: Center(
-            child: CircularProgressIndicator(),
-          ),
-        ),
+              ),
+            );
+          },
+        );
+      },
+      // FIX 3: Remove Scaffold from these states (caused visual bugs)
+      error: (error, stackTrace) => Padding(
+        padding: const EdgeInsets.all(20),
+        child: Center(child: Text('Error: $error')),
+      ),
+      loading: () => const Padding(
+        padding: EdgeInsets.all(20),
+        child: Center(child: CircularProgressIndicator()),
       ),
     );
+  }
+
+  Future<void> _confirmDelete(
+    BuildContext context,
+    dynamic notifier, // Using dynamic to match your specific notifier type
+    String id,
+  ) async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text("Delete Record"),
+        content: const Text("Are you sure? This cannot be undone."),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text("Cancel"),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text("Delete", style: TextStyle(color: Colors.red)),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm == true) {
+      final success = await notifier.deleteMaintenance(id);
+
+      if (context.mounted) {
+        showAppSnackBar(
+          context: context,
+          content: success ? 'Record deleted' : 'Failed to delete record',
+          isError: !success,
+        );
+      }
+    }
   }
 }

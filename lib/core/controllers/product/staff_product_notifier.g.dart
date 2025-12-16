@@ -34,7 +34,7 @@ final class StaffProductNotifierProvider
 }
 
 String _$staffProductNotifierHash() =>
-    r'a1778ff9fc29f9b3c712485af4f50ff5a5f26b3e';
+    r'a4b13dd3dee3c837bf8a9455756cfedb381f9ed8';
 
 abstract class _$StaffProductNotifier extends $AsyncNotifier<List<Product>> {
   FutureOr<List<Product>> build();

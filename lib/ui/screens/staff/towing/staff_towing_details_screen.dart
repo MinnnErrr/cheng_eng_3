@@ -2,11 +2,12 @@ import 'dart:collection';
 
 import 'package:cheng_eng_3/core/controllers/realtime_provider.dart';
 import 'package:cheng_eng_3/core/controllers/towing/staff_towings_notifier.dart';
-import 'package:cheng_eng_3/core/controllers/towing/towing_notifier.dart';
+import 'package:cheng_eng_3/core/controllers/towing/towing_by_id_provider.dart';
 import 'package:cheng_eng_3/core/models/towing_model.dart';
 import 'package:cheng_eng_3/ui/widgets/snackbar.dart';
 import 'package:cheng_eng_3/ui/widgets/towing_details.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 typedef TowingEntry = DropdownMenuEntry<String>;
@@ -40,14 +41,7 @@ class StaffTowingDetailsScreen extends ConsumerStatefulWidget {
 
 class _StaffTowingDetailsScreenState
     extends ConsumerState<StaffTowingDetailsScreen> {
-  late Towing displayedTowing;
-  String? _status;
-
-  @override
-  void initState() {
-    displayedTowing = widget.towing;
-    super.initState();
-  }
+  String? _selectedStatus;
 
   @override
   Widget build(BuildContext context) {
@@ -55,87 +49,103 @@ class _StaffTowingDetailsScreenState
     ref.watch(towingRealtimeProvider);
 
     // Watch the towing provider for updates
-    final towingAsync = ref.watch(towingProvider(widget.towing.id));
+    final towingAsync = ref.watch(towingByIdProvider(widget.towing.id));
 
-    towingAsync.whenData((updatedTowing) {
-      displayedTowing = updatedTowing;
-    });
+    // Optimistic UI Pattern
+    final Towing currentTowing = towingAsync.value ?? widget.towing;
+    final towingNotifier = ref.read(staffTowingsProvider.notifier);
+    final bool isCancelled = currentTowing.status.toLowerCase() == 'cancelled';
 
-    final towingNotifier =
-        ref.read(staffTowingsProvider.notifier);
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Towing Details'),
+        centerTitle: true, // Optional: Center title looks better in this layout
+        // 1. Make Status Bar Transparent so the AppBar color shows through it
+        systemOverlayStyle: const SystemUiOverlayStyle(
+          statusBarColor: Colors.transparent,
+          statusBarIconBrightness: Brightness.dark, // Use .light for dark mode
+        ),
 
-    return CustomScrollView(
-            slivers: [
-              SliverAppBar(
-                pinned: true,
-                backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-                elevation: 0,
-                toolbarHeight: 70,
-                title: Text(
-                  'Towing Details',
-                  style: Theme.of(context).textTheme.titleLarge,
-                ),
+        // 2. This controls the "tint" intensity when you scroll.
+        // Default is usually 3.0. You can increase it for a darker scroll color.
+        scrolledUnderElevation: 3.0,
 
-                bottom: displayedTowing.status.toLowerCase() == 'cancelled'
-                    ? null
-                    : PreferredSize(
-                        preferredSize: const Size.fromHeight(70),
-                        child: Padding(
-                          padding: const EdgeInsets.fromLTRB(20, 10, 20, 20),
-                          child: Row(
-                            children: [
-                              Expanded(
-                                child: DropdownMenu<String>(
-                                  width: MediaQuery.sizeOf(context).width * 0.8,
-                                  label: const Text('Status'),
-                                  dropdownMenuEntries: TowingStatus.entries,
-                                  onSelected: (value) {
-                                    setState(() {
-                                      _status = value;
-                                    });
-                                  },
-                                ),
-                              ),
-                              const SizedBox(width: 12),
-                              ElevatedButton(
-                                onPressed: _status != null
-                                    ? () async {
-                                        final success = await towingNotifier
-                                            .updateStatus(
-                                              id: displayedTowing.id,
-                                              status: _status!,
-                                            );
+        // 3. Ensure the base background matches your page before scrolling
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
 
-                                        if (!context.mounted) return;
-                                        showAppSnackBar(
-                                          context: context,
-                                          content: success
-                                              ? 'Status updated'
-                                              : 'Failed to update status',
-                                        );
-                                      }
-                                    : null,
-                                child: const Icon(Icons.check),
-                              ),
-                            ],
-                          ),
+        // The bottom widget
+        bottom: isCancelled
+            ? null
+            : PreferredSize(
+                preferredSize: const Size.fromHeight(80),
+                child: Padding(
+                  // REMOVED THE CONTAINER WITH 'color:' PROPERTY
+                  // Now this section is transparent and shows the AppBar's
+                  // scrolled color underneath.
+                  padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: DropdownMenu<String>(
+                          width: MediaQuery.sizeOf(context).width * 0.70,
+                          label: const Text('Status'),
+                          initialSelection: currentTowing.status,
+                          dropdownMenuEntries: TowingStatus.entries,
+                          onSelected: (value) {
+                            setState(() {
+                              _selectedStatus = value;
+                            });
+                          },
                         ),
                       ),
-              ),
+                      const SizedBox(width: 12),
+                      IconButton.filled(
+                        style: IconButton.styleFrom(
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          minimumSize: const Size(50, 50),
+                        ),
+                        onPressed:
+                            _selectedStatus != null &&
+                                _selectedStatus != currentTowing.status
+                            ? () async {
+                                final success = await towingNotifier
+                                    .updateStatus(
+                                      id: currentTowing.id,
+                                      status: _selectedStatus!,
+                                    );
 
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: EdgeInsets.fromLTRB(20, 20, 20, 40),
-                  child: Column(
-                    children: [
-                      //details
-                      TowingDetailsScreen(towing: displayedTowing),
+                                if (!context.mounted) return;
+                                showAppSnackBar(
+                                  context: context,
+                                  content: success
+                                      ? 'Status updated'
+                                      : 'Failed to update status',
+                                  isError: !success,
+                                );
+
+                                if (success) {
+                                  setState(() => _selectedStatus = null);
+                                }
+                              }
+                            : null,
+                        icon: const Icon(Icons.check),
+                      ),
                     ],
                   ),
                 ),
               ),
-            ],
-          );
-        }
+      ),
+      // Standard SingleChildScrollView for the content
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.fromLTRB(20, 20, 20, 40),
+        child: Column(
+          children: [
+            TowingDetailsWidget(towing: currentTowing),
+          ],
+        ),
+      ),
+    );
   }
-
+}
