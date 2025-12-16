@@ -34,7 +34,7 @@ final class StaffBookingNotifierProvider
 }
 
 String _$staffBookingNotifierHash() =>
-    r'c3e1c382120e6110c9502cff98e5c67286720b61';
+    r'70fcd8d4614182a8dedb22f48c1672f5cc09acf5';
 
 abstract class _$StaffBookingNotifier extends $AsyncNotifier<List<Booking>> {
   FutureOr<List<Booking>> build();
