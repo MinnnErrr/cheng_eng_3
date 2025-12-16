@@ -30,6 +30,7 @@ class MyApp extends ConsumerWidget {
     ref.watch(rewardRealTimeProvider);
     ref.watch(pointHistoryRealTimeProvider);
     ref.watch(redeemedRewardRealTimeProvider);
+    ref.watch(bookingRealTimeProvider);
 
     return MaterialApp(
       title: 'Flutter Demo',

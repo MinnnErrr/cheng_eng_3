@@ -9,7 +9,7 @@ part 'booking_state_model.freezed.dart';
 sealed class BookingState with _$BookingState {
   const factory BookingState({
     Vehicle? vehicle,
-    BookingServiceType? serviceType,
+    List<BookingServiceType>? services,
     DateTime? date,
     TimeOfDay? time,
     String? remarks

@@ -23,30 +23,3 @@ extension ProductAvailabilityExtension on ProductAvailability {
   }
 }
 
-extension BookingServiceExtension on BookingServiceType {
-  String get serviceName {
-    switch (this) {
-      case BookingServiceType.service1:
-        return 'service 1';
-      case BookingServiceType.service2:
-        return 'service 2';
-      case BookingServiceType.service3:
-        return 'service 3';
-      case BookingServiceType.service4:
-        return 'service 4';
-    }
-  }
-
-  String get picture{
-    switch(this){
-      case BookingServiceType.service1:
-        return 'assets/images/cheng_eng_logo.png';
-      case BookingServiceType.service2:
-        return 'assets/images/cheng_eng_logo.png';
-      case BookingServiceType.service3:
-        return 'assets/images/cheng_eng_logo.png';
-      case BookingServiceType.service4:
-        return 'assets/images/cheng_eng_logo.png';
-    }
-  }
-}

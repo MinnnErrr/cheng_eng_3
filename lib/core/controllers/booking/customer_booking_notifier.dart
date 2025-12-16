@@ -1,10 +1,9 @@
-
 import 'package:cheng_eng_3/core/controllers/auth/auth_notifier.dart';
-import 'package:cheng_eng_3/core/controllers/vehicle/customer_vehicle_by_id_provider.dart';
 import 'package:cheng_eng_3/core/models/booking_model.dart';
 import 'package:cheng_eng_3/core/models/message_model.dart';
+import 'package:cheng_eng_3/core/models/vehicle_model.dart';
 import 'package:cheng_eng_3/core/services/booking_service.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter/material.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:uuid/uuid.dart';
 
@@ -22,11 +21,11 @@ class CustomerBookingNotifier extends _$CustomerBookingNotifier {
   // void refresh() => ref.invalidateSelf();
 
   Future<Message> addBooking({
-    required BookingServiceType service,
+    required List<BookingServiceType> services,
     required DateTime date,
-    required DateTime time,
+    required TimeOfDay time,
     required String? remarks,
-    required String vehicleId,
+    required Vehicle vehicle,
   }) async {
     final userState = ref.read(authProvider);
     final user = userState.value;
@@ -36,11 +35,9 @@ class CustomerBookingNotifier extends _$CustomerBookingNotifier {
 
     final bookingId = Uuid().v4();
 
-    final vehicle = await ref.read(customerVehicleByIdProvider(vehicleId).future);
-
     final booking = Booking(
       id: bookingId,
-      service: service,
+      services: services,
       date: date,
       time: time,
       remarks: remarks,
@@ -54,7 +51,7 @@ class CustomerBookingNotifier extends _$CustomerBookingNotifier {
       vehicleYear: vehicle.year,
       createdAt: DateTime.now(),
       updatedAt: null,
-      vehicleId: vehicleId,
+      vehicleId: vehicle.id,
       userId: user.id,
     );
 
@@ -67,31 +64,35 @@ class CustomerBookingNotifier extends _$CustomerBookingNotifier {
     }
   }
 
-    Future<Message> cancelBooking({
-      required String id,
-      required BookingStatus status,
-    }) async {
-      try {
-        await _bookingService.updateStatus(status, id, null);
+  Future<Message> cancelBooking({
+    required String id,
+  }) async {
+    try {
+      await _bookingService.updateStatus(
+        BookingStatus.cancelled.name,
+        id,
+        null,
+      );
 
-        return Message(isSuccess: true, message: 'Booking cancelled');
-      } catch (e) {
-        return Message(isSuccess: false, message: 'Failed to cancel booking');
-      }
+      return Message(isSuccess: true, message: 'Booking cancelled');
+    } catch (e) {
+      print(e);
+      return Message(isSuccess: false, message: 'Failed to cancel booking');
     }
   }
+}
 
-  final customerBookingByIdProvider = FutureProvider.family<Booking, ({String userId, String bookingId})>(
-  (ref, params) async {
-    final bookings = await ref.watch(customerBookingProvider(params.userId).future);
+  // final customerBookingByIdProvider = FutureProvider.family<Booking, ({String userId, String bookingId})>(
+  // (ref, params) async {
+  //   final bookings = await ref.watch(customerBookingProvider(params.userId).future);
 
-    final booking = bookings.firstWhere(
-      (b) => b.id == params.bookingId,
-      orElse: () => throw Exception('Towing not found'),
-    );
+  //   final booking = bookings.firstWhere(
+  //     (b) => b.id == params.bookingId,
+  //     orElse: () => throw Exception('Towing not found'),
+  //   );
 
-    return booking;
-  },
-);
+  //   return booking;
+  // },
+
 
 

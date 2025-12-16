@@ -2,7 +2,6 @@
 import 'package:cheng_eng_3/core/models/booking_model.dart';
 import 'package:cheng_eng_3/core/models/message_model.dart';
 import 'package:cheng_eng_3/core/services/booking_service.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'staff_booking_notifier.g.dart';
@@ -20,7 +19,7 @@ class StaffBookingNotifier extends _$StaffBookingNotifier {
 
   Future<Message> updateStatus({
     required String id,
-    required BookingStatus status,
+    required String status,
     required String? message,
   }) async {
     try {
@@ -33,17 +32,17 @@ class StaffBookingNotifier extends _$StaffBookingNotifier {
   }
 }
 
-final staffBookingByIdProvider = FutureProvider.family<Booking, String>(
-  (ref, bookingId) async {
-    final bookings = await ref.watch(staffBookingProvider.future);
+// final staffBookingByIdProvider = FutureProvider.family<Booking, String>(
+//   (ref, bookingId) async {
+//     final bookings = await ref.watch(staffBookingProvider.future);
 
-    final booking = bookings.firstWhere(
-      (t) => t.id == bookingId,
-      orElse: () => throw Exception('Towing not found'),
-    );
+//     final booking = bookings.firstWhere(
+//       (t) => t.id == bookingId,
+//       orElse: () => throw Exception('Towing not found'),
+//     );
 
-    return booking;
-  },
-);
+//     return booking;
+//   },
+// );
 
 

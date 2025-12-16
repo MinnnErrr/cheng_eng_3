@@ -48,7 +48,7 @@ class BookingService {
   }
 
   Future<void> updateStatus(
-    BookingStatus status,
+    String status,
     String towingId,
     String? message,
   ) async {
@@ -56,14 +56,18 @@ class BookingService {
         .from('bookings')
         .update({
           'status': status,
-          'updatedAt': DateTime.now(),
+          'updatedAt': DateTime.now().toIso8601String(),
           'staffMessage': message,
         })
         .eq('id', towingId);
   }
 
   Future<List<Booking>> getBookingByDate(DateTime date) async {
-    final data = await supabase.from('bookings').select().eq('date', date).isFilter('deletedAt', null);
+    final data = await supabase
+        .from('bookings')
+        .select()
+        .eq('date', date)
+        .isFilter('deletedAt', null);
     return data.map<Booking>((b) => Booking.fromJson(b)).toList();
   }
 }

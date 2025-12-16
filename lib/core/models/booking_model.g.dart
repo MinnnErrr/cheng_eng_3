@@ -8,9 +8,11 @@ part of 'booking_model.dart';
 
 _Booking _$BookingFromJson(Map<String, dynamic> json) => _Booking(
   id: json['id'] as String,
-  service: $enumDecode(_$BookingServiceTypeEnumMap, json['service']),
+  services: (json['services'] as List<dynamic>)
+      .map((e) => $enumDecode(_$BookingServiceTypeEnumMap, e))
+      .toList(),
   date: DateTime.parse(json['date'] as String),
-  time: DateTime.parse(json['time'] as String),
+  time: const TimeOfDayConverter().fromJson(json['time'] as String),
   remarks: json['remarks'] as String?,
   staffMessage: json['staffMessage'] as String?,
   status: $enumDecode(_$BookingStatusEnumMap, json['status']),
@@ -30,9 +32,11 @@ _Booking _$BookingFromJson(Map<String, dynamic> json) => _Booking(
 
 Map<String, dynamic> _$BookingToJson(_Booking instance) => <String, dynamic>{
   'id': instance.id,
-  'service': _$BookingServiceTypeEnumMap[instance.service]!,
+  'services': instance.services
+      .map((e) => _$BookingServiceTypeEnumMap[e]!)
+      .toList(),
   'date': instance.date.toIso8601String(),
-  'time': instance.time.toIso8601String(),
+  'time': const TimeOfDayConverter().toJson(instance.time),
   'remarks': instance.remarks,
   'staffMessage': instance.staffMessage,
   'status': _$BookingStatusEnumMap[instance.status]!,

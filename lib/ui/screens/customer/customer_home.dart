@@ -2,6 +2,7 @@ import 'package:cheng_eng_3/core/controllers/auth/auth_notifier.dart';
 import 'package:cheng_eng_3/core/controllers/maintenance/maintenance_nearest_date_provider.dart';
 import 'package:cheng_eng_3/core/controllers/point/total_points_provider.dart';
 import 'package:cheng_eng_3/core/models/maintenance_model.dart';
+import 'package:cheng_eng_3/ui/screens/customer/booking/customer_booking_screen.dart';
 import 'package:cheng_eng_3/ui/screens/customer/cart/cart_screen.dart';
 import 'package:cheng_eng_3/ui/screens/customer/maintenance/maintenance_details_screen.dart';
 import 'package:cheng_eng_3/ui/screens/customer/product/customer_product_screen.dart';
@@ -96,6 +97,13 @@ class CustomerHome extends ConsumerWidget {
                         context,
                         'My Rewards',
                         const CustomerRedeemedRewardScreen(),
+                      ),
+                    ),
+                    Expanded(
+                      child: _navButton(
+                        context,
+                        'Booking',
+                        const CustomerBookingScreen(),
                       ),
                     ),
                   ],

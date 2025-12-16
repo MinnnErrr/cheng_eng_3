@@ -14,7 +14,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$BookingState {
 
- Vehicle? get vehicle; BookingServiceType? get serviceType; DateTime? get date; TimeOfDay? get time; String? get remarks;
+ Vehicle? get vehicle; List<BookingServiceType>? get services; DateTime? get date; TimeOfDay? get time; String? get remarks;
 /// Create a copy of BookingState
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -25,16 +25,16 @@ $BookingStateCopyWith<BookingState> get copyWith => _$BookingStateCopyWithImpl<B
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is BookingState&&(identical(other.vehicle, vehicle) || other.vehicle == vehicle)&&(identical(other.serviceType, serviceType) || other.serviceType == serviceType)&&(identical(other.date, date) || other.date == date)&&(identical(other.time, time) || other.time == time)&&(identical(other.remarks, remarks) || other.remarks == remarks));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is BookingState&&(identical(other.vehicle, vehicle) || other.vehicle == vehicle)&&const DeepCollectionEquality().equals(other.services, services)&&(identical(other.date, date) || other.date == date)&&(identical(other.time, time) || other.time == time)&&(identical(other.remarks, remarks) || other.remarks == remarks));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,vehicle,serviceType,date,time,remarks);
+int get hashCode => Object.hash(runtimeType,vehicle,const DeepCollectionEquality().hash(services),date,time,remarks);
 
 @override
 String toString() {
-  return 'BookingState(vehicle: $vehicle, serviceType: $serviceType, date: $date, time: $time, remarks: $remarks)';
+  return 'BookingState(vehicle: $vehicle, services: $services, date: $date, time: $time, remarks: $remarks)';
 }
 
 
@@ -45,7 +45,7 @@ abstract mixin class $BookingStateCopyWith<$Res>  {
   factory $BookingStateCopyWith(BookingState value, $Res Function(BookingState) _then) = _$BookingStateCopyWithImpl;
 @useResult
 $Res call({
- Vehicle? vehicle, BookingServiceType? serviceType, DateTime? date, TimeOfDay? time, String? remarks
+ Vehicle? vehicle, List<BookingServiceType>? services, DateTime? date, TimeOfDay? time, String? remarks
 });
 
 
@@ -62,11 +62,11 @@ class _$BookingStateCopyWithImpl<$Res>
 
 /// Create a copy of BookingState
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? vehicle = freezed,Object? serviceType = freezed,Object? date = freezed,Object? time = freezed,Object? remarks = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? vehicle = freezed,Object? services = freezed,Object? date = freezed,Object? time = freezed,Object? remarks = freezed,}) {
   return _then(_self.copyWith(
 vehicle: freezed == vehicle ? _self.vehicle : vehicle // ignore: cast_nullable_to_non_nullable
-as Vehicle?,serviceType: freezed == serviceType ? _self.serviceType : serviceType // ignore: cast_nullable_to_non_nullable
-as BookingServiceType?,date: freezed == date ? _self.date : date // ignore: cast_nullable_to_non_nullable
+as Vehicle?,services: freezed == services ? _self.services : services // ignore: cast_nullable_to_non_nullable
+as List<BookingServiceType>?,date: freezed == date ? _self.date : date // ignore: cast_nullable_to_non_nullable
 as DateTime?,time: freezed == time ? _self.time : time // ignore: cast_nullable_to_non_nullable
 as TimeOfDay?,remarks: freezed == remarks ? _self.remarks : remarks // ignore: cast_nullable_to_non_nullable
 as String?,
@@ -163,10 +163,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( Vehicle? vehicle,  BookingServiceType? serviceType,  DateTime? date,  TimeOfDay? time,  String? remarks)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( Vehicle? vehicle,  List<BookingServiceType>? services,  DateTime? date,  TimeOfDay? time,  String? remarks)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _BookingState() when $default != null:
-return $default(_that.vehicle,_that.serviceType,_that.date,_that.time,_that.remarks);case _:
+return $default(_that.vehicle,_that.services,_that.date,_that.time,_that.remarks);case _:
   return orElse();
 
 }
@@ -184,10 +184,10 @@ return $default(_that.vehicle,_that.serviceType,_that.date,_that.time,_that.rema
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( Vehicle? vehicle,  BookingServiceType? serviceType,  DateTime? date,  TimeOfDay? time,  String? remarks)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( Vehicle? vehicle,  List<BookingServiceType>? services,  DateTime? date,  TimeOfDay? time,  String? remarks)  $default,) {final _that = this;
 switch (_that) {
 case _BookingState():
-return $default(_that.vehicle,_that.serviceType,_that.date,_that.time,_that.remarks);}
+return $default(_that.vehicle,_that.services,_that.date,_that.time,_that.remarks);}
 }
 /// A variant of `when` that fallback to returning `null`
 ///
@@ -201,10 +201,10 @@ return $default(_that.vehicle,_that.serviceType,_that.date,_that.time,_that.rema
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( Vehicle? vehicle,  BookingServiceType? serviceType,  DateTime? date,  TimeOfDay? time,  String? remarks)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( Vehicle? vehicle,  List<BookingServiceType>? services,  DateTime? date,  TimeOfDay? time,  String? remarks)?  $default,) {final _that = this;
 switch (_that) {
 case _BookingState() when $default != null:
-return $default(_that.vehicle,_that.serviceType,_that.date,_that.time,_that.remarks);case _:
+return $default(_that.vehicle,_that.services,_that.date,_that.time,_that.remarks);case _:
   return null;
 
 }
@@ -216,11 +216,19 @@ return $default(_that.vehicle,_that.serviceType,_that.date,_that.time,_that.rema
 
 
 class _BookingState implements BookingState {
-  const _BookingState({this.vehicle, this.serviceType, this.date, this.time, this.remarks});
+  const _BookingState({this.vehicle, final  List<BookingServiceType>? services, this.date, this.time, this.remarks}): _services = services;
   
 
 @override final  Vehicle? vehicle;
-@override final  BookingServiceType? serviceType;
+ final  List<BookingServiceType>? _services;
+@override List<BookingServiceType>? get services {
+  final value = _services;
+  if (value == null) return null;
+  if (_services is EqualUnmodifiableListView) return _services;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableListView(value);
+}
+
 @override final  DateTime? date;
 @override final  TimeOfDay? time;
 @override final  String? remarks;
@@ -235,16 +243,16 @@ _$BookingStateCopyWith<_BookingState> get copyWith => __$BookingStateCopyWithImp
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _BookingState&&(identical(other.vehicle, vehicle) || other.vehicle == vehicle)&&(identical(other.serviceType, serviceType) || other.serviceType == serviceType)&&(identical(other.date, date) || other.date == date)&&(identical(other.time, time) || other.time == time)&&(identical(other.remarks, remarks) || other.remarks == remarks));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _BookingState&&(identical(other.vehicle, vehicle) || other.vehicle == vehicle)&&const DeepCollectionEquality().equals(other._services, _services)&&(identical(other.date, date) || other.date == date)&&(identical(other.time, time) || other.time == time)&&(identical(other.remarks, remarks) || other.remarks == remarks));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,vehicle,serviceType,date,time,remarks);
+int get hashCode => Object.hash(runtimeType,vehicle,const DeepCollectionEquality().hash(_services),date,time,remarks);
 
 @override
 String toString() {
-  return 'BookingState(vehicle: $vehicle, serviceType: $serviceType, date: $date, time: $time, remarks: $remarks)';
+  return 'BookingState(vehicle: $vehicle, services: $services, date: $date, time: $time, remarks: $remarks)';
 }
 
 
@@ -255,7 +263,7 @@ abstract mixin class _$BookingStateCopyWith<$Res> implements $BookingStateCopyWi
   factory _$BookingStateCopyWith(_BookingState value, $Res Function(_BookingState) _then) = __$BookingStateCopyWithImpl;
 @override @useResult
 $Res call({
- Vehicle? vehicle, BookingServiceType? serviceType, DateTime? date, TimeOfDay? time, String? remarks
+ Vehicle? vehicle, List<BookingServiceType>? services, DateTime? date, TimeOfDay? time, String? remarks
 });
 
 
@@ -272,11 +280,11 @@ class __$BookingStateCopyWithImpl<$Res>
 
 /// Create a copy of BookingState
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? vehicle = freezed,Object? serviceType = freezed,Object? date = freezed,Object? time = freezed,Object? remarks = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? vehicle = freezed,Object? services = freezed,Object? date = freezed,Object? time = freezed,Object? remarks = freezed,}) {
   return _then(_BookingState(
 vehicle: freezed == vehicle ? _self.vehicle : vehicle // ignore: cast_nullable_to_non_nullable
-as Vehicle?,serviceType: freezed == serviceType ? _self.serviceType : serviceType // ignore: cast_nullable_to_non_nullable
-as BookingServiceType?,date: freezed == date ? _self.date : date // ignore: cast_nullable_to_non_nullable
+as Vehicle?,services: freezed == services ? _self._services : services // ignore: cast_nullable_to_non_nullable
+as List<BookingServiceType>?,date: freezed == date ? _self.date : date // ignore: cast_nullable_to_non_nullable
 as DateTime?,time: freezed == time ? _self.time : time // ignore: cast_nullable_to_non_nullable
 as TimeOfDay?,remarks: freezed == remarks ? _self.remarks : remarks // ignore: cast_nullable_to_non_nullable
 as String?,
