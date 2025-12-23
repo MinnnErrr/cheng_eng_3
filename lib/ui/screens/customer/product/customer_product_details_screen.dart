@@ -47,7 +47,7 @@ class _CustomerProductDetailsScreenState
             onTap: () => Navigator.of(context).push(
               MaterialPageRoute(builder: (context) => const CartScreen()),
             ),
-            child: cartIcon(ref, context),
+            child: CartIconBadge(),
           ),
         ],
         actionsPadding: const EdgeInsets.symmetric(horizontal: 20),

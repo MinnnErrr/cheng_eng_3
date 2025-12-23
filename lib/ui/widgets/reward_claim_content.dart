@@ -71,7 +71,7 @@ class __RewardClaimContentState extends ConsumerState<RewardClaimContent> {
           style: Theme.of(context).textTheme.titleLarge,
         ),
         const SizedBox(height: 10),
-        ProfileListitem(profile: profileData),
+        ProfileListitem(email: profileData.email, name: profileData.name, dialCode: profileData.dialCode, phoneNum: profileData.phoneNum, gender: profileData.gender),
 
         const SizedBox(height: 30),
 

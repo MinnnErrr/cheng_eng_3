@@ -13,7 +13,7 @@ part of 'cart_notifier.dart';
 const cartProvider = CartNotifierProvider._();
 
 final class CartNotifierProvider
-    extends $AsyncNotifierProvider<CartNotifier, List<CartItem>> {
+    extends $AsyncNotifierProvider<CartNotifier, CartState> {
   const CartNotifierProvider._()
     : super(
         from: null,
@@ -33,20 +33,20 @@ final class CartNotifierProvider
   CartNotifier create() => CartNotifier();
 }
 
-String _$cartNotifierHash() => r'b3867c4824693afaaf023d17aef348e5e7313285';
+String _$cartNotifierHash() => r'594bc124a1fe5f0aff8ecfdec1c5421e59541733';
 
-abstract class _$CartNotifier extends $AsyncNotifier<List<CartItem>> {
-  FutureOr<List<CartItem>> build();
+abstract class _$CartNotifier extends $AsyncNotifier<CartState> {
+  FutureOr<CartState> build();
   @$mustCallSuper
   @override
   void runBuild() {
     final created = build();
-    final ref = this.ref as $Ref<AsyncValue<List<CartItem>>, List<CartItem>>;
+    final ref = this.ref as $Ref<AsyncValue<CartState>, CartState>;
     final element =
         ref.element
             as $ClassProviderElement<
-              AnyNotifier<AsyncValue<List<CartItem>>, List<CartItem>>,
-              AsyncValue<List<CartItem>>,
+              AnyNotifier<AsyncValue<CartState>, CartState>,
+              AsyncValue<CartState>,
               Object?,
               Object?
             >;

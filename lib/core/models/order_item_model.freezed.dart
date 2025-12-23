@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$OrderItem {
 
- String get id; int get quantity; List<String> get photoPaths; String get productBrand; String get productName; String get productModel; double get productPrice; double? get productInstallationFee; double get price; double? get installationFee; bool get isReady; String get productId; String get orderId;
+ String get id; int get quantity; List<String> get photoPaths; String get productBrand; String get productName; String? get productModel; String? get productColour; double get productPrice; double? get productInstallationFee; double get totalPrice; double? get totalInstallationFee; bool get isReady; String get productId; String get orderId; DateTime? get updatedAt;
 /// Create a copy of OrderItem
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -28,16 +28,16 @@ $OrderItemCopyWith<OrderItem> get copyWith => _$OrderItemCopyWithImpl<OrderItem>
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is OrderItem&&(identical(other.id, id) || other.id == id)&&(identical(other.quantity, quantity) || other.quantity == quantity)&&const DeepCollectionEquality().equals(other.photoPaths, photoPaths)&&(identical(other.productBrand, productBrand) || other.productBrand == productBrand)&&(identical(other.productName, productName) || other.productName == productName)&&(identical(other.productModel, productModel) || other.productModel == productModel)&&(identical(other.productPrice, productPrice) || other.productPrice == productPrice)&&(identical(other.productInstallationFee, productInstallationFee) || other.productInstallationFee == productInstallationFee)&&(identical(other.price, price) || other.price == price)&&(identical(other.installationFee, installationFee) || other.installationFee == installationFee)&&(identical(other.isReady, isReady) || other.isReady == isReady)&&(identical(other.productId, productId) || other.productId == productId)&&(identical(other.orderId, orderId) || other.orderId == orderId));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is OrderItem&&(identical(other.id, id) || other.id == id)&&(identical(other.quantity, quantity) || other.quantity == quantity)&&const DeepCollectionEquality().equals(other.photoPaths, photoPaths)&&(identical(other.productBrand, productBrand) || other.productBrand == productBrand)&&(identical(other.productName, productName) || other.productName == productName)&&(identical(other.productModel, productModel) || other.productModel == productModel)&&(identical(other.productColour, productColour) || other.productColour == productColour)&&(identical(other.productPrice, productPrice) || other.productPrice == productPrice)&&(identical(other.productInstallationFee, productInstallationFee) || other.productInstallationFee == productInstallationFee)&&(identical(other.totalPrice, totalPrice) || other.totalPrice == totalPrice)&&(identical(other.totalInstallationFee, totalInstallationFee) || other.totalInstallationFee == totalInstallationFee)&&(identical(other.isReady, isReady) || other.isReady == isReady)&&(identical(other.productId, productId) || other.productId == productId)&&(identical(other.orderId, orderId) || other.orderId == orderId)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,quantity,const DeepCollectionEquality().hash(photoPaths),productBrand,productName,productModel,productPrice,productInstallationFee,price,installationFee,isReady,productId,orderId);
+int get hashCode => Object.hash(runtimeType,id,quantity,const DeepCollectionEquality().hash(photoPaths),productBrand,productName,productModel,productColour,productPrice,productInstallationFee,totalPrice,totalInstallationFee,isReady,productId,orderId,updatedAt);
 
 @override
 String toString() {
-  return 'OrderItem(id: $id, quantity: $quantity, photoPaths: $photoPaths, productBrand: $productBrand, productName: $productName, productModel: $productModel, productPrice: $productPrice, productInstallationFee: $productInstallationFee, price: $price, installationFee: $installationFee, isReady: $isReady, productId: $productId, orderId: $orderId)';
+  return 'OrderItem(id: $id, quantity: $quantity, photoPaths: $photoPaths, productBrand: $productBrand, productName: $productName, productModel: $productModel, productColour: $productColour, productPrice: $productPrice, productInstallationFee: $productInstallationFee, totalPrice: $totalPrice, totalInstallationFee: $totalInstallationFee, isReady: $isReady, productId: $productId, orderId: $orderId, updatedAt: $updatedAt)';
 }
 
 
@@ -48,7 +48,7 @@ abstract mixin class $OrderItemCopyWith<$Res>  {
   factory $OrderItemCopyWith(OrderItem value, $Res Function(OrderItem) _then) = _$OrderItemCopyWithImpl;
 @useResult
 $Res call({
- String id, int quantity, List<String> photoPaths, String productBrand, String productName, String productModel, double productPrice, double? productInstallationFee, double price, double? installationFee, bool isReady, String productId, String orderId
+ String id, int quantity, List<String> photoPaths, String productBrand, String productName, String? productModel, String? productColour, double productPrice, double? productInstallationFee, double totalPrice, double? totalInstallationFee, bool isReady, String productId, String orderId, DateTime? updatedAt
 });
 
 
@@ -65,22 +65,24 @@ class _$OrderItemCopyWithImpl<$Res>
 
 /// Create a copy of OrderItem
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? quantity = null,Object? photoPaths = null,Object? productBrand = null,Object? productName = null,Object? productModel = null,Object? productPrice = null,Object? productInstallationFee = freezed,Object? price = null,Object? installationFee = freezed,Object? isReady = null,Object? productId = null,Object? orderId = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? quantity = null,Object? photoPaths = null,Object? productBrand = null,Object? productName = null,Object? productModel = freezed,Object? productColour = freezed,Object? productPrice = null,Object? productInstallationFee = freezed,Object? totalPrice = null,Object? totalInstallationFee = freezed,Object? isReady = null,Object? productId = null,Object? orderId = null,Object? updatedAt = freezed,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,quantity: null == quantity ? _self.quantity : quantity // ignore: cast_nullable_to_non_nullable
 as int,photoPaths: null == photoPaths ? _self.photoPaths : photoPaths // ignore: cast_nullable_to_non_nullable
 as List<String>,productBrand: null == productBrand ? _self.productBrand : productBrand // ignore: cast_nullable_to_non_nullable
 as String,productName: null == productName ? _self.productName : productName // ignore: cast_nullable_to_non_nullable
-as String,productModel: null == productModel ? _self.productModel : productModel // ignore: cast_nullable_to_non_nullable
-as String,productPrice: null == productPrice ? _self.productPrice : productPrice // ignore: cast_nullable_to_non_nullable
+as String,productModel: freezed == productModel ? _self.productModel : productModel // ignore: cast_nullable_to_non_nullable
+as String?,productColour: freezed == productColour ? _self.productColour : productColour // ignore: cast_nullable_to_non_nullable
+as String?,productPrice: null == productPrice ? _self.productPrice : productPrice // ignore: cast_nullable_to_non_nullable
 as double,productInstallationFee: freezed == productInstallationFee ? _self.productInstallationFee : productInstallationFee // ignore: cast_nullable_to_non_nullable
-as double?,price: null == price ? _self.price : price // ignore: cast_nullable_to_non_nullable
-as double,installationFee: freezed == installationFee ? _self.installationFee : installationFee // ignore: cast_nullable_to_non_nullable
+as double?,totalPrice: null == totalPrice ? _self.totalPrice : totalPrice // ignore: cast_nullable_to_non_nullable
+as double,totalInstallationFee: freezed == totalInstallationFee ? _self.totalInstallationFee : totalInstallationFee // ignore: cast_nullable_to_non_nullable
 as double?,isReady: null == isReady ? _self.isReady : isReady // ignore: cast_nullable_to_non_nullable
 as bool,productId: null == productId ? _self.productId : productId // ignore: cast_nullable_to_non_nullable
 as String,orderId: null == orderId ? _self.orderId : orderId // ignore: cast_nullable_to_non_nullable
-as String,
+as String,updatedAt: freezed == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
+as DateTime?,
   ));
 }
 
@@ -162,10 +164,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  int quantity,  List<String> photoPaths,  String productBrand,  String productName,  String productModel,  double productPrice,  double? productInstallationFee,  double price,  double? installationFee,  bool isReady,  String productId,  String orderId)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  int quantity,  List<String> photoPaths,  String productBrand,  String productName,  String? productModel,  String? productColour,  double productPrice,  double? productInstallationFee,  double totalPrice,  double? totalInstallationFee,  bool isReady,  String productId,  String orderId,  DateTime? updatedAt)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _OrderItem() when $default != null:
-return $default(_that.id,_that.quantity,_that.photoPaths,_that.productBrand,_that.productName,_that.productModel,_that.productPrice,_that.productInstallationFee,_that.price,_that.installationFee,_that.isReady,_that.productId,_that.orderId);case _:
+return $default(_that.id,_that.quantity,_that.photoPaths,_that.productBrand,_that.productName,_that.productModel,_that.productColour,_that.productPrice,_that.productInstallationFee,_that.totalPrice,_that.totalInstallationFee,_that.isReady,_that.productId,_that.orderId,_that.updatedAt);case _:
   return orElse();
 
 }
@@ -183,10 +185,10 @@ return $default(_that.id,_that.quantity,_that.photoPaths,_that.productBrand,_tha
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  int quantity,  List<String> photoPaths,  String productBrand,  String productName,  String productModel,  double productPrice,  double? productInstallationFee,  double price,  double? installationFee,  bool isReady,  String productId,  String orderId)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  int quantity,  List<String> photoPaths,  String productBrand,  String productName,  String? productModel,  String? productColour,  double productPrice,  double? productInstallationFee,  double totalPrice,  double? totalInstallationFee,  bool isReady,  String productId,  String orderId,  DateTime? updatedAt)  $default,) {final _that = this;
 switch (_that) {
 case _OrderItem():
-return $default(_that.id,_that.quantity,_that.photoPaths,_that.productBrand,_that.productName,_that.productModel,_that.productPrice,_that.productInstallationFee,_that.price,_that.installationFee,_that.isReady,_that.productId,_that.orderId);}
+return $default(_that.id,_that.quantity,_that.photoPaths,_that.productBrand,_that.productName,_that.productModel,_that.productColour,_that.productPrice,_that.productInstallationFee,_that.totalPrice,_that.totalInstallationFee,_that.isReady,_that.productId,_that.orderId,_that.updatedAt);}
 }
 /// A variant of `when` that fallback to returning `null`
 ///
@@ -200,10 +202,10 @@ return $default(_that.id,_that.quantity,_that.photoPaths,_that.productBrand,_tha
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  int quantity,  List<String> photoPaths,  String productBrand,  String productName,  String productModel,  double productPrice,  double? productInstallationFee,  double price,  double? installationFee,  bool isReady,  String productId,  String orderId)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  int quantity,  List<String> photoPaths,  String productBrand,  String productName,  String? productModel,  String? productColour,  double productPrice,  double? productInstallationFee,  double totalPrice,  double? totalInstallationFee,  bool isReady,  String productId,  String orderId,  DateTime? updatedAt)?  $default,) {final _that = this;
 switch (_that) {
 case _OrderItem() when $default != null:
-return $default(_that.id,_that.quantity,_that.photoPaths,_that.productBrand,_that.productName,_that.productModel,_that.productPrice,_that.productInstallationFee,_that.price,_that.installationFee,_that.isReady,_that.productId,_that.orderId);case _:
+return $default(_that.id,_that.quantity,_that.photoPaths,_that.productBrand,_that.productName,_that.productModel,_that.productColour,_that.productPrice,_that.productInstallationFee,_that.totalPrice,_that.totalInstallationFee,_that.isReady,_that.productId,_that.orderId,_that.updatedAt);case _:
   return null;
 
 }
@@ -215,7 +217,7 @@ return $default(_that.id,_that.quantity,_that.photoPaths,_that.productBrand,_tha
 @JsonSerializable()
 
 class _OrderItem implements OrderItem {
-  const _OrderItem({required this.id, required this.quantity, required final  List<String> photoPaths, required this.productBrand, required this.productName, required this.productModel, required this.productPrice, required this.productInstallationFee, required this.price, required this.installationFee, required this.isReady, required this.productId, required this.orderId}): _photoPaths = photoPaths;
+  const _OrderItem({required this.id, required this.quantity, required final  List<String> photoPaths, required this.productBrand, required this.productName, required this.productModel, required this.productColour, required this.productPrice, required this.productInstallationFee, required this.totalPrice, required this.totalInstallationFee, required this.isReady, required this.productId, required this.orderId, required this.updatedAt}): _photoPaths = photoPaths;
   factory _OrderItem.fromJson(Map<String, dynamic> json) => _$OrderItemFromJson(json);
 
 @override final  String id;
@@ -229,14 +231,16 @@ class _OrderItem implements OrderItem {
 
 @override final  String productBrand;
 @override final  String productName;
-@override final  String productModel;
+@override final  String? productModel;
+@override final  String? productColour;
 @override final  double productPrice;
 @override final  double? productInstallationFee;
-@override final  double price;
-@override final  double? installationFee;
+@override final  double totalPrice;
+@override final  double? totalInstallationFee;
 @override final  bool isReady;
 @override final  String productId;
 @override final  String orderId;
+@override final  DateTime? updatedAt;
 
 /// Create a copy of OrderItem
 /// with the given fields replaced by the non-null parameter values.
@@ -251,16 +255,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _OrderItem&&(identical(other.id, id) || other.id == id)&&(identical(other.quantity, quantity) || other.quantity == quantity)&&const DeepCollectionEquality().equals(other._photoPaths, _photoPaths)&&(identical(other.productBrand, productBrand) || other.productBrand == productBrand)&&(identical(other.productName, productName) || other.productName == productName)&&(identical(other.productModel, productModel) || other.productModel == productModel)&&(identical(other.productPrice, productPrice) || other.productPrice == productPrice)&&(identical(other.productInstallationFee, productInstallationFee) || other.productInstallationFee == productInstallationFee)&&(identical(other.price, price) || other.price == price)&&(identical(other.installationFee, installationFee) || other.installationFee == installationFee)&&(identical(other.isReady, isReady) || other.isReady == isReady)&&(identical(other.productId, productId) || other.productId == productId)&&(identical(other.orderId, orderId) || other.orderId == orderId));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _OrderItem&&(identical(other.id, id) || other.id == id)&&(identical(other.quantity, quantity) || other.quantity == quantity)&&const DeepCollectionEquality().equals(other._photoPaths, _photoPaths)&&(identical(other.productBrand, productBrand) || other.productBrand == productBrand)&&(identical(other.productName, productName) || other.productName == productName)&&(identical(other.productModel, productModel) || other.productModel == productModel)&&(identical(other.productColour, productColour) || other.productColour == productColour)&&(identical(other.productPrice, productPrice) || other.productPrice == productPrice)&&(identical(other.productInstallationFee, productInstallationFee) || other.productInstallationFee == productInstallationFee)&&(identical(other.totalPrice, totalPrice) || other.totalPrice == totalPrice)&&(identical(other.totalInstallationFee, totalInstallationFee) || other.totalInstallationFee == totalInstallationFee)&&(identical(other.isReady, isReady) || other.isReady == isReady)&&(identical(other.productId, productId) || other.productId == productId)&&(identical(other.orderId, orderId) || other.orderId == orderId)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,quantity,const DeepCollectionEquality().hash(_photoPaths),productBrand,productName,productModel,productPrice,productInstallationFee,price,installationFee,isReady,productId,orderId);
+int get hashCode => Object.hash(runtimeType,id,quantity,const DeepCollectionEquality().hash(_photoPaths),productBrand,productName,productModel,productColour,productPrice,productInstallationFee,totalPrice,totalInstallationFee,isReady,productId,orderId,updatedAt);
 
 @override
 String toString() {
-  return 'OrderItem(id: $id, quantity: $quantity, photoPaths: $photoPaths, productBrand: $productBrand, productName: $productName, productModel: $productModel, productPrice: $productPrice, productInstallationFee: $productInstallationFee, price: $price, installationFee: $installationFee, isReady: $isReady, productId: $productId, orderId: $orderId)';
+  return 'OrderItem(id: $id, quantity: $quantity, photoPaths: $photoPaths, productBrand: $productBrand, productName: $productName, productModel: $productModel, productColour: $productColour, productPrice: $productPrice, productInstallationFee: $productInstallationFee, totalPrice: $totalPrice, totalInstallationFee: $totalInstallationFee, isReady: $isReady, productId: $productId, orderId: $orderId, updatedAt: $updatedAt)';
 }
 
 
@@ -271,7 +275,7 @@ abstract mixin class _$OrderItemCopyWith<$Res> implements $OrderItemCopyWith<$Re
   factory _$OrderItemCopyWith(_OrderItem value, $Res Function(_OrderItem) _then) = __$OrderItemCopyWithImpl;
 @override @useResult
 $Res call({
- String id, int quantity, List<String> photoPaths, String productBrand, String productName, String productModel, double productPrice, double? productInstallationFee, double price, double? installationFee, bool isReady, String productId, String orderId
+ String id, int quantity, List<String> photoPaths, String productBrand, String productName, String? productModel, String? productColour, double productPrice, double? productInstallationFee, double totalPrice, double? totalInstallationFee, bool isReady, String productId, String orderId, DateTime? updatedAt
 });
 
 
@@ -288,22 +292,24 @@ class __$OrderItemCopyWithImpl<$Res>
 
 /// Create a copy of OrderItem
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? quantity = null,Object? photoPaths = null,Object? productBrand = null,Object? productName = null,Object? productModel = null,Object? productPrice = null,Object? productInstallationFee = freezed,Object? price = null,Object? installationFee = freezed,Object? isReady = null,Object? productId = null,Object? orderId = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? quantity = null,Object? photoPaths = null,Object? productBrand = null,Object? productName = null,Object? productModel = freezed,Object? productColour = freezed,Object? productPrice = null,Object? productInstallationFee = freezed,Object? totalPrice = null,Object? totalInstallationFee = freezed,Object? isReady = null,Object? productId = null,Object? orderId = null,Object? updatedAt = freezed,}) {
   return _then(_OrderItem(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,quantity: null == quantity ? _self.quantity : quantity // ignore: cast_nullable_to_non_nullable
 as int,photoPaths: null == photoPaths ? _self._photoPaths : photoPaths // ignore: cast_nullable_to_non_nullable
 as List<String>,productBrand: null == productBrand ? _self.productBrand : productBrand // ignore: cast_nullable_to_non_nullable
 as String,productName: null == productName ? _self.productName : productName // ignore: cast_nullable_to_non_nullable
-as String,productModel: null == productModel ? _self.productModel : productModel // ignore: cast_nullable_to_non_nullable
-as String,productPrice: null == productPrice ? _self.productPrice : productPrice // ignore: cast_nullable_to_non_nullable
+as String,productModel: freezed == productModel ? _self.productModel : productModel // ignore: cast_nullable_to_non_nullable
+as String?,productColour: freezed == productColour ? _self.productColour : productColour // ignore: cast_nullable_to_non_nullable
+as String?,productPrice: null == productPrice ? _self.productPrice : productPrice // ignore: cast_nullable_to_non_nullable
 as double,productInstallationFee: freezed == productInstallationFee ? _self.productInstallationFee : productInstallationFee // ignore: cast_nullable_to_non_nullable
-as double?,price: null == price ? _self.price : price // ignore: cast_nullable_to_non_nullable
-as double,installationFee: freezed == installationFee ? _self.installationFee : installationFee // ignore: cast_nullable_to_non_nullable
+as double?,totalPrice: null == totalPrice ? _self.totalPrice : totalPrice // ignore: cast_nullable_to_non_nullable
+as double,totalInstallationFee: freezed == totalInstallationFee ? _self.totalInstallationFee : totalInstallationFee // ignore: cast_nullable_to_non_nullable
 as double?,isReady: null == isReady ? _self.isReady : isReady // ignore: cast_nullable_to_non_nullable
 as bool,productId: null == productId ? _self.productId : productId // ignore: cast_nullable_to_non_nullable
 as String,orderId: null == orderId ? _self.orderId : orderId // ignore: cast_nullable_to_non_nullable
-as String,
+as String,updatedAt: freezed == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
+as DateTime?,
   ));
 }
 

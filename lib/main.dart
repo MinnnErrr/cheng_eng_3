@@ -7,9 +7,16 @@ import 'package:cheng_eng_3/ui/screens/login_screen.dart';
 import 'package:cheng_eng_3/ui/screens/staff/staff_home.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_stripe/flutter_stripe.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+String stripe_publishable =
+    "pk_test_51ShA7kLXdt9JqGlW7kQoPSUoejcUht31ulHygbPOuJpFjBVBnsXQ1hfkzCaoPtGOsaA5sBIlfjGTHjMbfQa6IaH100WCSfc1tH";
+
 Future<void> main() async {
+  Stripe.publishableKey = stripe_publishable;
+  Stripe.instance.applySettings();
+
   await Supabase.initialize(
     url: 'https://iquemainudabsfrfzypl.supabase.co',
     anonKey:
@@ -31,6 +38,7 @@ class MyApp extends ConsumerWidget {
     ref.watch(pointHistoryRealTimeProvider);
     ref.watch(redeemedRewardRealTimeProvider);
     ref.watch(bookingRealTimeProvider);
+    ref.watch(orderRealTimeProvider);
 
     return MaterialApp(
       title: 'Flutter Demo',

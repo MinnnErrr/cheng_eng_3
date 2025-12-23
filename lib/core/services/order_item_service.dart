@@ -13,14 +13,14 @@ OrderItemService orderItemService(Ref ref) {
 class OrderItemService {
   final supabase = Supabase.instance.client;
 
-  Future<List<OrderItem>> getOrderItems(String orderId) async {
-    final data = await supabase
-        .from('order_items')
-        .select()
-        .eq('orderId', orderId)
-        .order('createdAt', ascending: true);
-    return data.map<OrderItem>((o) => OrderItem.fromJson(o)).toList();
-  }
+  // Future<List<OrderItem>> getOrderItems(String orderId) async {
+  //   final data = await supabase
+  //       .from('order_items')
+  //       .select()
+  //       .eq('orderId', orderId)
+  //       .order('createdAt', ascending: true);
+  //   return data.map<OrderItem>((o) => OrderItem.fromJson(o)).toList();
+  // }
 
   // Future<CartItem> getByItemId(String id) async {
   //   final data = await supabase.from('cart_items').select().eq('id', id).single();
@@ -34,7 +34,7 @@ class OrderItemService {
   Future<void> updateIsReady(bool isReady, String orderItemId) async {
     await supabase
         .from('order_items')
-        .update({'isReady': isReady})
+        .update({'isReady': isReady, 'updatedAt': DateTime.now().toIso8601String(),})
         .eq('id', orderItemId);
   }
 }

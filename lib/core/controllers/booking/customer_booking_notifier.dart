@@ -76,7 +76,6 @@ class CustomerBookingNotifier extends _$CustomerBookingNotifier {
 
       return Message(isSuccess: true, message: 'Booking cancelled');
     } catch (e) {
-      print(e);
       return Message(isSuccess: false, message: 'Failed to cancel booking');
     }
   }

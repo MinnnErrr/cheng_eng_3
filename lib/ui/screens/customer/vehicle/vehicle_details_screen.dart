@@ -3,11 +3,9 @@ import 'package:cheng_eng_3/core/controllers/maintenance/maintenance_notifier.da
 import 'package:cheng_eng_3/core/controllers/vehicle/customer_vehicle_by_id_provider.dart';
 import 'package:cheng_eng_3/core/models/vehicle_model.dart';
 import 'package:cheng_eng_3/core/services/image_service.dart';
-import 'package:cheng_eng_3/ui/screens/customer/cart/cart_screen.dart';
 import 'package:cheng_eng_3/ui/screens/customer/maintenance/maintenance_create_screen.dart';
 import 'package:cheng_eng_3/ui/screens/customer/maintenance/maintenance_details_screen.dart';
 import 'package:cheng_eng_3/ui/screens/customer/vehicle/vehicle_update_screen.dart';
-import 'package:cheng_eng_3/ui/widgets/cart_icon.dart';
 import 'package:cheng_eng_3/ui/widgets/imagebuilder.dart';
 import 'package:cheng_eng_3/ui/widgets/maintenance_listitem.dart';
 import 'package:cheng_eng_3/ui/widgets/snackbar.dart';
@@ -34,14 +32,6 @@ class VehicleDetailsScreen extends ConsumerWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Vehicle Details'),
-        actions: [
-          GestureDetector(
-            onTap: () => Navigator.of(context).push(
-              MaterialPageRoute(builder: (context) => const CartScreen()),
-            ),
-            child: cartIcon(ref, context),
-          ),
-        ],
       ),
       // 1. CHANGE: Use SingleChildScrollView to make the whole page scroll
       body: SingleChildScrollView(

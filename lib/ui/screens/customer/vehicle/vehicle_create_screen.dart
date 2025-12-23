@@ -189,7 +189,7 @@ class _VehicleCreateScreenState extends ConsumerState<VehicleCreateScreen> {
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surfaceContainerHighest, // Better contrast
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey.withOpacity(0.3)),
+        border: Border.all(color: Colors.grey.withValues(alpha: 0.3)),
       ),
       clipBehavior: Clip.hardEdge, // Essential for clipping the image
       child: Stack(

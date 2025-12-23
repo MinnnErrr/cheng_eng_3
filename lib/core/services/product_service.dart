@@ -31,9 +31,9 @@ class ProductService {
     return data.map<Product>((p) => Product.fromJson(p)).toList();
   }
 
-  Future<Product> getByProductId(String id) async {
-    final data = await supabase.from('products').select().eq('id', id).single();
-    return Product.fromJson(data);
+  Future<Product?> getByProductId(String id) async {
+    final data = await supabase.from('products').select().eq('id', id).maybeSingle();
+    return data == null ? null : Product.fromJson(data);
   }
 
   Future<void> create(Product product) async {
@@ -49,6 +49,16 @@ class ProductService {
         .from('products')
         .update({'quantity': quantity, 'updatedAt': DateTime.now()})
         .eq('id', productId);
+  }
+
+  Future<void> decreaseQuantity(String productId, int amount) async {
+    await supabase.rpc(
+      'decrease_product_quantity',
+      params: {
+        'p_id': productId,
+        'amount': amount,
+      },
+    );
   }
 
   Future<void> updateStatus(bool isActive, String productId) async {

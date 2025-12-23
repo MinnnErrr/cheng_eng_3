@@ -1,9 +1,7 @@
-
 import 'package:cheng_eng_3/core/controllers/point/total_points_provider.dart';
 import 'package:cheng_eng_3/core/controllers/redeem_reward/redeemed_reward_by_id_provider.dart';
 import 'package:cheng_eng_3/core/controllers/reward/reward_by_id_provider.dart';
 import 'package:cheng_eng_3/core/models/message_model.dart';
-import 'package:cheng_eng_3/core/models/point_history_model.dart';
 import 'package:cheng_eng_3/core/models/redeemed_reward_model.dart';
 import 'package:cheng_eng_3/core/services/point_history_service.dart';
 import 'package:cheng_eng_3/core/services/redeemed_reward_service.dart';
@@ -82,18 +80,6 @@ class RedeemedRewardNotifier extends _$RedeemedRewardNotifier {
       updatedAt: null,
     );
 
-    // Points Deduction Record
-    final pointDeduction = PointHistory(
-      id: const Uuid().v4(),
-      userId: userId,
-      points: -reward.points, // Negative Value
-      type: PointType.use,
-      reason: 'Redeemed: ${reward.name}',
-      isIssuedByStaff: false,
-      createdAt: now,
-      expiredAt: null,
-    );
-
     // --- Execute Transaction ---
     try {
       // A. Create the "Voucher"
@@ -103,7 +89,12 @@ class RedeemedRewardNotifier extends _$RedeemedRewardNotifier {
       await _rewardService.decreaseQuantity(rewardId);
 
       // C. Deduct the Points (Wallet Update)
-      await _pointHistoryService.create(pointDeduction);
+      await _pointHistoryService.deductPoints(
+        userId,
+        reward.points,
+        'Redeemed: ${reward.name}',
+        false,
+      );
 
       return Message(isSuccess: true, message: 'Reward redeemed successfully');
     } catch (e) {

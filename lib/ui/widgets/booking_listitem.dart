@@ -1,6 +1,5 @@
 import 'package:cheng_eng_3/core/models/booking_model.dart';
 import 'package:cheng_eng_3/ui/extensions/booking_extension.dart';
-import 'package:cheng_eng_3/ui/extensions/product_extension.dart'; // Ensure serviceName extension is here
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
@@ -113,10 +112,10 @@ class BookingListitem extends ConsumerWidget {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
-                  color: booking.status.color.withOpacity(0.15),
+                  color: booking.status.color.withValues(alpha: 0.15),
                   borderRadius: BorderRadius.circular(8),
                   border: Border.all(
-                    color: booking.status.color.withOpacity(0.5),
+                    color: booking.status.color.withValues(alpha: 0.5),
                     width: 1,
                   ),
                 ),

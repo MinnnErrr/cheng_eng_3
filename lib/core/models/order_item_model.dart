@@ -11,14 +11,16 @@ sealed class OrderItem with _$OrderItem {
     required List<String> photoPaths,
     required String productBrand,
     required String productName,
-    required String productModel,
+    required String? productModel,
+    required String? productColour,
     required double productPrice,
     required double? productInstallationFee,
-    required double price,
-    required double? installationFee,
+    required double totalPrice,
+    required double? totalInstallationFee,
     required bool isReady,
     required String productId,
     required String orderId,
+    required DateTime? updatedAt
   }) = _OrderItem;
 
   factory OrderItem.fromJson(Map<String, dynamic> json) =>

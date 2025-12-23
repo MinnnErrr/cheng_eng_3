@@ -1,11 +1,21 @@
-import 'package:cheng_eng_3/core/models/profile_model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class ProfileListitem extends ConsumerWidget {
-  const ProfileListitem({super.key, required this.profile});
+  const ProfileListitem({
+    super.key,
+    required this.email,
+    required this.name,
+    required this.dialCode,
+    required this.phoneNum,
+    required this.gender,
+  });
 
-  final Profile? profile;
+  final String? email;
+  final String? name;
+  final String? dialCode;
+  final String? phoneNum;
+  final String? gender;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -16,7 +26,7 @@ class ProfileListitem extends ConsumerWidget {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
         child: Padding(
           padding: EdgeInsets.all(10),
-          child: profile == null
+          child: email == null || name == null || phoneNum == null
               ? Center(
                   child: Text('No profile found'),
                 )
@@ -24,20 +34,21 @@ class ProfileListitem extends ConsumerWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      profile!.email,
+                      email!,
                       softWrap: true,
                       style: TextStyle(fontWeight: FontWeight.bold),
                     ),
                     Text(
-                      profile!.name,
+                      name!,
                       softWrap: true,
                     ),
                     Text(
-                      '${profile!.dialCode} ${profile!.phoneNum}',
+                      '$dialCode$phoneNum',
                     ),
-                    Text(
-                      profile!.gender,
-                    ),
+                    if (gender != null)
+                      Text(
+                        gender!,
+                      ),
                   ],
                 ),
         ),

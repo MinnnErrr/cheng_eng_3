@@ -1,8 +1,4 @@
 import 'package:cheng_eng_3/core/controllers/cart/cart_notifier.dart';
-import 'package:cheng_eng_3/core/controllers/cart/cart_prices_provider.dart';
-import 'package:cheng_eng_3/core/controllers/cart/cart_valid_provider.dart';
-import 'package:cheng_eng_3/core/controllers/product/product_by_id_provider.dart';
-import 'package:cheng_eng_3/core/models/cart_item_model.dart';
 import 'package:cheng_eng_3/ui/screens/customer/cart/checkout_screen.dart';
 import 'package:cheng_eng_3/ui/screens/customer/product/customer_product_screen.dart';
 import 'package:cheng_eng_3/ui/widgets/cart_listitem.dart';
@@ -15,15 +11,36 @@ class CartScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final cartState = ref.watch(cartProvider);
+    // 1. WATCH THE UNIFIED STATE
+    final cartAsync = ref.watch(cartProvider);
+    final cartNotifier = ref.read(cartProvider.notifier);
+
+    // 2. HELPER: Check strictly for "Initial Loading" (No data yet)
+    final isInitialLoading = cartAsync.isLoading && !cartAsync.hasValue;
+    final isInitialError = cartAsync.hasError && !cartAsync.hasValue;
 
     return Scaffold(
       appBar: AppBar(
         title: const Text('My Cart'),
       ),
-      body: cartState.when(
-        data: (items) {
-          if (items.isEmpty) {
+      body: Builder(
+        builder: (context) {
+          // A. Handle First Load Spinner
+          if (isInitialLoading) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
+          // B. Handle Fatal Error
+          if (isInitialError) {
+            return Center(child: Text('Error: ${cartAsync.error}'));
+          }
+
+          // C. Handle Data (Use valueOrNull to persist data during background refreshes)
+          final cartState = cartAsync.value;
+          final entries = cartState?.entries ?? [];
+
+          // Empty State
+          if (entries.isEmpty) {
             return Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -42,176 +59,120 @@ class CartScreen extends ConsumerWidget {
             );
           }
 
-          // Use Safe Area + ListView
+          // List State
           return SafeArea(
             child: ListView.separated(
               padding: const EdgeInsets.all(20),
-              itemCount: items.length,
+              itemCount: entries.length,
               separatorBuilder: (_, __) => const Divider(height: 40),
               itemBuilder: (context, index) {
-                final item = items[index];
+                final entry = entries[index];
 
-                // This is a Widget, so it's safe to use a separate consumer
-                // or just wrap the item in a dedicated widget that watches the product
-                return _CartItemRow(item: item);
+                return CartListitem(
+                  entry: entry,
+                  incrementAction: () => cartNotifier.increaseQty(
+                    itemId: entry.item.id,
+                  ),
+                  decrementAction: () => cartNotifier.decreaseQty(
+                    itemId: entry.item.id,
+                  ),
+                  deleteAction: () async {
+                    final message = await cartNotifier.deleteItem(
+                      entry.item.id,
+                    );
+                    if (context.mounted) {
+                      showAppSnackBar(
+                        context: context,
+                        content: message.message,
+                        isError: !message.isSuccess,
+                      );
+                    }
+                  },
+                );
               },
             ),
           );
         },
-        error: (e, s) => Center(child: Text('Error: $e')),
-        loading: () => const Center(child: CircularProgressIndicator()),
       ),
 
-      // Bottom Bar needs to know if ANY product is sold out
-      // We need a smart way to calculate this without ref.watch in a loop.
-      bottomNavigationBar: cartState.hasValue && cartState.value!.isNotEmpty
-          ? _CartBottomBar(items: cartState.value!)
-          : null,
-    );
-  }
-}
+      // 3. BOTTOM BAR
+      // We pass the calculated values directly from the state.
+      // No more watching providers inside the bottom bar.
+      bottomNavigationBar: Builder(
+        builder: (context) {
+          final cartState = cartAsync.value;
 
-// Extract Row to handle individual product fetching cleanly
-class _CartItemRow extends ConsumerWidget {
-  final CartItem item;
-  const _CartItemRow({required this.item});
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final productAsync = ref.watch(productByIdProvider(item.productId));
-    final cartNotifier = ref.read(cartProvider.notifier);
-
-    return productAsync.when(
-      data: (product) {
-        return CartListitem(
-          item: item,
-          product: product,
-          incrementAction: () => cartNotifier.updateQuantity(
-            quantity: item.quantity + 1,
-            itemId: item.id,
-          ),
-          decrementAction: () => cartNotifier.updateQuantity(
-            quantity: item.quantity - 1,
-            itemId: item.id,
-          ),
-          deleteAction: () async {
-            final message = await cartNotifier.deleteItem(item.id);
-            if (context.mounted) {
-              showAppSnackBar(
-                context: context,
-                content: message.message,
-                isError: !message.isSuccess,
-              );
-            }
-          },
-        );
-      },
-      loading: () => const SizedBox(
-        height: 80,
-        child: Center(child: CircularProgressIndicator()),
-      ),
-      error: (_, __) => ListTile(
-        title: const Text("Product Unavailable"),
-        trailing: IconButton(
-          icon: const Icon(Icons.delete),
-          onPressed: () => cartNotifier.deleteItem(item.id),
-        ),
+          // Only show if we have entries
+          if (cartState != null && cartState.entries.isNotEmpty) {
+            return _CartBottomBar(
+              subtotal: cartState.subtotal, // Calculated in Model
+              isValid: cartState.isValid, // Calculated in Model
+              isLoading: cartAsync.isLoading, // Spinner logic
+            );
+          }
+          return const SizedBox.shrink();
+        },
       ),
     );
   }
 }
 
-// Extract Bottom Bar to calculate "Sold Out" state efficiently
-class _CartBottomBar extends ConsumerWidget {
-  final List<CartItem> items;
-  const _CartBottomBar({required this.items});
+// ------------------------------------------------------
+// Refactored to be a Pure UI Widget (Stateless)
+// It doesn't need to know about Providers anymore.
+// ------------------------------------------------------
+class _CartBottomBar extends StatelessWidget {
+  const _CartBottomBar({
+    required this.subtotal,
+    required this.isValid,
+    required this.isLoading,
+  });
+
+  final double subtotal;
+  final bool isValid;
+  final bool isLoading;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final subtotalAsync = ref.watch(cartTotalProvider);
-    final pointsAsync = ref.watch(cartPointProvider);
-    final isValidAsync = ref.watch(isCartValidProvider);
-
+  Widget build(BuildContext context) {
     return BottomAppBar(
-      height: 160,
+      height: 140,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // --- POINTS ROW ---
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              const Text("Points earned"),
-              pointsAsync.when(
-                data: (points) => Text(
-                  points.toString(),
-                  style: const TextStyle(fontWeight: FontWeight.bold),
-                ),
-                // Show small spinner or placeholder while calculating
-                loading: () => const SizedBox(
-                  width: 16,
-                  height: 16,
-                  child: CircularProgressIndicator(strokeWidth: 2),
-                ),
-                // Default to 0 on error
-                error: (e, s) => const Text(
-                  '0',
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    color: Colors.grey,
-                  ),
-                ),
-              ),
-            ],
-          ),
-
-          const SizedBox(height: 10),
-
           // --- SUBTOTAL ROW ---
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text("Subtotal (RM)"),
-              subtotalAsync.when(
-                data: (total) => Text(
-                  total.toStringAsFixed(2),
-                  style: const TextStyle(fontWeight: FontWeight.bold),
-                ),
-                loading: () => const SizedBox(
-                  width: 16,
-                  height: 16,
-                  child: CircularProgressIndicator(strokeWidth: 2),
-                ),
-                error: (e, s) => const Text(
-                  '0.00',
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    color: Colors.grey,
-                  ),
-                ),
+              const Text("Subtotal"),
+              Text(
+                "RM ${subtotal.toStringAsFixed(2)}",
+                style: const TextStyle(fontWeight: FontWeight.bold),
               ),
             ],
           ),
 
-          const SizedBox(height: 20),
+          const Spacer(),
 
           // --- CHECKOUT BUTTON ---
-          Expanded(
-            child: ElevatedButton(
-              onPressed: (!isValidAsync.isLoading && isValidAsync.value == true)
+          SizedBox(
+            width: double.infinity,
+            height: 50,
+            child: FilledButton(
+              onPressed: (isValid && !isLoading)
                   ? () => Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (context) => const CheckoutScreen(),
-                      ),
+                      MaterialPageRoute(builder: (_) => const CheckoutScreen()),
                     )
-                  : null,
-              child: isValidAsync.isLoading
+                  : null, // Disabled if invalid or currently loading
+              child: isLoading
                   ? const SizedBox(
                       height: 20,
                       width: 20,
-                      child: CircularProgressIndicator(),
+                      child: CircularProgressIndicator(
+                        color: Colors.white,
+                        strokeWidth: 2,
+                      ),
                     )
-                  : const Text('Checkout'),
+                  : const Text("Checkout"),
             ),
           ),
         ],

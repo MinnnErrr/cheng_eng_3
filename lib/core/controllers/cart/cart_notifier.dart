@@ -1,149 +1,186 @@
-import 'package:cheng_eng_3/core/controllers/auth/auth_notifier.dart';
 import 'package:cheng_eng_3/core/controllers/product/product_by_id_provider.dart';
 import 'package:cheng_eng_3/core/models/cart_item_model.dart';
+import 'package:cheng_eng_3/core/models/cart_state_model.dart'; // Ensure this matches your file
+import 'package:cheng_eng_3/core/models/cart_entry_model.dart'; // Ensure this matches your file
 import 'package:cheng_eng_3/core/models/message_model.dart';
 import 'package:cheng_eng_3/core/models/product_model.dart';
-import 'package:cheng_eng_3/core/services/cart_item_service.dart';
+import 'package:cheng_eng_3/core/services/cart_service.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:uuid/uuid.dart';
 
 part 'cart_notifier.g.dart';
 
 @riverpod
 class CartNotifier extends _$CartNotifier {
-  CartItemService get _cartItemService => ref.read(cartItemServiceProvider);
+  CartService get _cartItemService => ref.read(cartServiceProvider);
 
   @override
-  FutureOr<List<CartItem>> build() async {
-    final userState = ref.watch(authProvider);
-    final user = userState.value;
-    if (user == null) return [];
-    
-    // Note: If you want the cart to update securely, consider passing the userId 
-    // to the provider family instead of reading it inside, but this works for now.
+  FutureOr<CartState> build() async {
+    final user = Supabase.instance.client.auth.currentUser;
+    if (user == null) return const CartState(entries: []);
+
     final data = await _cartItemService.getCartItems(user.id);
-    return data;
+    
+    final entries = await Future.wait(
+      data.map((item) async {
+         final product = await ref.watch(productByIdProvider(item.productId).future);
+         return CartEntry(item: item, product: product);
+      })
+    );
+
+    return CartState(entries: entries);
   }
+
+  // --- ACTIONS ---
 
   Future<Message> addItem({
     required String productId,
     required int quantity,
     bool? requiredInstallation,
   }) async {
-    final user = ref.read(authProvider).value;
-    if (user == null) {
-      return Message(isSuccess: false, message: 'User not authenticated');
-    }
+    final user = Supabase.instance.client.auth.currentUser;
+    if (user == null) return const Message(isSuccess: false, message: 'User not authenticated');
+
+    // 1. Get Current State Safely
+    final currentState = state.value;
+    if (currentState == null) return const Message(isSuccess: false, message: 'Cart loading...');
 
     try {
-      // FIX: Use .future to ensure we wait for the product to load if it's not cached
       final product = await ref.read(productByIdProvider(productId).future);
 
-      // Verify product is not out of stock
-      if (product.availability == ProductAvailability.ready &&
-          product.quantity != null) {
-        if (product.quantity! <= 0) {
-          return Message(isSuccess: false, message: 'Product is sold out');
-        }
+      // --- Validation ---
+      if (product == null) return const Message(isSuccess: false, message: 'Product not found');
+      
+      if (product.availability == ProductAvailability.ready && (product.quantity ?? 0) < quantity) {
+        return const Message(isSuccess: false, message: 'Sold Out');
       }
 
-      // Verify installation selection
       if (product.installation == true && requiredInstallation == null) {
-        return Message(
-          isSuccess: false,
-          message: 'Please choose if you want installation service',
-        );
+        return const Message(isSuccess: false, message: 'Please select installation preference');
       }
 
-      final cartItemId = const Uuid().v4();
-
-      final item = CartItem(
-        id: cartItemId,
+      // --- Create Objects ---
+      final newItem = CartItem(
+        id: const Uuid().v4(),
         quantity: quantity,
         installation: requiredInstallation,
         productId: productId,
         userId: user.id,
       );
 
-      // Optimistic Update Preparation
-      final previous = state.value ?? [];
-      state = const AsyncLoading();
+      // Create the Entry (Wrapper) for UI
+      final newEntry = CartEntry(item: newItem, product: product);
 
-      final newItem = await _cartItemService.create(item);
+      // --- Optimistic Update ---
+      // We append the new ENTRY to the list inside CartState
+      final updatedEntries = [...currentState.entries, newEntry];
+      state = AsyncData(currentState.copyWith(entries: updatedEntries));
 
-      state = AsyncData([...previous, newItem]);
+      // --- API Call ---
+      await _cartItemService.create(newItem);
+      
+      return const Message(isSuccess: true, message: 'Product added to cart');
 
-      return Message(isSuccess: true, message: 'Product added to cart');
     } catch (e) {
-      // Handle product fetch errors or service errors
-      return Message(
-        isSuccess: false,
-        message: 'Failed to add product: ${e.toString()}',
-      );
+      // Revert on failure
+      state = AsyncData(currentState); 
+      return const Message(isSuccess: false, message: 'Failed to add to cart');
     }
   }
 
-  Future<Message> updateQuantity({
-    required int quantity,
-    required String itemId,
-  }) async {
-    final previous = state.value ?? [];
-    
-    try {
-      final cartItem = previous.firstWhere((item) => item.id == itemId);
-      
-      // FIX: Await the future. If user went straight to cart, product might not be loaded.
-      final product = await ref.read(productByIdProvider(cartItem.productId).future);
+  Future<Message> increaseQty({required String itemId}) async {
+    final currentState = state.value;
+    if (currentState == null) return const Message(isSuccess: false, message: 'Error');
 
-      // Check stock limit
-      if (product.quantity != null && quantity > product.quantity!) {
-        return Message(
-          isSuccess: false,
-          message: 'Quantity exceeded product stock',
-        );
+    try {
+      // Find the ENTRY (not just the item)
+      final entryIndex = currentState.entries.indexWhere((e) => e.item.id == itemId);
+      if (entryIndex == -1) return const Message(isSuccess: false, message: 'Item not found');
+
+      final entry = currentState.entries[entryIndex];
+      final newQty = entry.item.quantity + 1;
+      
+      // Check Stock
+      if (entry.product?.quantity != null && newQty > entry.product!.quantity!) {
+        return const Message(isSuccess: false, message: 'Max stock reached');
       }
 
-      if (quantity <= 0) {
+      // --- Optimistic Update ---
+      // 1. Create new Item with updated quantity
+      final updatedItem = entry.item.copyWith(quantity: newQty);
+      // 2. Create new Entry with updated item
+      final updatedEntry = CartEntry(item: updatedItem, product: entry.product);
+      
+      // 3. Replace in List
+      final newEntries = [...currentState.entries];
+      newEntries[entryIndex] = updatedEntry;
+
+      state = AsyncData(currentState.copyWith(entries: newEntries));
+
+      // --- API Call ---
+      await _cartItemService.updateQuantity(newQty, itemId);
+
+      return const Message(isSuccess: true, message: 'Quantity updated');
+
+    } catch (e) {
+      state = AsyncData(currentState);
+      return const Message(isSuccess: false, message: 'Failed to update');
+    }
+  }
+
+  Future<Message> decreaseQty({required String itemId}) async {
+    final currentState = state.value;
+    if (currentState == null) return const Message(isSuccess: false, message: 'Error');
+
+    try {
+      final entryIndex = currentState.entries.indexWhere((e) => e.item.id == itemId);
+      if (entryIndex == -1) return const Message(isSuccess: false, message: 'Item not found');
+
+      final entry = currentState.entries[entryIndex];
+      final newQty = entry.item.quantity - 1;
+
+      // Logic: If 0, Delete
+      if (newQty <= 0) {
         return deleteItem(itemId);
       }
 
-      state = const AsyncLoading();
+      // --- Optimistic Update ---
+      final updatedItem = entry.item.copyWith(quantity: newQty);
+      final updatedEntry = CartEntry(item: updatedItem, product: entry.product);
+      
+      final newEntries = [...currentState.entries];
+      newEntries[entryIndex] = updatedEntry;
 
-      final updated = await _cartItemService.updateQuantity(quantity, itemId);
+      state = AsyncData(currentState.copyWith(entries: newEntries));
 
-      final updatedList = previous.map((item) {
-        return item.id == itemId ? updated : item;
-      }).toList();
+      await _cartItemService.updateQuantity(newQty, itemId);
 
-      state = AsyncData(updatedList);
+      return const Message(isSuccess: true, message: 'Quantity updated');
 
-      return Message(isSuccess: true, message: 'Item quantity updated');
     } catch (e) {
-      // Restore state on error if needed, or just return error message
-      state = AsyncData(previous); 
-      return Message(
-        isSuccess: false,
-        message: 'Failed to update: ${e.toString()}',
-      );
+      state = AsyncData(currentState);
+      return const Message(isSuccess: false, message: 'Failed to update');
     }
   }
 
   Future<Message> deleteItem(String id) async {
-    final previous = state.value ?? [];
+    final currentState = state.value;
+    if (currentState == null) return const Message(isSuccess: false, message: 'Error');
 
     try {
-      state = const AsyncLoading();
+      // --- Optimistic Update ---
+      // Filter out the entry with the matching Item ID
+      final updatedEntries = currentState.entries.where((e) => e.item.id != id).toList();
+
+      state = AsyncData(currentState.copyWith(entries: updatedEntries));
 
       await _cartItemService.delete(id);
 
-      final updatedList = previous.where((item) => item.id != id).toList();
-
-      state = AsyncData(updatedList);
-
-      return Message(isSuccess: true, message: 'Item deleted');
+      return const Message(isSuccess: true, message: 'Item deleted');
     } catch (e) {
-      state = AsyncData(previous);
-      return Message(isSuccess: false, message: 'Failed to delete item');
+      state = AsyncData(currentState);
+      return const Message(isSuccess: false, message: 'Failed to delete item');
     }
   }
 }

@@ -1,6 +1,7 @@
 import 'package:cheng_eng_3/ui/screens/profile_screen.dart';
 import 'package:cheng_eng_3/ui/screens/staff/booking/staff_booking_screen.dart';
 import 'package:cheng_eng_3/ui/screens/staff/claim_reward/staff_claim_reward_screen.dart';
+import 'package:cheng_eng_3/ui/screens/staff/order/staff_order_screen.dart';
 import 'package:cheng_eng_3/ui/screens/staff/point/staff_point_history_screen.dart';
 import 'package:cheng_eng_3/ui/screens/staff/product/staff_product_screen.dart';
 import 'package:cheng_eng_3/ui/screens/staff/reward/staff_reward_screen.dart';
@@ -85,6 +86,16 @@ class StaffHome extends ConsumerWidget {
                 );
               },
               child: Text('Booking Management'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (context) => StaffOrderScreen(),
+                  ),
+                );
+              },
+              child: Text('Order Management'),
             ),
           ],
         ),

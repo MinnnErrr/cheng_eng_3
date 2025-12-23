@@ -49,6 +49,9 @@ class _StaffProductDetailsScreenState
       ),
       body: productState.when(
         data: (product) {
+          if(product == null){
+            return Center(child: Text('No product found'));
+          }
           return SafeArea(
             child: SingleChildScrollView(
               padding: const EdgeInsets.all(20),

@@ -2,6 +2,7 @@ import 'package:cheng_eng_3/core/controllers/booking/booking_by_date_provider.da
 import 'package:cheng_eng_3/core/controllers/booking/booking_by_id_provider.dart';
 import 'package:cheng_eng_3/core/controllers/booking/customer_booking_notifier.dart';
 import 'package:cheng_eng_3/core/controllers/booking/staff_booking_notifier.dart';
+import 'package:cheng_eng_3/core/controllers/order/order_providers.dart';
 import 'package:cheng_eng_3/core/controllers/point/point_history_notifier.dart';
 import 'package:cheng_eng_3/core/controllers/point/staff_point_history_provider.dart';
 import 'package:cheng_eng_3/core/controllers/product/customer_product_notifier.dart';
@@ -181,6 +182,51 @@ final bookingRealTimeProvider = Provider<void>((ref) {
         },
       )
       .subscribe();
+  ref.onDispose(() {
+    supabase.removeChannel(channel);
+  });
+});
+
+final orderRealTimeProvider = Provider<void>((ref) {
+  final supabase = Supabase.instance.client;
+
+  final channel = supabase.channel('order-realtime');
+
+  channel.onPostgresChanges(
+    event: PostgresChangeEvent.all,
+    schema: 'public',
+    table: 'orders',
+    callback: (payload) {
+      final orderId = payload.newRecord['id'];
+      final userId = payload.newRecord['userId'];
+
+      // staff refresh
+      ref.invalidate(staffOrdersProvider);
+
+      //customer refresh
+      ref.invalidate(customerOrdersProvider(userId));
+
+      //single refresh
+      ref.invalidate(orderByIdProvider(orderId));
+    },
+  );
+
+  channel.onPostgresChanges(
+    event: PostgresChangeEvent.all,
+    schema: 'public',
+    table: 'order_items',
+    callback: (payload) async {
+      final orderId = payload.newRecord['orderId'];
+
+      ref.invalidate(orderByIdProvider(orderId));
+
+      // Invalidate Staff List
+      ref.invalidate(staffOrdersProvider);
+    },
+  );
+
+  channel.subscribe();
+
   ref.onDispose(() {
     supabase.removeChannel(channel);
   });

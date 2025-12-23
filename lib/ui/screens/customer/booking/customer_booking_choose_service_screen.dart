@@ -1,7 +1,6 @@
 import 'package:cheng_eng_3/core/controllers/booking/booking_state_notifier.dart';
 import 'package:cheng_eng_3/core/models/booking_model.dart';
 import 'package:cheng_eng_3/ui/extensions/booking_extension.dart';
-import 'package:cheng_eng_3/ui/extensions/product_extension.dart';
 import 'package:cheng_eng_3/ui/screens/customer/booking/customer_booking_choose_datetime_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';

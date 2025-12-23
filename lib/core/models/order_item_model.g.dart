@@ -14,14 +14,18 @@ _OrderItem _$OrderItemFromJson(Map<String, dynamic> json) => _OrderItem(
       .toList(),
   productBrand: json['productBrand'] as String,
   productName: json['productName'] as String,
-  productModel: json['productModel'] as String,
+  productModel: json['productModel'] as String?,
+  productColour: json['productColour'] as String?,
   productPrice: (json['productPrice'] as num).toDouble(),
   productInstallationFee: (json['productInstallationFee'] as num?)?.toDouble(),
-  price: (json['price'] as num).toDouble(),
-  installationFee: (json['installationFee'] as num?)?.toDouble(),
+  totalPrice: (json['totalPrice'] as num).toDouble(),
+  totalInstallationFee: (json['totalInstallationFee'] as num?)?.toDouble(),
   isReady: json['isReady'] as bool,
   productId: json['productId'] as String,
   orderId: json['orderId'] as String,
+  updatedAt: json['updatedAt'] == null
+      ? null
+      : DateTime.parse(json['updatedAt'] as String),
 );
 
 Map<String, dynamic> _$OrderItemToJson(_OrderItem instance) =>
@@ -32,11 +36,13 @@ Map<String, dynamic> _$OrderItemToJson(_OrderItem instance) =>
       'productBrand': instance.productBrand,
       'productName': instance.productName,
       'productModel': instance.productModel,
+      'productColour': instance.productColour,
       'productPrice': instance.productPrice,
       'productInstallationFee': instance.productInstallationFee,
-      'price': instance.price,
-      'installationFee': instance.installationFee,
+      'totalPrice': instance.totalPrice,
+      'totalInstallationFee': instance.totalInstallationFee,
       'isReady': instance.isReady,
       'productId': instance.productId,
       'orderId': instance.orderId,
+      'updatedAt': instance.updatedAt?.toIso8601String(),
     };

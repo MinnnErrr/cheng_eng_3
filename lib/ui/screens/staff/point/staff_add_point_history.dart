@@ -177,14 +177,14 @@ class _StaffAddPointHistoryScreenState
 
     // 2. We trust these methods to return a Message, not throw
     if (_action == PointHistoryAction.deduction) {
-      message = await notifier.usePoints(
+      message = await notifier.deductPoints(
         userId: userId,
-        pointsToUse: points,
+        pointsToDeduct: points,
         reason: _reasonCtrl.text.trim(),
         isIssuedByStaff: true,
       );
     } else {
-      message = await notifier.earnPoints(
+      message = await notifier.addPoints(
         userId: userId,
         points: points,
         reason: _reasonCtrl.text.trim(),
@@ -240,7 +240,7 @@ class _StaffAddPointHistoryScreenState
 
           // Assuming ProfileListitem handles its own styling,
           // ensure it looks good on primaryContainer background
-          ProfileListitem(profile: profile),
+          ProfileListitem(email: profile.email, name: profile.name, dialCode: profile.dialCode, phoneNum: profile.phoneNum, gender: profile.gender),
 
           const SizedBox(height: 10),
           Divider(
