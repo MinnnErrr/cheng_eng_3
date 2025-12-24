@@ -1,3 +1,6 @@
+import java.util.Properties
+import java.io.FileInputStream
+
 plugins {
     id("com.android.application")
     id("kotlin-android")
@@ -33,10 +36,18 @@ android {
 
     signingConfigs {
         create("release") {
-            storeFile = file("cheng_eng_key.jks")
-            storePassword = "123456"
-            keyAlias = "cheng_eng_alias"
-            keyPassword = "123456"
+            val keystoreProperties = Properties()
+            val keystorePropertiesFile = rootProject.file("key.properties")
+            
+            if (keystorePropertiesFile.exists()) {
+                keystoreProperties.load(FileInputStream(keystorePropertiesFile))
+            }
+
+            // 2. Read values from the file
+            storeFile = keystoreProperties["storeFile"].let { file(it) }
+            storePassword = keystoreProperties["storePassword"] as String
+            keyAlias = keystoreProperties["keyAlias"] as String
+            keyPassword = keystoreProperties["keyPassword"] as String
         }
     }
 
