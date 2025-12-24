@@ -17,20 +17,23 @@ class PaymentService {
 
   Future<PaymentResult> makePayment({
     required double amount, 
-    required String currency,
     required String orderId,
+    required String userId,     
+    required int pointsToEarn,  
+    required String email,
   }) async {
     try {
-      // 1. Call Edge Function to get client_secret
-      // Stripe expects integer amounts (e.g. 10.50 -> 1050)
-      final intAmount = (amount * 100).toInt(); 
-      
+      // 1. Call Edge Function
+      // FIX 1: Send the original double amount. Let the server handle the *100 logic.
       final response = await _supabase.functions.invoke(
         'payment-sheet',
         body: {
-          'amount': intAmount,
-          'currency': currency,
+          'amount': amount, // Send 10.50, not 1050
+          'email': email,
+          'description': 'Order #$orderId',
           'orderId': orderId,
+          'userId': userId,
+          'points': pointsToEarn,
         },
       );
 
@@ -42,14 +45,19 @@ class PaymentService {
       // 2. Initialize the Payment Sheet
       await Stripe.instance.initPaymentSheet(
         paymentSheetParameters: SetupPaymentSheetParameters(
+          // FIX 2: Pass these to allow saving cards/recognizing the user
+          customerId: data['customer'], 
+          customerEphemeralKeySecret: data['ephemeralKey'], 
+          
           paymentIntentClientSecret: data['paymentIntent'],
           merchantDisplayName: 'Cheng Eng Auto Accessories',
+          style: ThemeMode.light, // Forces light mode to match your custom colors below
           appearance: const PaymentSheetAppearance(
             primaryButton: PaymentSheetPrimaryButtonAppearance(
               colors: PaymentSheetPrimaryButtonTheme(
                 light: PaymentSheetPrimaryButtonThemeColors(
-                  background: Colors.amberAccent, // Match your app theme
-                  text: Colors.white,
+                  background: Colors.amberAccent, 
+                  text: Colors.black, // White text on Amber is hard to read, Black is better
                 ),
               ),
             ),
@@ -60,17 +68,18 @@ class PaymentService {
       // 3. Present the Payment Sheet
       await Stripe.instance.presentPaymentSheet();
       
-      // If we reach here, payment was successful!
       return PaymentResult.success;
 
     } on StripeException catch (e) {
       if (e.error.code == FailureCode.Canceled) {
-        // User cancelled, do nothing
         return PaymentResult.canceled; 
       }
-      throw PaymentResult.failed;
+      // Log the actual error for debugging
+      print("Stripe Error: ${e.error.localizedMessage}");
+      return PaymentResult.failed;
     } catch (e) {
-      throw PaymentResult.failed;
+      print("General Error: $e");
+      return PaymentResult.failed;
     }
   }
 }

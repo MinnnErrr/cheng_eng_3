@@ -6,7 +6,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 part 'point_history_service.g.dart';
 
 @Riverpod(keepAlive: true)
-PointHistoryService pointHistorytService(Ref ref) {
+PointHistoryService pointHistoryService(Ref ref) {
   return PointHistoryService();
 }
 

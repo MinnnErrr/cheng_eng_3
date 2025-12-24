@@ -1,5 +1,6 @@
 import 'package:cheng_eng_3/core/controllers/checkout/checkout_notifier.dart';
 import 'package:cheng_eng_3/core/controllers/order/place_order_notifier.dart';
+import 'package:cheng_eng_3/core/controllers/payment/payment_notifier.dart';
 import 'package:cheng_eng_3/core/models/cart_entry_model.dart';
 import 'package:cheng_eng_3/core/models/order_model.dart';
 import 'package:cheng_eng_3/ui/extensions/order_extension.dart';
@@ -40,7 +41,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
 
   // Flags
   bool _isDataPreFilled = false;
-  bool _isLoading = false;
+  bool _isProcessing = false;
 
   @override
   void dispose() {
@@ -55,33 +56,140 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
     super.dispose();
   }
 
+  Future<void> _handlePlaceOrder(dynamic checkout) async {
+    if (!_formKey.currentState!.validate()) return;
+
+    setState(() => _isProcessing = true);
+
+    try {
+      final user = Supabase.instance.client.auth.currentUser;
+      if (user == null) {
+        showAppSnackBar(
+          context: context,
+          content: 'User not found',
+          isError: true,
+        );
+        return;
+      }
+
+      // 1. Prepare Address
+      final address = Address(
+        firstName: _firstNameCtrl.text,
+        lastName: _lastNameCtrl.text,
+        countryCode: _countryCode,
+        dialCode: _dialCode,
+        phoneNum: _phoneNum,
+        line1: _address1Ctrl.text,
+        line2: _address2Ctrl.text.isNotEmpty ? _address2Ctrl.text : null,
+        postcode: _postcodeCtrl.text,
+        city: _cityCtrl.text,
+        state: checkout.selectedState ?? MalaysiaState.kualaLumpur,
+        country: 'Malaysia',
+      );
+
+      // 2. STEP 1: CREATE ORDER
+      // We call the notifier and wait for the ID
+      final String? orderId = await ref
+          .read(placeOrderProvider.notifier)
+          .placeOrder(
+            cartState: checkout.cart,
+            address: address,
+            userId: user.id,
+            method: checkout.method,
+          );
+
+      // If orderId is null, Step 1 failed.
+      // The Error Listener (ref.listen) in build() will show the error snackbar.
+      if (orderId == null) return;
+
+      if (!mounted) return;
+
+      // 3. STEP 2: PAYMENT
+      // We have the ID, now we ask for money.
+      final paymentResult = await ref
+          .read(paymentProvider.notifier)
+          .payForOrder(
+            orderId: orderId,
+            amount: checkout.total,
+            userId: user.id,
+            pointsToEarn: checkout.points,
+            // 👇 Add these lines
+            email: user.email!,
+          );
+
+      if (!mounted) return;
+
+      String message;
+      bool isError = false;
+
+      switch (paymentResult) {
+        case PaymentResult.success:
+          message = 'Order paid successfully!';
+          isError = false;
+          break;
+        case PaymentResult.canceled:
+          message = 'Order created, but payment was cancelled.';
+          isError =
+              true; // Or use orange/warning color if your snackbar supports it
+          break;
+        case PaymentResult.failed:
+          message = 'Payment failed. Please try again.';
+          isError = true;
+          break;
+      }
+
+      // Show the message
+      showAppSnackBar(context: context, content: message, isError: isError);
+
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(
+          builder: (context) => CustomerOrderDetailsScreen(
+            orderId: orderId,
+          ),
+        ),
+      );
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isProcessing = false;
+        });
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     // 1. WATCH Checkout State (Single Source of Truth)
     final checkoutAsync = ref.watch(checkoutProvider);
     final checkoutNotifier = ref.read(checkoutProvider.notifier);
 
-    // 2. LISTEN for Order Success/Error
+    // Watch both to determine if we are busy
+    final placeOrderState = ref.watch(placeOrderProvider);
+    final paymentState = ref.watch(paymentProvider);
+
+    final bool isLoading = placeOrderState.isLoading || paymentState.isLoading;
+
+    // A. Listen for Order Creation Errors
     ref.listen(placeOrderProvider, (previous, next) {
-      next.whenOrNull(
-        loading: () => setState(() => _isLoading = true),
-        error: (err, stack) {
-          setState(() => _isLoading = false);
-          showAppSnackBar(
-            context: context,
-            content: err.toString(),
-            isError: true,
-          );
-        },
-        data: (data) {
-          setState(() => _isLoading = false);
-          showAppSnackBar(
-            context: context,
-            content: 'Order placed successfully!',
-          );
-          Navigator.pop(context);
-        },
-      );
+      if (next.hasError && !next.isLoading) {
+        showAppSnackBar(
+          context: context,
+          content: next.error.toString(),
+          isError: true,
+        );
+      }
+    });
+
+    // B. Listen for CRITICAL Payment Errors (The Desync Exception)
+    ref.listen(paymentProvider, (previous, next) {
+      if (next.hasError && !next.isLoading) {
+        // This catches the scary "Money taken but DB failed" error
+        showAppSnackBar(
+          context: context,
+          content: next.error.toString(),
+          isError: true,
+        );
+      }
     });
 
     // 3. PRE-FILL DATA
@@ -107,7 +215,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
           // ACCESS NEW NESTED STATE
           final cartEntries = checkout.cart.entries;
 
-          if (cartEntries.isEmpty) {
+          if (cartEntries.isEmpty && !_isProcessing) {
             return const Center(child: Text('Cart is empty'));
           }
 
@@ -297,98 +405,10 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                       width: double.infinity,
                       height: 50,
                       child: ElevatedButton(
-                        onPressed: _isLoading || !checkout.canPlaceOrder
+                        onPressed: isLoading || !checkout.canPlaceOrder
                             ? null
-                            : () async {
-                                if (!_formKey.currentState!.validate()) return;
-
-                                final user =
-                                    Supabase.instance.client.auth.currentUser;
-                                if (user == null) {
-                                  showAppSnackBar(
-                                    context: context,
-                                    content: 'User not found',
-                                    isError: true,
-                                  );
-                                  return;
-                                }
-
-                                final address = Address(
-                                  firstName: _firstNameCtrl.text,
-                                  lastName: _lastNameCtrl.text,
-                                  countryCode: _countryCode,
-                                  dialCode: _dialCode,
-                                  phoneNum: _phoneNum,
-                                  line1: _address1Ctrl.text,
-                                  line2: _address2Ctrl.text.isNotEmpty
-                                      ? _address2Ctrl.text
-                                      : null,
-                                  postcode: _postcodeCtrl.text,
-                                  city: _cityCtrl.text,
-                                  state:
-                                      checkout.selectedState ??
-                                      MalaysiaState.kualaLumpur,
-                                  country: 'Malaysia',
-                                );
-
-                                final notifier = ref.read(
-                                  placeOrderProvider.notifier,
-                                );
-                                final (
-                                  orderId,
-                                  status,
-                                ) = await notifier.placeOrder(
-                                  cartState:
-                                      checkout.cart, // CHANGED: Pass CartState
-                                  address: address,
-                                  userId: user.id,
-                                  method: checkout.method,
-                                );
-
-                                if (orderId != null && context.mounted) {
-                                  // 3. Show Feedback (SnackBar)
-                                  String message;
-                                  Color color;
-
-                                  switch (status) {
-                                    case PaymentResult.success:
-                                      message =
-                                          "Order Placed Successfully";
-                                      color = Colors.green;
-                                      break;
-                                    case PaymentResult.canceled:
-                                      message =
-                                          "Order created, but payment was cancelled";
-                                      color = Colors.orange;
-                                      break;
-                                    case PaymentResult.failed:
-                                      message =
-                                          "Payment failed. Please try again";
-                                      color = Colors.red;
-                                      break;
-                                  }
-
-                                  // Show the SnackBar
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                      content: Text(message),
-                                      backgroundColor: color,
-                                      duration: const Duration(seconds: 2),
-                                    ),
-                                  );
-
-                                  Navigator.of(context).pushReplacement(
-                                    MaterialPageRoute(
-                                      // Ensure your StaffOrderDetailsScreen handles orderId as we discussed
-                                      builder: (context) =>
-                                          CustomerOrderDetailsScreen(
-                                            orderId: orderId,
-                                          ),
-                                    ),
-                                  );
-                                }
-                              },
-                        child: _isLoading
+                            : () => _handlePlaceOrder(checkout),
+                        child: isLoading
                             ? const CircularProgressIndicator(
                                 color: Colors.white,
                               )

@@ -6,8 +6,6 @@ import 'package:cheng_eng_3/core/models/order_item_model.dart';
 import 'package:cheng_eng_3/core/models/order_model.dart';
 import 'package:cheng_eng_3/core/services/cart_service.dart';
 import 'package:cheng_eng_3/core/services/order_service.dart';
-import 'package:cheng_eng_3/core/services/payment_service.dart';
-import 'package:cheng_eng_3/core/services/point_history_service.dart';
 import 'package:cheng_eng_3/core/services/product_service.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -19,15 +17,12 @@ part 'place_order_notifier.g.dart';
 class PlaceOrderNotifier extends _$PlaceOrderNotifier {
   OrderService get _orderService => ref.read(orderServiceProvider);
   ProductService get _productService => ref.read(productServiceProvider);
-  PointHistoryService get _pointService =>
-      ref.read(pointHistorytServiceProvider);
   CartService get _cartService => ref.read(cartServiceProvider);
-  PaymentService get _paymentService => ref.read(paymentServiceProvider);
 
   @override
   FutureOr<void> build() {}
 
-  Future<(String?, PaymentResult)> placeOrder({
+  Future<String?> placeOrder({
     required CartState cartState,
     required DeliveryMethod method,
     required Address? address,
@@ -47,13 +42,9 @@ class PlaceOrderNotifier extends _$PlaceOrderNotifier {
       }
 
       final checkout = await ref.read(checkoutProvider.future);
-
       final subtotal = cartState.subtotal;
-
       final deliveryFee = checkout.deliveryFee;
-
       final total = checkout.total;
-
       final points = checkout.points;
 
       final newOrderId = const Uuid().v4();
@@ -142,50 +133,11 @@ class PlaceOrderNotifier extends _$PlaceOrderNotifier {
       await _cartService.clearCart(userId);
       ref.invalidate(cartProvider);
 
-      //payment
-      final result = await _paymentService.makePayment(
-        amount: total,
-        currency: 'MYR',
-        orderId: newOrderId,
-      );
-
-      // 2. Handle Outcome (No try-catch needed here!)
-      switch (result) {
-        case PaymentResult.success:
-          // Update Database to 'Pending', Clear Cart, Navigate
-          await _handleSuccess(user.id, newOrderId, points);
-          state = const AsyncValue.data(null);
-          return (newOrderId, PaymentResult.success);
-
-        case PaymentResult.canceled:
-          // Do nothing, just stop loading. User stayed on screen.
-          state = const AsyncValue.data(null);
-          return (newOrderId, PaymentResult.canceled);
-
-        case PaymentResult.failed:
-          // Show error message
-          state = AsyncValue.error(
-            "Payment Failed. Please try again.",
-            StackTrace.current,
-          );
-          return (newOrderId, PaymentResult.failed);
-      }
+      state = AsyncValue.data(null);
+      return newOrderId;
     } catch (e, st) {
       state = AsyncValue.error(e, st);
-      return (null, PaymentResult.failed);
-    }
-  }
-
-  Future<void> _handleSuccess(String userId, String orderId, int points) async {
-    try {
-      await _orderService.updateStatus(orderId, OrderStatus.pending.name);
-
-      //add points for user
-      if(points > 0){
-        await _pointService.addPoints(userId, points, 'Order $orderId', false);
-      }
-    } catch (e, st) {
-      state = AsyncValue.error(e, st);
+      return null;
     }
   }
 }

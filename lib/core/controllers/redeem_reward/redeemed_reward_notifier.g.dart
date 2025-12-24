@@ -53,7 +53,7 @@ final class RedeemedRewardNotifierProvider
 }
 
 String _$redeemedRewardNotifierHash() =>
-    r'dc4b00a8962a2b64d49bd521f8c88db4a6a49748';
+    r'58eea3021e5e7247a58e2e67186809be6db804da';
 
 final class RedeemedRewardNotifierFamily extends $Family
     with

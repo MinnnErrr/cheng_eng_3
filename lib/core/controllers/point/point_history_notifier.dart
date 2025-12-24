@@ -9,7 +9,7 @@ part 'point_history_notifier.g.dart';
 @riverpod
 class PointHistoryNotifier extends _$PointHistoryNotifier {
   PointHistoryService get _pointHistoryService =>
-      ref.read(pointHistorytServiceProvider);
+      ref.read(pointHistoryServiceProvider);
 
   @override
   FutureOr<List<PointHistory>> build(String userId) async {

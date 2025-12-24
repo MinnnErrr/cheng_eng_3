@@ -9,10 +9,10 @@ part of 'point_history_service.dart';
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // ignore_for_file: type=lint, type=warning
 
-@ProviderFor(pointHistorytService)
-const pointHistorytServiceProvider = PointHistorytServiceProvider._();
+@ProviderFor(pointHistoryService)
+const pointHistoryServiceProvider = PointHistoryServiceProvider._();
 
-final class PointHistorytServiceProvider
+final class PointHistoryServiceProvider
     extends
         $FunctionalProvider<
           PointHistoryService,
@@ -20,19 +20,19 @@ final class PointHistorytServiceProvider
           PointHistoryService
         >
     with $Provider<PointHistoryService> {
-  const PointHistorytServiceProvider._()
+  const PointHistoryServiceProvider._()
     : super(
         from: null,
         argument: null,
         retry: null,
-        name: r'pointHistorytServiceProvider',
+        name: r'pointHistoryServiceProvider',
         isAutoDispose: false,
         dependencies: null,
         $allTransitiveDependencies: null,
       );
 
   @override
-  String debugGetCreateSourceHash() => _$pointHistorytServiceHash();
+  String debugGetCreateSourceHash() => _$pointHistoryServiceHash();
 
   @$internal
   @override
@@ -42,7 +42,7 @@ final class PointHistorytServiceProvider
 
   @override
   PointHistoryService create(Ref ref) {
-    return pointHistorytService(ref);
+    return pointHistoryService(ref);
   }
 
   /// {@macro riverpod.override_with_value}
@@ -54,5 +54,5 @@ final class PointHistorytServiceProvider
   }
 }
 
-String _$pointHistorytServiceHash() =>
-    r'077c7b2e7ad00a9632d9d0eeb46b15389ec53a52';
+String _$pointHistoryServiceHash() =>
+    r'f211caaad09f57b29f036fdbc3b7f2956d987b19';

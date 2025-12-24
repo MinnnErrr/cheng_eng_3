@@ -14,14 +14,16 @@ String stripe_publishable =
     "pk_test_51ShA7kLXdt9JqGlW7kQoPSUoejcUht31ulHygbPOuJpFjBVBnsXQ1hfkzCaoPtGOsaA5sBIlfjGTHjMbfQa6IaH100WCSfc1tH";
 
 Future<void> main() async {
-  Stripe.publishableKey = stripe_publishable;
-  Stripe.instance.applySettings();
+  WidgetsFlutterBinding.ensureInitialized();
 
   await Supabase.initialize(
     url: 'https://iquemainudabsfrfzypl.supabase.co',
     anonKey:
         'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlxdWVtYWludWRhYnNmcmZ6eXBsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM4MTgyMzIsImV4cCI6MjA3OTM5NDIzMn0.7hCB-cZ5KUm08rt_UNIQolhgkhwGL2hjLHNPoM0XMe8',
   );
+
+  Stripe.publishableKey = stripe_publishable;
+  Stripe.instance.applySettings();
 
   runApp(ProviderScope(child: const MyApp()));
 }

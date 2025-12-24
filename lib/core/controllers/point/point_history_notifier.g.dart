@@ -51,7 +51,7 @@ final class PointHistoryNotifierProvider
 }
 
 String _$pointHistoryNotifierHash() =>
-    r'9d23cfcc7daab3c36cc944f25003edb3a85a7fd3';
+    r'fdb09b4a5c64f0da1b31658a2580b6d1298762a9';
 
 final class PointHistoryNotifierFamily extends $Family
     with

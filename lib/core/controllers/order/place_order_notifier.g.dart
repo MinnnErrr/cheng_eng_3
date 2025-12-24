@@ -34,7 +34,7 @@ final class PlaceOrderNotifierProvider
 }
 
 String _$placeOrderNotifierHash() =>
-    r'b0bf53994b8aa43660712cb8aff9d5c2744b7a9e';
+    r'4356851669fab236aef1085645166966193aa23b';
 
 abstract class _$PlaceOrderNotifier extends $AsyncNotifier<void> {
   FutureOr<void> build();

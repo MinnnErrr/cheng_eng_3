@@ -20,7 +20,7 @@ class RedeemedRewardNotifier extends _$RedeemedRewardNotifier {
 
   // 2. Inject PointHistoryService to handle point deduction
   PointHistoryService get _pointHistoryService =>
-      ref.read(pointHistorytServiceProvider);
+      ref.read(pointHistoryServiceProvider);
 
   @override
   FutureOr<List<RedeemedReward>> build(String userId) async {
