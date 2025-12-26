@@ -4,6 +4,7 @@ import 'package:cheng_eng_3/core/controllers/point/total_points_provider.dart';
 import 'package:cheng_eng_3/core/models/maintenance_model.dart';
 import 'package:cheng_eng_3/ui/screens/customer/booking/customer_booking_screen.dart';
 import 'package:cheng_eng_3/ui/screens/customer/cart/cart_screen.dart';
+import 'package:cheng_eng_3/ui/screens/customer/chat/customer_chat_screen.dart';
 import 'package:cheng_eng_3/ui/screens/customer/maintenance/maintenance_details_screen.dart';
 import 'package:cheng_eng_3/ui/screens/customer/order/customer_order_screen.dart';
 import 'package:cheng_eng_3/ui/screens/customer/product/customer_product_screen.dart';
@@ -143,6 +144,14 @@ class CustomerHome extends ConsumerWidget {
                         ),
                       ),
                       child: CartIconBadge(),
+                    ),
+                    GestureDetector(
+                      onTap: () => Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (context) => const CustomerChatScreen(),
+                        ),
+                      ),
+                      child: Icon(Icons.chat),
                     ),
                   ],
                 ),

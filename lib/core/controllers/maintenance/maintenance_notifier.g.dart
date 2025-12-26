@@ -34,7 +34,7 @@ final class MaintenanceNotifierProvider
 }
 
 String _$maintenanceNotifierHash() =>
-    r'd4d10f53526e0a375ac85bcf747b2a65a9600889';
+    r'24cbe2c2792f5b512f3cde5904bc40cd19904626';
 
 abstract class _$MaintenanceNotifier extends $AsyncNotifier<MaintenanceList> {
   FutureOr<MaintenanceList> build();

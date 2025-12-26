@@ -55,7 +55,7 @@ class NotificationService {
       );
     }
 
-    if (serviceDate.isAfter(DateTime.now())) {
+    if (serviceDate.isBefore(DateTime.now())) {
       // Create a different unique INT based on UUID + different suffix
       final int dueId = ('$id + "_due"').hashCode;
 
@@ -80,7 +80,7 @@ class NotificationService {
       time.year,
       time.month,
       time.day,
-      9, 
+      17, 
       0,
     );
 
