@@ -60,7 +60,8 @@ class MaintenanceListItem extends ConsumerWidget {
                             labelStyle: Theme.of(context).textTheme.labelSmall,
                             padding: EdgeInsets.all(0),
                             backgroundColor: getMaintenanceStatusColor(
-                              maintenance.status, context
+                              maintenance.status,
+                              context,
                             ),
                           ),
                         ],
@@ -98,11 +99,11 @@ class MaintenanceListItem extends ConsumerWidget {
                     if (icon != null) icon!,
                     const Spacer(),
                     if (maintenance.nextServDate.isAfter(DateTime.now()))
-                    maintenanceDays.when(
-                      data: (data) => Text('$maintenanceDays days'),
-                      loading: () => Text('Loading...'),
-                      error: (error, stackTrace) => Text('Error'),
-                    )
+                      maintenanceDays.when(
+                        data: (days) => Text('$days days'),
+                        loading: () => Text('Loading...'),
+                        error: (error, stackTrace) => Text('Error'),
+                      ),
                   ],
                 ),
               ],

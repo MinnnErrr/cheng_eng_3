@@ -1,6 +1,7 @@
 import 'package:cheng_eng_3/core/controllers/auth/auth_notifier.dart';
 import 'package:cheng_eng_3/core/controllers/profile/profile_notifier.dart';
 import 'package:cheng_eng_3/core/controllers/realtime_provider.dart';
+import 'package:cheng_eng_3/core/services/notification_service.dart';
 import 'package:cheng_eng_3/ui/screens/customer/customer_home.dart';
 import 'package:cheng_eng_3/ui/screens/initial_profile_screen.dart';
 import 'package:cheng_eng_3/ui/screens/login_screen.dart';
@@ -24,6 +25,9 @@ Future<void> main() async {
 
   Stripe.publishableKey = stripe_publishable;
   Stripe.instance.applySettings();
+
+  final container = ProviderContainer();
+  await container.read(notificationServiceProvider).init();
 
   runApp(ProviderScope(child: const MyApp()));
 }

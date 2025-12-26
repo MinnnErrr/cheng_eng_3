@@ -1,6 +1,8 @@
 import 'package:cheng_eng_3/core/controllers/auth/auth_notifier.dart';
+import 'package:cheng_eng_3/core/controllers/vehicle/customer_vehicle_by_id_provider.dart';
 import 'package:cheng_eng_3/core/models/maintenance_model.dart';
 import 'package:cheng_eng_3/core/services/maintenance_service.dart';
+import 'package:cheng_eng_3/core/services/notification_service.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:uuid/uuid.dart';
 
@@ -10,6 +12,8 @@ part 'maintenance_notifier.g.dart';
 class MaintenanceNotifier extends _$MaintenanceNotifier {
   MaintenanceService get _maintenanceService =>
       ref.read(maintenanceServiceProvider);
+  NotificationService get _notificationService =>
+      ref.read(notificationServiceProvider);
 
   @override
   FutureOr<MaintenanceList> build() async {
@@ -51,6 +55,16 @@ class MaintenanceNotifier extends _$MaintenanceNotifier {
       state = const AsyncLoading();
 
       final newMaintenance = await _maintenanceService.create(maintenance);
+
+      final vehicle = await ref.read(
+        customerVehicleByIdProvider(vehicleId).future,
+      );
+
+      await _notificationService.scheduleMaintenanceReminder(
+        id: id,
+        vehicleName: vehicle.regNum,
+        serviceDate: nextServDate,
+      );
 
       state = AsyncData(
         MaintenanceList(
@@ -96,6 +110,20 @@ class MaintenanceNotifier extends _$MaintenanceNotifier {
 
       final updated = await _maintenanceService.update(maintenance);
 
+      if (updated.status.toLowerCase() != 'completed') {
+        final vehicle = await ref.read(
+          customerVehicleByIdProvider(maintenance.vehicleId).future,
+        );
+
+        // This effectively overwrites the previous alarm because we use the same ID hash logic
+        await _notificationService.cancelReminder(id);
+        await _notificationService.scheduleMaintenanceReminder(
+          id: id,
+          vehicleName: vehicle.regNum,
+          serviceDate: nextServDate,
+        );
+      }
+
       final updatedList = previous.maintenances.map((m) {
         return m.id == id ? updated : m;
       }).toList();
@@ -114,11 +142,30 @@ class MaintenanceNotifier extends _$MaintenanceNotifier {
     required String status,
   }) async {
     final previous = state.value ?? MaintenanceList(maintenances: []);
+    final currentMaintenance = previous.maintenances.firstWhere(
+      (m) => m.id == id,
+      orElse: () => throw Exception('Maintenance not found'),
+    );
 
     try {
       state = const AsyncLoading();
 
       final updated = await _maintenanceService.updateStatus(status, id);
+
+      if (status.toLowerCase() == 'completed') {
+        await _notificationService.cancelReminder(id);
+      }else if (status.toLowerCase() == 'incomplete') {
+        // Optimization: Only fetch vehicle info if we actually need to schedule
+        final vehicle = await ref.read(
+          customerVehicleByIdProvider(currentMaintenance.vehicleId).future,
+        );
+
+        await _notificationService.scheduleMaintenanceReminder(
+          id: id, // Ensure parameter name matches your service
+          vehicleName: vehicle.regNum,
+          serviceDate: currentMaintenance.nextServDate,
+        );
+      }
 
       final updatedList = previous.maintenances.map((m) {
         return m.id == id ? updated : m;
@@ -138,6 +185,8 @@ class MaintenanceNotifier extends _$MaintenanceNotifier {
 
     try {
       state = const AsyncLoading();
+
+      await _notificationService.cancelReminder(id);
 
       await _maintenanceService.delete(id);
 

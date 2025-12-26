@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "36316012561",
+    "project_id": "cheng-eng",
+    "storage_bucket": "cheng-eng.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:36316012561:android:3011cab88b883ab93291b0",
+        "android_client_info": {
+          "package_name": "com.example.cheng_eng_2"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBnJRsIiAIQx8_zk5B0b1honLcFdiI3o5M"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:36316012561:android:b26a02223ffc038a3291b0",
+        "android_client_info": {
+          "package_name": "com.example.cheng_eng_3"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBnJRsIiAIQx8_zk5B0b1honLcFdiI3o5M"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
