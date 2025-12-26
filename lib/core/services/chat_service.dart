@@ -13,8 +13,11 @@ ChatService chatService(Ref ref) {
 class ChatService {
   late final GenerativeModel _model;
   late final ChatSession _chatSession;
+  bool _isInitialized = false;
 
   Future<void> init() async {
+    if (_isInitialized) return;
+
     Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
     _model = FirebaseAI.googleAI().generativeModel(
@@ -22,9 +25,13 @@ class ChatService {
     );
 
     _chatSession = _model.startChat();
+    _isInitialized = true;
   }
 
-  Stream<GenerateContentResponse> sendMessage(String message) {
-    return _chatSession.sendMessageStream(Content.text(message));
+  Future<GenerateContentResponse> sendMessage(String message) async {
+    if (!_isInitialized) {
+      await init();
+    }
+    return _chatSession.sendMessage(Content.text(message));
   }
 }

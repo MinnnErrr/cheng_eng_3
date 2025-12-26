@@ -1,18 +1,15 @@
 import 'package:cheng_eng_3/core/services/chat_service.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
-import 'package:uuid/uuid.dart';
 
 part 'chat_notifier.g.dart';
 
 // Simple model for our UI
 class ChatMessage {
-  final String id;
   final String text;
   final bool isUser;
   final bool isLoading;
 
   ChatMessage({
-    required this.id,
     required this.text,
     required this.isUser,
     this.isLoading = false,
@@ -31,9 +28,7 @@ class ChatNotifier extends _$ChatNotifier {
     // Return initial welcome message
     return [
       ChatMessage(
-        id: const Uuid().v4(),
-        text:
-            "Hello! I am your AI assistant. How can I help you with your vehicle today?",
+        text: "Hello! How can I help you?",
         isUser: false,
       ),
     ];
@@ -42,53 +37,37 @@ class ChatNotifier extends _$ChatNotifier {
   Future<void> sendMessage(String text) async {
     if (text.trim().isEmpty) return;
 
-    final userMsgId = const Uuid().v4();
-    final aiMsgId = const Uuid().v4();
-
-    // 1. Add User Message immediately
-    final userMsg = ChatMessage(id: userMsgId, text: text, isUser: true);
-    state = [userMsg, ...state,];
-
-    // 2. Add a temporary "Loading..." AI message
-    final loadingMsg = ChatMessage(
-      id: aiMsgId,
-      text: "",
-      isUser: false,
-      isLoading: true,
-    );
-    state = [loadingMsg, ...state];
+    state = [
+      ...state,
+      ChatMessage(text: text, isUser: true),
+      ChatMessage(
+        text: "",
+        isUser: false,
+        isLoading: true, // ✅ Show spinner immediately
+      ),
+    ];
 
     try {
       // 3. Stream the response
-      final stream = _chatService.sendMessage(text);
+      final response = await _chatService.sendMessage(text);
 
-      String fullResponse = "";
+      final responseText = response.text ?? "Couldn't generate a response.";
 
-      await for (final chunk in stream) {
-        final textChunk = chunk.text ?? "";
-        fullResponse += textChunk;
-
-        // Update the last message (AI) with the accumulating text
-        state = [
-          ChatMessage(
-            id: aiMsgId,
-            text: fullResponse,
-            isUser: false,
-            isLoading: false, // Show text now
-          ),
-          ...state,
-        ];
-      }
+      // Update the last message (AI) with the accumulating text
+      state = [
+        ...state.sublist(0, state.length - 1),
+        ChatMessage(text: responseText, isUser: false, isLoading: false),
+      ];
     } catch (e) {
+      print('chat error: $e');
       // Handle Error
       state = [
+        ...state.sublist(0, state.length - 1),
         ChatMessage(
-          id: aiMsgId,
-          text: "Sorry, I encountered an error. Please try again.",
+          text: "Sorry, something went wrong. Please try again.",
           isUser: false,
+          isLoading: false,
         ),
-        ...state,
-        
       ];
     }
   }

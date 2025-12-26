@@ -15,7 +15,7 @@ class ChatBubble extends ConsumerWidget {
     return Align(
       alignment: isUser ? Alignment.centerRight : Alignment.centerLeft,
       child: Container(
-        margin: const EdgeInsets.symmetric(vertical: 4),
+        margin: const EdgeInsets.symmetric(vertical: 5, horizontal: 10),
         padding: const EdgeInsets.all(12),
         constraints: BoxConstraints(
           maxWidth: MediaQuery.of(context).size.width * 0.8,
@@ -23,23 +23,19 @@ class ChatBubble extends ConsumerWidget {
         decoration: BoxDecoration(
           color: isUser ? Colors.amber : Colors.grey[200],
           borderRadius: BorderRadius.only(
-            topLeft: const Radius.circular(16),
-            topRight: const Radius.circular(16),
-            bottomLeft: Radius.circular(isUser ? 16 : 0),
-            bottomRight: Radius.circular(isUser ? 0 : 16),
+            bottomLeft: const Radius.circular(16),
+            bottomRight: const Radius.circular(16),
+            topLeft: Radius.circular(isUser ? 16 : 0),
+            topRight: Radius.circular(isUser ? 0 : 16),
           ),
         ),
         child: isUser
             ? Text(
                 message.text,
-                style: const TextStyle(color: Colors.white),
+                style: const TextStyle(color: Colors.white, fontSize: 16),
               )
-            : message.isLoading && message.text.isEmpty
-            ? const SizedBox(
-                width: 20,
-                height: 20,
-                child: CircularProgressIndicator(strokeWidth: 2),
-              )
+            : message.isLoading
+            ? _buildLoadingIndicator()
             : MarkdownBlock(
                 data: message.text,
                 config: MarkdownConfig.defaultConfig.copy(
@@ -50,6 +46,30 @@ class ChatBubble extends ConsumerWidget {
                 ),
               ),
       ),
+    );
+  }
+
+  Widget _buildLoadingIndicator() {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        SizedBox(
+          width: 16,
+          height: 16,
+          child: CircularProgressIndicator(
+            strokeWidth: 2,
+            color: Colors.black54,
+          ),
+        ),
+        const SizedBox(width: 10),
+        Text(
+          "Thinking...",
+          style: TextStyle(
+            color: Colors.black54,
+            fontStyle: FontStyle.italic,
+          ),
+        ),
+      ],
     );
   }
 }
