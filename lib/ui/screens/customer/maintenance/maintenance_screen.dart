@@ -15,40 +15,49 @@ class MaintenanceScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final maintenanceList = ref.watch(maintenanceByVehicleProvider(vehicleId));
     final maintenanceListNotifier = ref.read(maintenanceProvider.notifier);
+    final theme = Theme.of(context);
 
     return maintenanceList.when(
       data: (list) {
         if (list.maintenances.isEmpty) {
-          return const Padding(
-            padding: EdgeInsets.all(20),
-            child: Center(child: Text('No maintenance records found.')),
+          // ✅ FIX: Use SizedBox instead of Padding/Center to prevent layout crashes
+          return SizedBox(
+            height: 150,
+            child: Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.build_circle_outlined,
+                    size: 40,
+                    color: theme.colorScheme.outlineVariant,
+                  ),
+                  const SizedBox(height: 10),
+                  Text(
+                    'No maintenance records found.',
+                    style: TextStyle(color: theme.colorScheme.onSurfaceVariant),
+                  ),
+                ],
+              ),
+            ),
           );
         }
 
         return ListView.separated(
-          padding: const EdgeInsets.all(10),
-          shrinkWrap: true, // Correct for nested lists
-          physics: const NeverScrollableScrollPhysics(), // Let parent handle scrolling
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
           itemCount: list.maintenances.length,
           separatorBuilder: (context, index) => const SizedBox(height: 10),
           itemBuilder: (context, index) {
             final maintenance = list.maintenances[index];
             return MaintenanceListItem(
               maintenance: maintenance,
-              icon: IconButton(
-                // FIX 1: Add Confirmation Dialog
-                onPressed: () => _confirmDelete(
-                  context,
-                  maintenanceListNotifier,
-                  maintenance.id,
-                ),
-                icon: const Icon(Icons.delete, color: Colors.grey),
-              ),
-              // FIX 2: Pass Object for Optimistic UI
+
               tapAction: () => Navigator.of(context).push(
                 MaterialPageRoute(
                   builder: (context) => MaintenanceDetailsScreen(
-                    maintenance: maintenance, // Ensure your Details screen accepts this
+                    maintenance: maintenance,
                   ),
                 ),
               ),
@@ -56,13 +65,13 @@ class MaintenanceScreen extends ConsumerWidget {
           },
         );
       },
-      // FIX 3: Remove Scaffold from these states (caused visual bugs)
-      error: (error, stackTrace) => Padding(
-        padding: const EdgeInsets.all(20),
+      // ✅ FIX: Fixed heights prevent "RenderBox not laid out" errors
+      error: (error, stackTrace) => SizedBox(
+        height: 100,
         child: Center(child: Text('Error: $error')),
       ),
-      loading: () => const Padding(
-        padding: EdgeInsets.all(20),
+      loading: () => const SizedBox(
+        height: 100,
         child: Center(child: CircularProgressIndicator()),
       ),
     );
@@ -70,7 +79,7 @@ class MaintenanceScreen extends ConsumerWidget {
 
   Future<void> _confirmDelete(
     BuildContext context,
-    dynamic notifier, // Using dynamic to match your specific notifier type
+    dynamic notifier,
     String id,
   ) async {
     final confirm = await showDialog<bool>(

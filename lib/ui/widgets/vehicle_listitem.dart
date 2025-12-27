@@ -12,6 +12,7 @@ class VehicleListitem extends ConsumerWidget {
     required this.colourRequired,
     required this.yearRequired,
     this.icon,
+    this.onTap
   });
 
   final Vehicle vehicle;
@@ -19,103 +20,107 @@ class VehicleListitem extends ConsumerWidget {
   final bool yearRequired;
   final bool colourRequired;
   final Widget? icon;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final imageService = ref.read(imageServiceProvider);
-    final screenSize = MediaQuery.of(context).size;
+    final theme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+
+    final List<String> footerDetails = [];
+    if (yearRequired) footerDetails.add(vehicle.year.toString());
+    if (colourRequired) footerDetails.add(vehicle.colour);
+    final footerText = footerDetails.join(" | ");
 
     return Card(
-      color: Theme.of(context).colorScheme.surfaceContainer,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-      child: Padding(
-        padding: EdgeInsets.all(10),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            //picture
-            imageBuilder(
-              url: vehicle.photoPath != null
-                  ? imageService.retrieveImageUrl(vehicle.photoPath!)
-                  : null,
-              containerWidth: screenSize.width * 0.2,
-              containerHeight: screenSize.height * 0.12,
-              noImageContent: Container(
-                color: Colors.white,
-                child: Icon(Icons.directions_car),
+      clipBehavior: Clip.hardEdge,
+      child: InkWell(
+        onTap: onTap,
+        child: Padding(
+          padding: EdgeInsets.all(12),
+          child: Row(
+            children: [
+              //picture
+              imageBuilder(
+                url: vehicle.photoPath != null
+                    ? imageService.retrieveImageUrl(vehicle.photoPath!)
+                    : null,
+                containerWidth: 80,
+                containerHeight: 80,
+                noImageContent: Container(
+                  color: theme.surfaceContainerHigh,
+                  child: Icon(
+                    Icons.directions_car_filled_outlined,
+                    color: theme.onSurfaceVariant,
+                    size: 30,
+                  ),
+                ),
+                context: context,
               ),
-              context: context,
-            ),
-
-            const SizedBox(
-              width: 20,
-            ),
-
-            //details
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      if (descriptionRequired == true)
-                        Text(
-                          vehicle.description ?? '-',
-                          overflow: TextOverflow.ellipsis,
-                          maxLines: 2,
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            color: Theme.of(context).colorScheme.primary,
-                          ),
+        
+              const SizedBox(
+                width: 16,
+              ),
+        
+              //details
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    if (descriptionRequired &&
+                        (vehicle.description?.isNotEmpty ?? false)) ...[
+                      Text(
+                        vehicle.description!,
+                        style: textTheme.labelMedium?.copyWith(
+                          color: const Color(0xFF9E7C00),
+                          fontWeight: FontWeight.w800,
                         ),
-
-                      Text(
-                        vehicle.regNum,
-                        style: TextStyle(fontWeight: FontWeight.bold),
-                      ),
-                    ],
-                  ),
-
-                  const SizedBox(
-                    height: 20,
-                  ),
-
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        '${vehicle.make}, ${vehicle.model}',
-                        maxLines: 2,
+                        maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
-
-                      if (yearRequired == true)
-                        Text(
-                          vehicle.year.toString(),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-
-                      if (colourRequired == true)
-                        Text(
-                          vehicle.colour,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
                     ],
-                  ),
-                ],
+        
+                    // Registration (Title)
+                    Text(
+                      vehicle.regNum.toUpperCase(),
+                      style: textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: 0.5,
+                        color: theme.onSurface, // Black
+                      ),
+                    ),
+        
+                    // Make & Model (Subtitle)
+                    Text(
+                      '${vehicle.make} ${vehicle.model}',
+                      style: textTheme.bodyMedium?.copyWith(
+                        color: theme.onSurface, // Black
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+        
+                    if (footerText.isNotEmpty) ...[
+                      const SizedBox(height: 5),
+                      Text(
+                        footerText,
+                        style: textTheme.labelMedium?.copyWith(
+                          color: theme.onSurfaceVariant, // Grey Text
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
               ),
-            ),
-
-            const SizedBox(
-              width: 20,
-            ),
-
-            //icon
-            if (icon != null) icon!,
-          ],
+        
+              if (icon != null) ...[
+                const SizedBox(width: 8),
+                icon!,
+              ],
+            ],
+          ),
         ),
       ),
     );

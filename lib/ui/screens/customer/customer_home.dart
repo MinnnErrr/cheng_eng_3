@@ -1,22 +1,29 @@
+import 'dart:math';
+
 import 'package:cheng_eng_3/core/controllers/auth/auth_notifier.dart';
 import 'package:cheng_eng_3/core/controllers/maintenance/maintenance_nearest_date_provider.dart';
+import 'package:cheng_eng_3/core/controllers/point/nearest_expiry_point_provider.dart';
 import 'package:cheng_eng_3/core/controllers/point/total_points_provider.dart';
+import 'package:cheng_eng_3/core/controllers/profile/profile_notifier.dart';
 import 'package:cheng_eng_3/core/models/maintenance_model.dart';
 import 'package:cheng_eng_3/ui/screens/customer/booking/customer_booking_screen.dart';
-import 'package:cheng_eng_3/ui/screens/customer/cart/cart_screen.dart';
-import 'package:cheng_eng_3/ui/screens/customer/chat/customer_chat_screen.dart';
-import 'package:cheng_eng_3/ui/screens/customer/maintenance/maintenance_details_screen.dart';
 import 'package:cheng_eng_3/ui/screens/customer/order/customer_order_screen.dart';
 import 'package:cheng_eng_3/ui/screens/customer/product/customer_product_screen.dart';
 import 'package:cheng_eng_3/ui/screens/customer/redeemed_reward/customer_redeemed_reward_screen.dart';
 import 'package:cheng_eng_3/ui/screens/customer/reward/customer_reward_screen.dart';
-import 'package:cheng_eng_3/ui/screens/profile_screen.dart';
 import 'package:cheng_eng_3/ui/screens/customer/towing/towing_screen.dart';
 import 'package:cheng_eng_3/ui/screens/customer/vehicle/vehicle_screen.dart';
-import 'package:cheng_eng_3/ui/widgets/cart_icon.dart';
-import 'package:cheng_eng_3/ui/widgets/maintenance_listitem.dart';
+import 'package:cheng_eng_3/ui/widgets/customer_home_maintenance.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+class _MenuItem {
+  final String label;
+  final IconData icon;
+  final Widget screen;
+
+  _MenuItem(this.label, this.icon, this.screen);
+}
 
 class CustomerHome extends ConsumerWidget {
   const CustomerHome({super.key});
@@ -35,6 +42,25 @@ class CustomerHome extends ConsumerWidget {
 
     final totalPoints = ref.watch(totalPointsProvider(user.id));
     final nearestMaintenance = ref.watch(maintenanceByNearestDateProvider);
+    final profileState = ref.watch(profileProvider);
+
+    String name = profileState.isLoading
+        ? 'Loading...'
+        : (profileState.value == null ? 'User' : profileState.value!.name);
+
+    final expiryPointsInfo = ref.watch(nearestExpiryProvider(user.id));
+
+    String? expiryPoints = expiryPointsInfo.when(
+      data: (info) {
+        if (info == null) {
+          return null;
+        } else {
+          return 'Expiring: ${info.points} pts';
+        }
+      },
+      loading: () => null,
+      error: (error, stackTrace) => null,
+    );
 
     return Scaffold(
       body: SafeArea(
@@ -43,8 +69,7 @@ class CustomerHome extends ConsumerWidget {
             // Refresh data when user pulls down
             ref.invalidate(totalPointsProvider(user.id));
             ref.invalidate(maintenanceByNearestDateProvider);
-            // Optional: wait a bit to show the loading spinner
-            await Future.delayed(const Duration(seconds: 1));
+            ref.invalidate(profileProvider);
           },
           child: SingleChildScrollView(
             physics: const AlwaysScrollableScrollPhysics(),
@@ -52,111 +77,17 @@ class CustomerHome extends ConsumerWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                const SizedBox(height: 10),
+
                 Text(
-                  'Customer Home',
-                  style: Theme.of(context).textTheme.headlineSmall!.copyWith(
+                  'Hello, $name',
+                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                     fontWeight: FontWeight.bold,
+                    color: Theme.of(context).colorScheme.onSurface,
                   ),
                 ),
+
                 const SizedBox(height: 20),
-
-                // Navigation buttons
-                Row(
-                  children: [
-                    Expanded(
-                      child: _navButton(
-                        context,
-                        'Profile',
-                        const ProfileScreen(),
-                      ),
-                    ),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: _navButton(
-                        context,
-                        'Vehicles',
-                        const VehicleScreen(),
-                      ),
-                    ),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: _navButton(
-                        context,
-                        'Towing',
-                        const TowingScreen(),
-                      ),
-                    ),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: _navButton(
-                        context,
-                        'Products',
-                        const CustomerProductScreen(),
-                      ),
-                    ),
-                    Expanded(
-                      child: _navButton(
-                        context,
-                        'My Rewards',
-                        const CustomerRedeemedRewardScreen(),
-                      ),
-                    ),
-                    Expanded(
-                      child: _navButton(
-                        context,
-                        'Booking',
-                        const CustomerBookingScreen(),
-                      ),
-                    ),
-                    Expanded(
-                      child: _navButton(
-                        context,
-                        'Orders',
-                        const CustomerOrderScreen(),
-                      ),
-                    ),
-                  ],
-                ),
-
-                const SizedBox(height: 15),
-
-                // Second Row for Cart & Rewards (Optional cleanup to prevent overcrowding)
-                Row(
-                  children: [
-                    Expanded(
-                      child: ElevatedButton(
-                        onPressed: () {
-                          Navigator.of(context).push(
-                            MaterialPageRoute(
-                              builder: (context) =>
-                                  const CustomerRewardScreen(),
-                            ),
-                          );
-                        },
-                        child: const Text('Rewards'),
-                      ),
-                    ),
-                    const SizedBox(width: 10),
-                    GestureDetector(
-                      onTap: () => Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (context) => const CartScreen(),
-                        ),
-                      ),
-                      child: CartIconBadge(),
-                    ),
-                    GestureDetector(
-                      onTap: () => Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (context) => const CustomerChatScreen(),
-                        ),
-                      ),
-                      child: Icon(Icons.chat),
-                    ),
-                  ],
-                ),
-
-                const SizedBox(height: 30),
 
                 // Point Dashboard
                 Container(
@@ -164,16 +95,20 @@ class CustomerHome extends ConsumerWidget {
                   clipBehavior: Clip.hardEdge,
                   decoration: BoxDecoration(
                     color: Theme.of(context).colorScheme.primary,
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(16),
                   ),
                   child: totalPoints.when(
                     data: (total) => _pointDashboard(
                       context: context,
                       totalPoints: total,
+                      expiryPoints: expiryPoints,
                     ),
                     // Handle error gracefully with 0 points or error text
-                    error: (error, _) =>
-                        _pointDashboard(context: context, totalPoints: 0),
+                    error: (error, _) => _pointDashboard(
+                      context: context,
+                      totalPoints: 0,
+                      expiryPoints: null,
+                    ),
                     loading: () => const Padding(
                       padding: EdgeInsets.all(40.0),
                       child: Center(
@@ -185,27 +120,34 @@ class CustomerHome extends ConsumerWidget {
 
                 const SizedBox(height: 30),
 
-                // Maintenance Notification
-                Container(
-                  padding: const EdgeInsets.all(15),
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.primaryContainer,
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: nearestMaintenance.when(
-                    data: (list) {
-                      // Assuming your provider returns an object with a .maintenances list
-                      final nearest = list.maintenances;
-                      return _maintenanceNotification(nearest, context);
-                    },
-                    error: (error, stackTrace) => Center(
-                      child: Text("Error loading maintenance: $error"),
-                    ),
-                    loading: () => const Center(
-                      child: CircularProgressIndicator(),
-                    ),
+                Text(
+                  "Services",
+                  style: Theme.of(context).textTheme.titleMedium!.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
                   ),
                 ),
+                const SizedBox(height: 15),
+                _buildMenuGrid(context), // 👈 Replaced the Row with this Grid
+
+                const SizedBox(height: 30),
+
+                // Maintenance Notification
+                nearestMaintenance.when(
+                  data: (list) {
+                    // Assuming your provider returns an object with a .maintenances list
+                    final nearest = list.maintenances;
+                    return _maintenanceNotification(nearest, context);
+                  },
+                  error: (error, stackTrace) => Center(
+                    child: Text("Error loading maintenance: $error"),
+                  ),
+                  loading: () => const Center(
+                    child: CircularProgressIndicator(),
+                  ),
+                ),
+
+                const SizedBox(height: 20),
               ],
             ),
           ),
@@ -214,33 +156,91 @@ class CustomerHome extends ConsumerWidget {
     );
   }
 
-  // Helper for cleaner buttons
-  Widget _navButton(BuildContext context, String label, Widget screen) {
-    return ElevatedButton(
-      style: ElevatedButton.styleFrom(
-        padding: const EdgeInsets.symmetric(horizontal: 5), // Prevent overflow
+  Widget _buildMenuGrid(BuildContext context) {
+    // List of menu items to make code cleaner
+    final menuItems = [
+      _MenuItem('Vehicles', Icons.directions_car, const VehicleScreen()),
+      _MenuItem('Booking', Icons.calendar_month, const CustomerBookingScreen()),
+      _MenuItem('Towing', Icons.car_crash, const TowingScreen()),
+      _MenuItem('Products', Icons.shopping_bag, const CustomerProductScreen()),
+      _MenuItem('Orders', Icons.receipt_long, const CustomerOrderScreen()),
+      _MenuItem('Rewards', Icons.star, const CustomerRewardScreen()),
+    ];
+
+    return GridView.builder(
+      shrinkWrap: true, // Vital: Makes grid take only needed space
+      physics:
+          const NeverScrollableScrollPhysics(), // Disable grid scrolling, let parent scroll
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 3, // 👈 3 Buttons per row
+        crossAxisSpacing: 30,
+        mainAxisSpacing: 10,
+        childAspectRatio: 0.85,
       ),
-      onPressed: () {
-        Navigator.of(context).push(
-          MaterialPageRoute(builder: (context) => screen),
-        );
+      itemCount: menuItems.length,
+      itemBuilder: (context, index) {
+        return _menuButton(context, menuItems[index]);
       },
-      child: Text(
-        label,
-        overflow: TextOverflow.ellipsis,
-        style: const TextStyle(fontSize: 12),
-      ),
+    );
+  }
+
+  Widget _menuButton(BuildContext context, _MenuItem item) {
+    final colors = Theme.of(context).colorScheme;
+
+    return Column(
+      children: [
+        // The Icon Circle/Square
+        InkWell(
+          onTap: () => Navigator.of(context).push(
+            MaterialPageRoute(builder: (context) => item.screen),
+          ),
+          borderRadius: BorderRadius.circular(16),
+          child: Container(
+            height: 60,
+            width: 60,
+            decoration: BoxDecoration(
+              // Use a soft grey background for the button...
+              color: colors.primaryContainer,
+              // ...or use colors.primaryContainer for a Yellowish tint
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: colors.outlineVariant.withValues(alpha: 0.3),
+              ),
+            ),
+            child: Icon(
+              item.icon,
+              size: 28,
+              color: colors.onPrimaryContainer, // Yellow Icon (Brand Color)
+              // OR use colors.onSurface for Black Icon
+            ),
+          ),
+        ),
+        const SizedBox(height: 8),
+        // The Label
+        Text(
+          item.label,
+          textAlign: TextAlign.center,
+          maxLines: 2,
+          style: TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.w600,
+            color: colors.onSurface,
+          ),
+          overflow: TextOverflow.ellipsis,
+        ),
+      ],
     );
   }
 
   Widget _pointDashboard({
     required BuildContext context,
     required int totalPoints,
+    required String? expiryPoints,
   }) {
     return Stack(
       children: [
         Padding(
-          padding: const EdgeInsets.all(15.0),
+          padding: const EdgeInsets.all(20.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -250,18 +250,47 @@ class CustomerHome extends ConsumerWidget {
                   color: Theme.of(context).colorScheme.onPrimary,
                 ),
               ),
-              Text(
-                '$totalPoints pts',
-                style: Theme.of(context).textTheme.headlineSmall!.copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: Theme.of(context).colorScheme.onPrimary,
-                ),
+              const SizedBox(height: 5),
+              Row(
+                spacing: 10,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Text(
+                    '$totalPoints pts',
+                    style: Theme.of(context).textTheme.headlineSmall!.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: Theme.of(context).colorScheme.onPrimary,
+                    ),
+                  ),
+                  if (expiryPoints != null)
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        vertical: 4,
+                        horizontal: 8,
+                      ),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(8),
+                        // Use transparent black for better contrast on Yellow
+                        color: Colors.black.withValues(alpha: 0.1),
+                      ),
+                      child: Text(
+                        expiryPoints,
+                        style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                          color: Theme.of(
+                            context,
+                          ).colorScheme.onPrimary, // Match text color
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                ],
               ),
+
               const SizedBox(height: 20),
               ElevatedButton(
                 onPressed: () => Navigator.of(context).push(
                   MaterialPageRoute(
-                    builder: (context) => const CustomerRewardScreen(),
+                    builder: (context) => const CustomerRedeemedRewardScreen(),
                   ),
                 ),
                 style: ElevatedButton.styleFrom(
@@ -269,7 +298,7 @@ class CustomerHome extends ConsumerWidget {
                   foregroundColor: Theme.of(context).colorScheme.primary,
                 ),
                 child: const Text(
-                  'View Rewards',
+                  'My Rewards',
                   style: TextStyle(fontWeight: FontWeight.bold),
                 ),
               ),
@@ -279,13 +308,17 @@ class CustomerHome extends ConsumerWidget {
 
         // Image with error handling
         Positioned(
-          right: 5,
-          bottom: -17,
-          child: SizedBox(
-            height: MediaQuery.of(context).size.height * 0.18,
-            child: Image.asset(
-              'assets/images/reward.png',
-              fit: BoxFit.contain,
+          right: -7,
+          bottom: -15,
+          child: Opacity(
+            opacity: 0.9, // Slight transparency blends it better
+            child: SizedBox(
+              height: 150, // Slightly bigger
+              child: Image.asset(
+                'assets/images/reward.png',
+                fit: BoxFit.contain,
+                errorBuilder: (_, __, ___) => const SizedBox(),
+              ),
             ),
           ),
         ),
@@ -304,35 +337,11 @@ class CustomerHome extends ConsumerWidget {
           'Upcoming Maintenance',
           style: Theme.of(context).textTheme.titleMedium!.copyWith(
             fontWeight: FontWeight.bold,
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
           ),
         ),
-        const SizedBox(height: 15),
-        nearestMaintenance.isEmpty
-            ? const Center(
-                child: Padding(
-                  padding: EdgeInsets.all(15),
-                  child: Text('No upcoming maintenance'),
-                ),
-              )
-            : ListView.separated(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                itemCount: nearestMaintenance.length,
-                separatorBuilder: (_, __) => const SizedBox(height: 12),
-                itemBuilder: (context, index) {
-                  final m = nearestMaintenance[index];
-                  return MaintenanceListItem(
-                    maintenance: m,
-                    tapAction: () => Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (context) => MaintenanceDetailsScreen(
-                          maintenance: m,
-                        ),
-                      ),
-                    ),
-                  );
-                },
-              ),
+        const SizedBox(height: 10),
+        MaintenanceCarousel(maintenanceList: nearestMaintenance),
       ],
     );
   }

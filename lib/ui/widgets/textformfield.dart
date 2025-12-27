@@ -15,6 +15,7 @@ Widget textFormField({
   VoidCallback? onTap,
   int? minLines,
   int? maxLines,
+  TextCapitalization? textCapitalization
 }) {
   final effectiveMaxLines = obscure ? 1 : maxLines;
   final effectiveMinLines = obscure ? 1 : minLines;
@@ -46,5 +47,6 @@ Widget textFormField({
     obscureText: obscure,
     minLines: effectiveMinLines,
     maxLines: effectiveMaxLines,
+    textCapitalization: textCapitalization ?? TextCapitalization.none,
   );
 }

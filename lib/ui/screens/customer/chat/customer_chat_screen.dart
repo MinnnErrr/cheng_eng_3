@@ -21,15 +21,13 @@ class _CustomerChatScreenState extends ConsumerState<CustomerChatScreen> {
 
     ref.read(chatProvider.notifier).sendMessage(text);
     _textCtrl.clear();
-    _scrollToBottom();
   }
 
   void _scrollToBottom() {
-    // Wait for the list to build then scroll
-    Future.delayed(const Duration(milliseconds: 100), () {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
       if (_scrollCtrl.hasClients) {
         _scrollCtrl.animateTo(
-          _scrollCtrl.position.minScrollExtent,
+          _scrollCtrl.position.maxScrollExtent, // ✅ Scroll to BOTTOM
           duration: const Duration(milliseconds: 300),
           curve: Curves.easeOut,
         );
@@ -55,8 +53,8 @@ class _CustomerChatScreenState extends ConsumerState<CustomerChatScreen> {
         children: [
           Expanded(
             child: ListView.builder(
+              itemCount: messages.length,
               controller: _scrollCtrl,
-              reverse: true,
               itemBuilder: (context, index) {
                 final msg = messages[index];
                 return ChatBubble(message: msg);

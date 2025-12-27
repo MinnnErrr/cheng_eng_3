@@ -29,7 +29,9 @@ class _VehicleCreateScreenState extends ConsumerState<VehicleCreateScreen> {
   final _formKey = GlobalKey<FormState>();
 
   Future<void> _pickImage() async {
-    final picked = await _imagePicker.pickImage(source: ImageSource.camera); // or gallery
+    final picked = await _imagePicker.pickImage(
+      source: ImageSource.camera,
+    ); // or gallery
     if (picked != null) {
       setState(() => _pickedImage = File(picked.path));
     }
@@ -64,6 +66,15 @@ class _VehicleCreateScreenState extends ConsumerState<VehicleCreateScreen> {
             children: [
               // PIC
               _buildImagePicker(),
+              const SizedBox(height: 40),
+
+              Text(
+                "Vehicle Details",
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.bold,
+                  color: Theme.of(context).colorScheme.onSurface,
+                ),
+              ),
               const SizedBox(height: 20),
 
               // FIELDS
@@ -71,33 +82,51 @@ class _VehicleCreateScreenState extends ConsumerState<VehicleCreateScreen> {
               textFormField(
                 controller: _description,
                 label: 'Description', // e.g., "My Work Truck"
-                validationRequired: false, 
+                validationRequired: false,
+                hint: 'e.g. Work Car',
+                textCapitalization: TextCapitalization.sentences,
               ),
-              const SizedBox(height: 15),
-              
+              const SizedBox(height: 20),
+
               textFormField(
                 controller: _regNum,
                 label: 'Registration Number',
+                hint: 'e.g. ABC1234',
+                textCapitalization: TextCapitalization.characters,
               ),
-              const SizedBox(height: 15),
+              const SizedBox(height: 20),
 
               Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Expanded(
-                    child: textFormField(controller: _make, label: 'Make'),
+                    child: textFormField(
+                      controller: _make,
+                      label: 'Make',
+                      textCapitalization: TextCapitalization.words,
+                    ),
                   ),
                   const SizedBox(width: 15),
                   Expanded(
-                    child: textFormField(controller: _model, label: 'Model'),
+                    child: textFormField(
+                      controller: _model,
+                      label: 'Model',
+                      textCapitalization: TextCapitalization.words,
+                    ),
                   ),
                 ],
               ),
-              const SizedBox(height: 15),
+              const SizedBox(height: 20),
 
               Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Expanded(
-                    child: textFormField(controller: _colour, label: 'Colour'),
+                    child: textFormField(
+                      controller: _colour,
+                      label: 'Colour',
+                      textCapitalization: TextCapitalization.words,
+                    ),
                   ),
                   const SizedBox(width: 15),
                   Expanded(
@@ -105,6 +134,7 @@ class _VehicleCreateScreenState extends ConsumerState<VehicleCreateScreen> {
                       controller: _yearController,
                       label: 'Year',
                       readOnly: true,
+                      suffix: const Icon(Icons.calendar_month, size: 20),
                       onTap: () {
                         yearPicker(context, _year, (value) {
                           setState(() {
@@ -117,63 +147,67 @@ class _VehicleCreateScreenState extends ConsumerState<VehicleCreateScreen> {
                   ),
                 ],
               ),
-              const SizedBox(height: 30),
+              const SizedBox(height: 40),
 
               // BUTTON
-              SizedBox(
-                width: double.infinity,
-                height: 50,
-                child: ElevatedButton(
-                  // Disable button while loading to prevent double submission
-                  onPressed: isLoading
-                      ? null
-                      : () async {
-                          if (!_formKey.currentState!.validate()) return;
-                          
-                          // Validate Year manually since it's a specialized field
-                          if (_year == null) {
-                             showAppSnackBar(context: context, content: "Please select a year", isError: true);
-                             return;
-                          }
+              FilledButton(
+                // Disable button while loading to prevent double submission
+                onPressed: isLoading
+                    ? null
+                    : () async {
+                        if (!_formKey.currentState!.validate()) return;
 
-                          // Close keyboard
-                          FocusScope.of(context).unfocus();
-
-                          final success = await vehicleNotifier.addVehicle(
-                            description: _description.text.trim(), // FIX: Was missing
-                            regNum: _regNum.text.trim(),
-                            make: _make.text.trim(),
-                            model: _model.text.trim(),
-                            colour: _colour.text.trim(),
-                            year: _year!,
-                            photo: _pickedImage,
+                        // Validate Year manually since it's a specialized field
+                        if (_year == null) {
+                          showAppSnackBar(
+                            context: context,
+                            content: "Please select a year",
+                            isError: true,
                           );
+                          return;
+                        }
 
-                          if (!context.mounted) return;
-                          
-                          if (success) {
-                            showAppSnackBar(
-                              context: context, 
-                              content: 'Vehicle added successfully',
-                              isError: false,
-                            );
-                            Navigator.of(context).pop();
-                          } else {
-                            showAppSnackBar(
-                              context: context,
-                              content: 'Failed to add vehicle',
-                              isError: true,
-                            );
-                          }
-                        },
-                  child: isLoading
-                      ? const SizedBox(
-                          height: 24,
-                          width: 24,
-                          child: CircularProgressIndicator(),
-                        )
-                      : const Text('Create Vehicle'),
-                ),
+                        // Close keyboard
+                        FocusScope.of(context).unfocus();
+
+                        final success = await vehicleNotifier.addVehicle(
+                          description: _description.text
+                              .trim(), // FIX: Was missing
+                          regNum: _regNum.text.trim(),
+                          make: _make.text.trim(),
+                          model: _model.text.trim(),
+                          colour: _colour.text.trim(),
+                          year: _year!,
+                          photo: _pickedImage,
+                        );
+
+                        if (!context.mounted) return;
+
+                        if (success) {
+                          showAppSnackBar(
+                            context: context,
+                            content: 'Vehicle added successfully',
+                            isError: false,
+                          );
+                          Navigator.of(context).pop();
+                        } else {
+                          showAppSnackBar(
+                            context: context,
+                            content: 'Failed to add vehicle',
+                            isError: true,
+                          );
+                        }
+                      },
+                child: isLoading
+                    ? SizedBox(
+                        height: 24,
+                        width: 24,
+                        child: CircularProgressIndicator(
+                          color: Theme.of(context).colorScheme.onPrimary,
+                          strokeWidth: 2,
+                        ),
+                      )
+                    : const Text('Create Vehicle'),
               ),
             ],
           ),
@@ -183,48 +217,66 @@ class _VehicleCreateScreenState extends ConsumerState<VehicleCreateScreen> {
   }
 
   Widget _buildImagePicker() {
-    return Container(
-      height: 200, // Fixed height for consistency
-      width: double.infinity,
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surfaceContainerHighest, // Better contrast
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey.withValues(alpha: 0.3)),
-      ),
-      clipBehavior: Clip.hardEdge, // Essential for clipping the image
-      child: Stack(
-        fit: StackFit.expand, // Ensures children fill the container
-        children: [
-          if (_pickedImage != null)
-            Image.file(
-              _pickedImage!,
-              fit: BoxFit.cover, // Ensures image covers the box
-              width: double.infinity,
-            )
-          else
-            Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(Icons.add_a_photo, size: 40, color: Colors.grey[600]),
-                const SizedBox(height: 8),
-                Text(
-                  "Tap camera button to add photo",
-                  style: TextStyle(color: Colors.grey[600]),
+    final theme = Theme.of(context).colorScheme;
+
+    // ✅ UX Fix: InkWell makes the WHOLE box clickable, not just the button
+    return InkWell(
+      onTap: _pickImage,
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        height: 200,
+        width: double.infinity,
+        decoration: BoxDecoration(
+          color: theme.surfaceContainerHighest,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: theme.outline.withValues(alpha: 0.2)),
+        ),
+        clipBehavior: Clip.hardEdge,
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            if (_pickedImage != null)
+              Image.file(
+                _pickedImage!,
+                fit: BoxFit.cover,
+                width: double.infinity,
+              )
+            else
+              Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.add_a_photo,
+                    size: 50,
+                    color: theme.onSurfaceVariant,
+                  ),
+                  const SizedBox(height: 10),
+                  Text(
+                    "Tap to add vehicle photo",
+                    style: TextStyle(
+                      color: theme.onSurfaceVariant,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+              ),
+
+            // Decorative Icon in corner to show editability
+            if (_pickedImage != null)
+              Positioned(
+                right: 12,
+                bottom: 12,
+                child: Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: Colors.black54,
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(Icons.edit, color: Colors.white, size: 20),
                 ),
-              ],
-            ),
-            
-          // Floating Button
-          Positioned(
-            right: 12,
-            bottom: 12,
-            child: FloatingActionButton.small(
-              heroTag: 'vehicle_image_picker', // Unique tag prevents conflicts
-              onPressed: _pickImage,
-              child: Icon(_pickedImage == null ? Icons.camera_alt : Icons.edit),
-            ),
-          ),
-        ],
+              ),
+          ],
+        ),
       ),
     );
   }

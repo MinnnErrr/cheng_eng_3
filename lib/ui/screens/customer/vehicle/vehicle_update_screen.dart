@@ -25,30 +25,28 @@ class _VehicleUpdateScreenState extends ConsumerState<VehicleUpdateScreen> {
   final TextEditingController _model = TextEditingController();
   final TextEditingController _colour = TextEditingController();
   final TextEditingController _yearController = TextEditingController();
-  
+
   late int _year;
   File? _pickedImage;
-  String? _imageUrl;
+  String? _imageUrl; // To store existing image URL
 
   final _imagePicker = ImagePicker();
   final _formKey = GlobalKey<FormState>();
 
-  Future<void> _pickImage() async {
-    final picked = await _imagePicker.pickImage(source: ImageSource.camera);
-    if (picked != null) {
-      setState(() => _pickedImage = File(picked.path));
-    }
+  @override
+  void initState() {
+    super.initState();
+    _loadVehicle(widget.vehicle);
   }
 
   void _loadVehicle(Vehicle vehicle) {
     final imageService = ref.read(imageServiceProvider);
 
-    // FIX: Handle potential null values to prevent crashes
     _description.text = vehicle.description ?? "";
     _regNum.text = vehicle.regNum;
     _make.text = vehicle.make;
     _model.text = vehicle.model;
-    _colour.text = vehicle.colour; // FIX: Null safety added
+    _colour.text = vehicle.colour;
 
     _year = vehicle.year;
     _yearController.text = vehicle.year.toString();
@@ -58,10 +56,11 @@ class _VehicleUpdateScreenState extends ConsumerState<VehicleUpdateScreen> {
     }
   }
 
-  @override
-  void initState() {
-    _loadVehicle(widget.vehicle);
-    super.initState();
+  Future<void> _pickImage() async {
+    final picked = await _imagePicker.pickImage(source: ImageSource.camera);
+    if (picked != null) {
+      setState(() => _pickedImage = File(picked.path));
+    }
   }
 
   @override
@@ -85,14 +84,23 @@ class _VehicleUpdateScreenState extends ConsumerState<VehicleUpdateScreen> {
         title: const Text('Update Vehicle'),
       ),
       body: SafeArea(
-        // FIX: Use ListView for better scrolling with keyboard
         child: Form(
           key: _formKey,
           child: ListView(
             padding: const EdgeInsets.all(20),
             children: [
-              // PIC
+              // ✅ IMPROVED IMAGE PICKER (Matches Create Screen)
               _buildImagePicker(),
+              const SizedBox(height: 40),
+
+              Text(
+                "Vehicle Details",
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.bold,
+                  // Use Black/Grey for readability on white
+                  color: Theme.of(context).colorScheme.onSurface,
+                ),
+              ),
               const SizedBox(height: 20),
 
               // FIELDS
@@ -100,58 +108,80 @@ class _VehicleUpdateScreenState extends ConsumerState<VehicleUpdateScreen> {
                 controller: _description,
                 label: 'Description',
                 validationRequired: false,
+                textCapitalization: TextCapitalization.sentences,
               ),
-              const SizedBox(height: 15),
+              const SizedBox(height: 20),
 
               textFormField(
                 controller: _regNum,
                 label: 'Registration Number',
+                textCapitalization: TextCapitalization.characters,
               ),
-              const SizedBox(height: 15),
+              const SizedBox(height: 20),
 
-              textFormField(
-                controller: _make,
-                label: 'Make',
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    child: textFormField(
+                      controller: _make,
+                      label: 'Make',
+                      textCapitalization: TextCapitalization.words,
+                    ),
+                  ),
+                  const SizedBox(width: 15),
+                  Expanded(
+                    child: textFormField(
+                      controller: _model,
+                      label: 'Model',
+                      textCapitalization: TextCapitalization.words,
+                    ),
+                  ),
+                ],
               ),
-              const SizedBox(height: 15),
+              const SizedBox(height: 20),
 
-              textFormField(
-                controller: _model,
-                label: 'Model',
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    child: textFormField(
+                      controller: _colour,
+                      label: 'Colour',
+                      textCapitalization: TextCapitalization.words,
+                    ),
+                  ),
+                  const SizedBox(width: 15),
+                  Expanded(
+                    child: textFormField(
+                      controller: _yearController,
+                      label: 'Year',
+                      readOnly: true,
+                      suffix: const Icon(Icons.calendar_today, size: 20),
+                      onTap: () {
+                        yearPicker(context, _year, (value) {
+                          setState(() {
+                            _year = value.year;
+                            _yearController.text = value.year.toString();
+                          });
+                        });
+                      },
+                    ),
+                  ),
+                ],
               ),
-              const SizedBox(height: 15),
+              const SizedBox(height: 40),
 
-              textFormField(
-                controller: _colour,
-                label: 'Colour',
-              ),
-              const SizedBox(height: 15),
-
-              textFormField(
-                controller: _yearController,
-                label: 'Year',
-                readOnly: true,
-                onTap: () {
-                  yearPicker(context, _year, (value) {
-                    setState(() {
-                      _year = value.year;
-                      _yearController.text = value.year.toString();
-                    });
-                  });
-                },
-              ),
-              const SizedBox(height: 30),
-
+              // BUTTON
               SizedBox(
                 width: double.infinity,
                 height: 50,
                 child: ElevatedButton(
-                  // FIX: Disable button while loading
                   onPressed: isLoading
                       ? null
                       : () async {
                           if (!_formKey.currentState!.validate()) return;
-                          
+
                           FocusScope.of(context).unfocus();
 
                           final success = await vehicleNotifier.updateVehicle(
@@ -168,31 +198,44 @@ class _VehicleUpdateScreenState extends ConsumerState<VehicleUpdateScreen> {
                           );
 
                           if (!context.mounted) return;
-                          
+
                           if (success) {
-                             showAppSnackBar(
+                            showAppSnackBar(
                               context: context,
-                              content: 'Vehicle updated',
+                              content: 'Vehicle updated successfully',
                               isError: false,
                             );
                             Navigator.of(context).pop();
                           } else {
-                             showAppSnackBar(
+                            showAppSnackBar(
                               context: context,
                               content: 'Failed to update vehicle',
                               isError: true,
                             );
                           }
                         },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Theme.of(context).colorScheme.primary,
+                    foregroundColor: Theme.of(context).colorScheme.onPrimary,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
                   child: isLoading
-                      ? const SizedBox(
-                          height: 24, 
-                          width: 24, 
-                          child: CircularProgressIndicator()
+                      ? SizedBox(
+                          height: 24,
+                          width: 24,
+                          child: CircularProgressIndicator(
+                            color: Theme.of(context).colorScheme.onPrimary,
+                            strokeWidth: 2,
+                          ),
                         )
-                      : const Text('Update Vehicle'),
+                      : const Text(
+                          'Update Vehicle',
+                        ),
                 ),
               ),
+              const SizedBox(height: 20),
             ],
           ),
         ),
@@ -201,49 +244,79 @@ class _VehicleUpdateScreenState extends ConsumerState<VehicleUpdateScreen> {
   }
 
   Widget _buildImagePicker() {
-    Widget imageContent;
+    final theme = Theme.of(context).colorScheme;
 
-    if (_pickedImage != null) {
-      imageContent = Image.file(_pickedImage!, fit: BoxFit.cover);
-    } else if (_imageUrl != null) {
-      imageContent = Image.network(
-        _imageUrl!,
-        fit: BoxFit.cover,
-        errorBuilder: (context, error, stackTrace) => const Center(
-          child: Icon(Icons.image_not_supported),
+    return InkWell(
+      onTap: _pickImage,
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        height: 200,
+        width: double.infinity,
+        decoration: BoxDecoration(
+          color: theme.surfaceContainerHighest,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: theme.outline.withValues(alpha: 0.2)),
         ),
-        loadingBuilder: (context, child, loadingProgress) =>
-            loadingProgress == null
-                ? child
-                : const Center(child: CircularProgressIndicator(strokeWidth: 3)),
-      );
-    } else {
-      imageContent = const Center(child: Text("No image selected"));
-    }
+        clipBehavior: Clip.hardEdge,
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            // 1. Show New Image (If picked)
+            if (_pickedImage != null)
+              Image.file(
+                _pickedImage!,
+                fit: BoxFit.cover,
+                width: double.infinity,
+              )
+            // 2. Show Existing Image (If available)
+            else if (_imageUrl != null)
+              Image.network(
+                _imageUrl!,
+                fit: BoxFit.cover,
+                errorBuilder: (_, __, ___) => _buildPlaceholder(theme),
+                loadingBuilder: (context, child, loadingProgress) {
+                  if (loadingProgress == null) return child;
+                  return const Center(child: CircularProgressIndicator());
+                },
+              )
+            // 3. Show Placeholder
+            else
+              _buildPlaceholder(theme),
 
-    return Container(
-      height: 180,
-      width: double.infinity,
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surfaceContainer,
-        borderRadius: BorderRadius.circular(10),
+            // Edit Icon Overlay
+            if (_pickedImage != null || _imageUrl != null)
+              Positioned(
+                right: 12,
+                bottom: 12,
+                child: Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: const BoxDecoration(
+                    color: Colors.black54,
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(Icons.edit, color: Colors.white, size: 20),
+                ),
+              ),
+          ],
+        ),
       ),
-      clipBehavior: Clip.hardEdge, // Clip the corners of the image
-      child: Stack(
-        children: [
-          // FIX: Use Positioned.fill so the image stretches to the Container size
-          Positioned.fill(child: imageContent),
-          
-          Positioned(
-            right: 10,
-            bottom: 10,
-            child: IconButton.filled(
-              onPressed: _pickImage,
-              icon: Icon(_pickedImage == null ? Icons.add_a_photo : Icons.edit),
-            ),
+    );
+  }
+
+  Widget _buildPlaceholder(ColorScheme theme) {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Icon(Icons.add_a_photo, size: 50, color: theme.onSurfaceVariant),
+        const SizedBox(height: 10),
+        Text(
+          "Tap to add photo",
+          style: TextStyle(
+            color: theme.onSurfaceVariant,
+            fontWeight: FontWeight.w500,
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }

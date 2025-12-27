@@ -96,13 +96,13 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                   label: 'Password',
                                   prefixIcon: Icon(Icons.lock),
                                   obscure: _obscurePassword,
-                                  suffix: IconButton(
-                                    onPressed: () {
+                                  suffix: GestureDetector(
+                                    onTap: () {
                                       setState(() {
                                         _obscurePassword = !_obscurePassword;
                                       });
                                     },
-                                    icon: Icon(
+                                    child: Icon(
                                       _obscurePassword
                                           ? Icons.visibility_off
                                           : Icons.visibility,
@@ -115,7 +115,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                 ),
                               ],
                             ),
-                            ElevatedButton(
+                            FilledButton(
                               onPressed: () async {
                                 if (!_formKey.currentState!.validate()) return;
 

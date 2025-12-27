@@ -28,7 +28,6 @@ class VehicleScreen extends ConsumerWidget {
                 ? ListView(
                     physics: const AlwaysScrollableScrollPhysics(),
                     children: [
-                      SizedBox(height: MediaQuery.of(context).size.height * 0.3),
                       const Center(child: Text('No vehicles found')),
                     ],
                   )
@@ -43,26 +42,25 @@ class VehicleScreen extends ConsumerWidget {
                       itemBuilder: (context, index) {
                         final vehicle = vehicles[index];
 
-                        return InkWell(
-                          borderRadius: BorderRadius.circular(12),
+                        return VehicleListitem(
+                          vehicle: vehicle,
+                          descriptionRequired: true,
+                          colourRequired: false,
+                          yearRequired: false,
                           onTap: () => Navigator.of(context).push(
                             MaterialPageRoute(
-                              builder: (context) => VehicleDetailsScreen(
-                                vehicle: vehicle,
-                              ),
+                              builder: (context) =>
+                                  VehicleDetailsScreen(vehicle: vehicle),
                             ),
                           ),
-                          child: VehicleListitem(
-                            vehicle: vehicle,
-                            descriptionRequired: true,
-                            colourRequired: false,
-                            yearRequired: false,
-                            icon: IconButton(
-                              icon: const Icon(Icons.delete, color: Colors.grey),
-                              onPressed: () {
-                                _confirmDelete(context, ref, vehicle.id);
-                              },
+                          icon: IconButton(
+                            icon: const Icon(
+                              Icons.delete_outline,
+                              color: Colors.redAccent,
                             ),
+                            onPressed: () {
+                              _confirmDelete(context, ref, vehicle.id);
+                            },
                           ),
                         );
                       },
@@ -70,7 +68,20 @@ class VehicleScreen extends ConsumerWidget {
                   ),
           );
         },
-        error: (error, _) => Center(child: Text('Error: $error')),
+        error: (error, _) => Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(Icons.error_outline, size: 40, color: Colors.red),
+              const SizedBox(height: 10),
+              const Text('Error loading vehicles'),
+              TextButton(
+                onPressed: () => ref.refresh(customerVehicleProvider),
+                child: const Text('Retry'),
+              ),
+            ],
+          ),
+        ),
         loading: () => const Center(child: CircularProgressIndicator()),
       ),
       floatingActionButton: FloatingActionButton(
@@ -85,13 +96,17 @@ class VehicleScreen extends ConsumerWidget {
   }
 
   Future<void> _confirmDelete(
-      BuildContext context, WidgetRef ref, String vehicleId) async {
+    BuildContext context,
+    WidgetRef ref,
+    String vehicleId,
+  ) async {
     final confirm = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
         title: const Text("Delete Vehicle"),
         content: const Text(
-            "Are you sure you want to delete this vehicle? This action cannot be undone."),
+          "Are you sure you want to delete this vehicle? This action cannot be undone.",
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
@@ -101,7 +116,7 @@ class VehicleScreen extends ConsumerWidget {
             onPressed: () => Navigator.pop(context, true),
             child: const Text(
               "Delete",
-              style: TextStyle(color: Colors.red),
+              style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold),
             ),
           ),
         ],
