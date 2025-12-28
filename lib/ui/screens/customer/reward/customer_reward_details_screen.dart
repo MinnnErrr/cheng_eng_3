@@ -25,279 +25,275 @@ class CustomerRewardDetailsScreen extends ConsumerStatefulWidget {
 class _CustomerRewardDetailsScreenState
     extends ConsumerState<CustomerRewardDetailsScreen> {
   final PageController _pageController = PageController();
-  final _dateFormatter = DateFormat('dd/MM/yyyy').add_jm();
+  final _dateFormatter = DateFormat('dd MMM yyyy');
 
-  // Local loading state for button
   bool _isRedeeming = false;
 
   @override
   Widget build(BuildContext context) {
-    // 1. Keep Realtime Alive
     ref.watch(rewardRealTimeProvider);
 
-    // 2. Auth Safety
     final user = ref.watch(authProvider).value;
     if (user == null) {
-      // Return simple loader, let your main Router handle the redirect logic
       return const Scaffold(body: Center(child: Text('No user found')));
     }
 
-    // 3. OPTIMISTIC UI PATTERN
-    // Use the passed 'widget.reward' immediately.
-    // If the provider updates (realtime), 'rewardAsync.value' will take over.
+    // Optimistic UI
     final rewardAsync = ref.watch(rewardByIdProvider(widget.reward.id));
     final currentReward = rewardAsync.value ?? widget.reward;
 
+    // Points
     final totalPointsAsync = ref.watch(totalPointsProvider(user.id));
 
-    ref.watch(redeemedRewardProvider(user.id));
-    // We only read notifier for actions
+    // Notifier
     final redeemedRewardNotifier = ref.read(
       redeemedRewardProvider(user.id).notifier,
     );
+
+    final theme = Theme.of(context);
 
     return Scaffold(
       appBar: AppBar(
         title: const Text('Reward Details'),
         actions: [
-          GestureDetector(
-            onTap: () => Navigator.of(context).push(
+          IconButton(
+            onPressed: () => Navigator.of(context).push(
               MaterialPageRoute(
                 builder: (context) => const CustomerRedeemedRewardScreen(),
               ),
             ),
-            child: const Icon(Icons.card_giftcard),
+            icon: const Icon(Icons.history),
+            tooltip: "My Redemptions",
           ),
         ],
-        actionsPadding: const EdgeInsets.symmetric(horizontal: 20),
       ),
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.all(20),
           child: Column(
-            spacing: 20, // Requires Flutter 3.27+
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // PHOTO SECTION
-              SizedBox(
-                height: 250,
-                width: double.infinity,
-                child: currentReward.photoPaths.isEmpty
-                    ? Container(
-                        color: Colors.white,
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: const [
-                            Icon(
-                              Icons.image_not_supported,
-                              size: 40,
-                              color: Colors.grey,
+              // --- 1. HERO IMAGE SLIDER ---
+              _buildImageSlider(currentReward, theme),
+
+              Padding(
+                padding: const EdgeInsets.all(20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // --- 2. HEADER INFO ---
+                    if (currentReward.availableUntil != null)
+                      Container(
+                        margin: const EdgeInsets.only(bottom: 8),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 5,
+                        ),
+                        decoration: BoxDecoration(
+                          color: theme.colorScheme.tertiaryContainer,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Text(
+                          'Valid until: ${_dateFormatter.format(currentReward.availableUntil!)}',
+                          style: theme.textTheme.labelSmall?.copyWith(
+                            color: theme.colorScheme.onTertiaryContainer,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+
+                    Text(
+                      currentReward.name,
+                      style: theme.textTheme.headlineSmall?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 5),
+                    Text(
+                      'Code: #${currentReward.code}',
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+
+                    const SizedBox(height: 30),
+
+                    // --- 3. POINTS & STOCK ROW ---
+                    Row(
+                      children: [
+                        Icon(
+                          Icons.stars,
+                          color: theme.colorScheme.primary,
+                          size: 28,
+                        ),
+                        const SizedBox(width: 10),
+                        Text(
+                          '${currentReward.points} Points',
+                          style: theme.textTheme.titleLarge?.copyWith(
+                            fontWeight: FontWeight.bold,
+                            color: theme.colorScheme.onSurface,
+                          ),
+                        ),
+                        const Spacer(),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 6,
+                          ),
+                          decoration: BoxDecoration(
+                            color: currentReward.quantity > 0
+                                ? Colors.green.withValues(alpha: 0.1)
+                                : Colors.red.withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(20),
+                            border: Border.all(
+                              color: currentReward.quantity > 0
+                                  ? Colors.green
+                                  : Colors.red,
                             ),
+                          ),
+                          child: Text(
+                            currentReward.quantity > 0
+                                ? '${currentReward.quantity} in stock'
+                                : 'Out of Stock',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: currentReward.quantity > 0
+                                  ? Colors.green
+                                  : Colors.red,
+                              fontSize: 12,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+
+                    const SizedBox(height: 20),
+                    const Divider(),
+                    const SizedBox(height: 20),
+
+                    // --- 4. DESCRIPTION ---
+                    Text(
+                      'Description',
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      currentReward.description,
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        height: 1.5,
+                        color: theme.colorScheme.onSurface.withValues(
+                          alpha: 0.8,
+                        ),
+                      ),
+                    ),
+
+                    const SizedBox(height: 20),
+
+                    // --- 5. CONDITIONS ---
+                    if (currentReward.conditions != null &&
+                        currentReward.conditions!.isNotEmpty)
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: theme.colorScheme.surfaceContainerHighest
+                              .withValues(alpha: 0.5),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: theme.colorScheme.outlineVariant,
+                          ),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                Icon(
+                                  Icons.info_outline,
+                                  size: 18,
+                                  color: theme.colorScheme.onSurfaceVariant,
+                                ),
+                                const SizedBox(width: 8),
+                                Text(
+                                  'Terms & Conditions',
+                                  style: theme.textTheme.titleSmall?.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 8),
                             Text(
-                              'No image found',
-                              style: TextStyle(color: Colors.grey),
+                              currentReward.conditions!,
+                              style: theme.textTheme.bodySmall?.copyWith(
+                                color: theme.colorScheme.onSurfaceVariant,
+                              ),
                             ),
                           ],
                         ),
-                      )
-                    : Column(
-                        children: [
-                          Expanded(
-                            child: PageView.builder(
-                              controller: _pageController,
-                              itemCount: currentReward.photoPaths.length,
-                              itemBuilder: (context, index) {
-                                final imageService = ref.read(
-                                  imageServiceProvider,
-                                );
-                                final imageUrl = imageService.retrieveImageUrl(
-                                  currentReward.photoPaths[index],
-                                );
+                      ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
 
-                                return ClipRRect(
-                                  borderRadius: BorderRadius.circular(12),
-                                  child: Image.network(
-                                    imageUrl,
-                                    width: double.infinity,
-                                    fit: BoxFit.cover,
-                                    errorBuilder: (_, __, ___) =>
-                                        const Icon(Icons.broken_image),
-                                    loadingBuilder: (context, child, progress) {
-                                      if (progress == null) return child;
-                                      return Center(
-                                        child: CircularProgressIndicator(
-                                          value:
-                                              progress.expectedTotalBytes !=
-                                                  null
-                                              ? progress.cumulativeBytesLoaded /
-                                                    progress.expectedTotalBytes!
-                                              : null,
-                                        ),
-                                      );
-                                    },
-                                  ),
-                                );
-                              },
-                            ),
+      // --- BOTTOM BAR ---
+      bottomNavigationBar: BottomAppBar(
+        height: 90,
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
+        color: theme.colorScheme.surface,
+        child: totalPointsAsync.when(
+          data: (total) {
+            final canAfford = total >= currentReward.points;
+            final hasStock = currentReward.quantity > 0;
+            final isEligible = canAfford && hasStock;
+
+            return Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Row(
+                        children: [
+                          Icon(
+                            Icons.account_balance_wallet_outlined,
+                            size: 16,
+                            color: Colors.grey,
                           ),
-                          const SizedBox(height: 10),
-                          SmoothPageIndicator(
-                            controller: _pageController,
-                            count: currentReward.photoPaths.length,
-                            effect: ExpandingDotsEffect(
-                              dotHeight: 8,
-                              dotWidth: 8,
-                              activeDotColor: Theme.of(
-                                context,
-                              ).colorScheme.primary,
-                              dotColor: Colors.grey.shade400,
-                              expansionFactor: 3,
+                          const SizedBox(width: 4),
+                          Text(
+                            "My Balance",
+                            style: theme.textTheme.labelMedium?.copyWith(
+                              color: Colors.grey,
                             ),
                           ),
                         ],
                       ),
-              ),
-
-              // AVAILABILITY BANNER
-              if (currentReward.availableUntil != null)
-                Container(
-                  width: double.infinity,
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.primaryContainer,
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  padding: const EdgeInsets.all(10),
-                  child: Text(
-                    'Available until ${_dateFormatter.format(currentReward.availableUntil!)}',
-                    style: Theme.of(context).textTheme.bodySmall!.copyWith(
-                      fontWeight: FontWeight.bold,
-                      color: Theme.of(context).colorScheme.onPrimaryContainer,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                ),
-
-              // DETAILS CARD
-              Container(
-                width: double.infinity,
-                decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.surfaceContainerLowest,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                padding: const EdgeInsets.all(20),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      '#${currentReward.code}',
-                      style: Theme.of(context).textTheme.bodyLarge!.copyWith(
-                        fontWeight: FontWeight.bold,
-                        color: Theme.of(context).colorScheme.primary,
-                      ),
-                    ),
-                    const SizedBox(height: 5),
-                    Text(
-                      currentReward.name,
-                      style: Theme.of(context).textTheme.headlineSmall!
-                          .copyWith(fontWeight: FontWeight.bold, fontSize: 20),
-                    ),
-                    const SizedBox(height: 20),
-                    Row(
-                      children: [
-                        const Text('Points required: '),
-                        Text(
-                          '${currentReward.points} pts',
-                          style: Theme.of(context).textTheme.bodyLarge!
-                              .copyWith(
-                                fontWeight: FontWeight.bold,
-                                color: Theme.of(context).colorScheme.primary,
-                              ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-
-              // DESCRIPTION
-              Container(
-                width: double.infinity,
-                decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.surfaceContainer,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                padding: const EdgeInsets.all(20),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      'Description',
-                      style: TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                    const SizedBox(height: 5),
-                    Text(currentReward.description),
-                  ],
-                ),
-              ),
-
-              // REMARKS / CONDITIONS
-              if (currentReward.conditions != null &&
-                  currentReward.conditions!.isNotEmpty)
-                Container(
-                  width: double.infinity,
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.errorContainer,
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  padding: const EdgeInsets.all(20),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        'Conditions',
-                        style: TextStyle(fontWeight: FontWeight.bold),
-                      ),
-                      const SizedBox(height: 5),
+                      const SizedBox(height: 2),
                       Text(
-                        currentReward.conditions!,
-                        style: TextStyle(
-                          color: Theme.of(context).colorScheme.onErrorContainer,
+                        '$total pts',
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.bold,
+                          color: canAfford
+                              ? theme.colorScheme.onSurface
+                              : theme.colorScheme.error,
                         ),
                       ),
                     ],
                   ),
                 ),
-            ],
-          ),
-        ),
-      ),
-      bottomNavigationBar: BottomAppBar(
-        height: 100,
-        child: totalPointsAsync.when(
-          data: (total) {
-            final canAfford = total >= currentReward.points;
-
-            return Row(
-              children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Text("You have"),
-                    Text(
-                      '$total pts',
-                      style: Theme.of(context).textTheme.titleLarge!.copyWith(
-                        fontWeight: FontWeight.bold,
-                        color: canAfford ? Colors.green : Colors.red,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(width: 20),
                 Expanded(
+                  flex: 2,
                   child: SizedBox(
                     height: 50,
-                    child: ElevatedButton(
-                      onPressed: (canAfford && !_isRedeeming)
+                    child: FilledButton(
+                      onPressed: (isEligible && !_isRedeeming)
                           ? () => _confirmRedemption(
                               context,
                               redeemedRewardNotifier,
@@ -305,27 +301,27 @@ class _CustomerRewardDetailsScreenState
                               user.id,
                             )
                           : null,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: canAfford
-                            ? Theme.of(context).colorScheme.primary
-                            : Colors.grey.shade300,
-                        foregroundColor: canAfford
-                            ? Theme.of(context).colorScheme.onPrimary
-                            : Colors.grey.shade600,
+                      style: FilledButton.styleFrom(
+                        backgroundColor: theme.colorScheme.primary,
+                        foregroundColor: theme.colorScheme.onPrimary,
+                        disabledBackgroundColor: Colors.grey.shade300,
                       ),
                       child: _isRedeeming
                           ? const SizedBox(
                               height: 20,
                               width: 20,
-                              child: CircularProgressIndicator(
-                                color: Colors.white,
-                                strokeWidth: 2,
-                              ),
+                              child: CircularProgressIndicator(strokeWidth: 2),
                             )
                           : Text(
-                              canAfford
-                                  ? 'Redeem Reward'
-                                  : 'Insufficient Points',
+                              !hasStock
+                                  ? 'Out of Stock'
+                                  : !canAfford
+                                  ? 'Not enough points'
+                                  : 'Redeem Now',
+                              textAlign: TextAlign.center,
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
                     ),
                   ),
@@ -340,7 +336,101 @@ class _CustomerRewardDetailsScreenState
     );
   }
 
-  // Confirmation Dialog + Redemption Logic
+  Widget _buildImageSlider(Reward reward, ThemeData theme) {
+    if (reward.photoPaths.isEmpty) {
+      return Container(
+        height: 300,
+        width: double.infinity,
+        color: theme.colorScheme.surfaceContainerHigh,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.image_not_supported_outlined,
+              size: 48,
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'No image provided',
+              style: TextStyle(color: theme.colorScheme.onSurfaceVariant),
+            ),
+          ],
+        ),
+      );
+    }
+
+    final imageService = ref.read(imageServiceProvider);
+
+    return SizedBox(
+      height: 300,
+      child: Stack(
+        alignment: Alignment.bottomCenter,
+        children: [
+          PageView.builder(
+            controller: _pageController,
+            itemCount: reward.photoPaths.length,
+            itemBuilder: (context, index) {
+              final imageUrl = imageService.retrieveImageUrl(
+                reward.photoPaths[index],
+              );
+              return Image.network(
+                imageUrl,
+                fit: BoxFit.cover,
+                width: double.infinity,
+                errorBuilder: (_, __, ___) => Container(
+                  color: theme.colorScheme.surfaceContainer,
+                  child: const Center(child: Icon(Icons.broken_image)),
+                ),
+                loadingBuilder: (_, child, loading) {
+                  if (loading == null) return child;
+                  return Center(
+                    child: CircularProgressIndicator(
+                      color: theme.colorScheme.primary,
+                    ),
+                  );
+                },
+              );
+            },
+          ),
+          Positioned(
+            bottom: 0,
+            left: 0,
+            right: 0,
+            height: 60,
+            child: Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    Colors.transparent,
+                    Colors.black.withValues(alpha: 0.5),
+                  ],
+                ),
+              ),
+            ),
+          ),
+          if (reward.photoPaths.length > 1)
+            Positioned(
+              bottom: 16,
+              child: SmoothPageIndicator(
+                controller: _pageController,
+                count: reward.photoPaths.length,
+                effect: ExpandingDotsEffect(
+                  dotHeight: 8,
+                  dotWidth: 8,
+                  activeDotColor: Colors.white,
+                  dotColor: Colors.white.withValues(alpha: 0.5),
+                  expansionFactor: 3,
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
   Future<void> _confirmRedemption(
     BuildContext context,
     RedeemedRewardNotifier notifier,
@@ -350,7 +440,7 @@ class _CustomerRewardDetailsScreenState
     final confirm = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text("Confirm Redemption"),
+        title: const Text("Redeem Reward"),
         content: Text(
           "Use ${reward.points} points to redeem '${reward.name}'?",
         ),
@@ -361,7 +451,7 @@ class _CustomerRewardDetailsScreenState
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
-            child: const Text("Redeem"),
+            child: const Text("Confirm"),
           ),
         ],
       ),
@@ -385,7 +475,7 @@ class _CustomerRewardDetailsScreenState
         );
 
         if (message.isSuccess) {
-          Navigator.pop(context); // Optional: Go back after success
+          Navigator.pop(context);
         }
       }
     }

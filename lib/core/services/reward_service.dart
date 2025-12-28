@@ -27,6 +27,7 @@ class RewardService {
         .select()
         .isFilter('deletedAt', null)
         .eq('status', true)
+        .gt('quantity', 0)
         .order('createdAt', ascending: false);
     return data.map<Reward>((p) => Reward.fromJson(p)).toList();
   }

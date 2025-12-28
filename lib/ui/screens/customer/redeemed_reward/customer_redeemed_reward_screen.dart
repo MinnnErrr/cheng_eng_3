@@ -6,13 +6,14 @@ import 'package:cheng_eng_3/utils/search_sort_filter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+// ... imports ...
+
 class CustomerRedeemedRewardScreen extends ConsumerStatefulWidget {
   const CustomerRedeemedRewardScreen({super.key});
 
   @override
-  ConsumerState<ConsumerStatefulWidget> createState() {
-    return _CustomerRedeemedRewardScreenState();
-  }
+  ConsumerState<CustomerRedeemedRewardScreen> createState() =>
+      _CustomerRedeemedRewardScreenState();
 }
 
 class _CustomerRedeemedRewardScreenState
@@ -28,18 +29,16 @@ class _CustomerRedeemedRewardScreenState
 
   @override
   Widget build(BuildContext context) {
-    // 1. Safe User Check
     final user = ref.watch(authProvider).value;
     if (user == null) {
       return const Scaffold(body: Center(child: Text('No user found')));
     }
 
     final redeemedRewards = ref.watch(redeemedRewardProvider(user.id));
+    final theme = Theme.of(context);
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('My Rewards'),
-      ),
+      appBar: AppBar(title: const Text('My Rewards')),
       body: redeemedRewards.when(
         data: (rewards) {
           final searched = searchRedeemedReward(
@@ -47,109 +46,105 @@ class _CustomerRedeemedRewardScreenState
             search: _search,
           );
 
-          return SafeArea(
-            child: Padding(
-              padding: const EdgeInsets.all(20.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  // --- SEARCH BAR ---
-                  TextField(
-                    controller: _searchCtrl,
-                    onChanged: (v) => setState(() => _search = v),
-                    decoration: InputDecoration(
-                      hintText: "Search name...",
-                      prefixIcon: const Icon(Icons.search),
-                      suffixIcon: _search.isNotEmpty
-                          ? IconButton(
-                              icon: const Icon(Icons.clear),
-                              onPressed: () {
-                                _searchCtrl.clear();
-                                setState(() => _search = "");
-                              },
-                            )
-                          : null,
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10),
-                      ),
+          return Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                const SizedBox(height: 10),
+
+                // --- SEARCH BAR (Improved) ---
+                TextField(
+                  controller: _searchCtrl,
+                  onChanged: (v) => setState(() => _search = v),
+                  decoration: InputDecoration(
+                    hintText: "Search my rewards...",
+                    prefixIcon: Icon(
+                      Icons.search,
+                      color: theme.colorScheme.onSurfaceVariant,
                     ),
+                    filled: true,
+                    fillColor: theme.colorScheme.surfaceContainerHighest,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide.none,
+                    ),
+                    contentPadding: const EdgeInsets.symmetric(vertical: 0),
+                    suffixIcon: _search.isNotEmpty
+                        ? IconButton(
+                            icon: const Icon(Icons.clear),
+                            onPressed: () {
+                              _searchCtrl.clear();
+                              setState(() => _search = "");
+                            },
+                          )
+                        : null,
                   ),
+                ),
 
-                  const SizedBox(height: 20),
+                const SizedBox(height: 20),
 
-                  // --- LIST ---
-                  Expanded(
-                    child: RefreshIndicator(
-                      onRefresh: () async =>
-                          ref.refresh(redeemedRewardProvider(user.id).future),
-                      child: searched.isEmpty
-                          // FIX: Scrollable Empty State
-                          ? ListView(
-                              physics: const AlwaysScrollableScrollPhysics(),
-                              children: [
-                                SizedBox(
-                                    height: MediaQuery.of(context).size.height *
-                                        0.3),
-                                const Center(child: Text('No reward found')),
-                              ],
-                            )
-                          : ListView.separated(
-                              physics: const AlwaysScrollableScrollPhysics(),
-                              itemCount: searched.length,
-                              separatorBuilder: (_, __) =>
-                                  const SizedBox(height: 10),
-                              itemBuilder: (_, i) {
-                                final r = searched[i];
-
-                                // Helper logic for readability
-                                final isExpired = r.expiryDate != null &&
-                                    r.expiryDate!.isBefore(DateTime.now());
-                                final isDisabled = !r.isClaimed && isExpired;
-
-                                return InkWell(
-                                  borderRadius: BorderRadius.circular(10),
-                                  // Disable tap if expired and not claimed
-                                  onTap: isDisabled
-                                      ? null
-                                      : () => Navigator.of(context).push(
-                                            MaterialPageRoute(
-                                              builder: (context) =>
-                                                  CustomerRedeemedRewardDetailsScreen(
-                                                reward: r,
-                                              ),
-                                            ),
-                                          ),
-                                  child: Opacity(
-                                    // Visual cue that it is disabled
-                                    opacity: isDisabled ? 0.5 : 1.0,
-                                    child: RedeemedRewardListitem(
-                                      redeemedReward: r,
+                // --- LIST ---
+                Expanded(
+                  child: RefreshIndicator(
+                    onRefresh: () async =>
+                        ref.refresh(redeemedRewardProvider(user.id).future),
+                    child: searched.isEmpty
+                        ? ListView(
+                            physics: const AlwaysScrollableScrollPhysics(),
+                            children: [
+                              SizedBox(
+                                height:
+                                    MediaQuery.of(context).size.height * 0.3,
+                              ),
+                              Center(
+                                child: Column(
+                                  children: [
+                                    Icon(
+                                      Icons.confirmation_number_outlined,
+                                      size: 60,
+                                      color: Colors.grey.shade300,
                                     ),
+                                    const SizedBox(height: 10),
+                                    const Text(
+                                      'No rewards found',
+                                      style: TextStyle(color: Colors.grey),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          )
+                        : ListView.separated(
+                            padding: const EdgeInsets.only(bottom: 20),
+                            physics: const AlwaysScrollableScrollPhysics(),
+                            itemCount: searched.length,
+                            separatorBuilder: (_, __) =>
+                                const SizedBox(height: 12),
+                            itemBuilder: (_, i) {
+                              final r = searched[i];
+
+                              return RedeemedRewardListitem(
+                                redeemedReward: r,
+                                onTap: () => Navigator.of(context).push(
+                                  MaterialPageRoute(
+                                    builder: (context) =>
+                                        CustomerRedeemedRewardDetailsScreen(
+                                          reward: r,
+                                        ),
                                   ),
-                                );
-                              },
-                            ),
-                    ),
+                                ),
+                              );
+                            },
+                          ),
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
           );
         },
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, _) => Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text('Error: $e'),
-              ElevatedButton(
-                onPressed: () =>
-                    ref.invalidate(redeemedRewardProvider(user.id)),
-                child: const Text('Retry'),
-              ),
-            ],
-          ),
-        ),
+        error: (e, _) => Center(child: Text('Error: $e')),
       ),
     );
   }

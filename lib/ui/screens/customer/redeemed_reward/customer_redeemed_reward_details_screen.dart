@@ -27,235 +27,246 @@ class CustomerRedeemedRewardDetailsScreen extends ConsumerStatefulWidget {
 class _CustomerRedeemedRewardDetailsScreenState
     extends ConsumerState<CustomerRedeemedRewardDetailsScreen> {
   final PageController _pageController = PageController();
-  final _dateFormatter = DateFormat('dd/MM/yyyy').add_jm();
+  final _dateFormatter = DateFormat('dd MMM yyyy, h:mm a'); // More readable
 
   @override
   Widget build(BuildContext context) {
-    // 1. Safe Auth Check
     final user = ref.watch(authProvider).value;
     if (user == null) {
       return const Scaffold(body: Center(child: Text('No user found')));
     }
 
-    // 2. Realtime Updates
     ref.watch(redeemedRewardRealTimeProvider);
 
-    // 3. Optimistic UI Pattern
-    // Watch for updates, but default to the widget.reward passed from the list.
     final asyncReward = ref.watch(
       redeeemdRewardByIdProvider(widget.reward.id),
     );
     final displayReward = asyncReward.value ?? widget.reward;
+    final theme = Theme.of(context);
 
     return Scaffold(
       appBar: AppBar(
         title: const Text('Reward Details'),
         actions: [
           IconButton(
-            // Pass data directly, no need for local state variables
             onPressed: () => _showQrDialog(context, user.id, displayReward.id),
-            icon: const Icon(Icons.qr_code),
+            icon: const Icon(
+              Icons.qr_code,
+            ),
+            style: IconButton.styleFrom(foregroundColor: Color(0xFF9E7C00)),
+            tooltip: "Show QR Code",
           ),
         ],
       ),
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.all(20),
           child: Column(
-            spacing: 20, // Requires Flutter 3.27+, else use SizedBox
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // PHOTO CAROUSEL
-              SizedBox(
-                height: 250,
-                width: double.infinity,
-                child: displayReward.photoPaths.isEmpty
-                    ? Container(
-                        color: Colors.white,
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: const [
-                            Icon(Icons.image_not_supported, size: 40, color: Colors.grey),
-                            Text('No image found', style: TextStyle(color: Colors.grey)),
-                          ],
-                        ),
-                      )
-                    : Column(
-                        children: [
-                          Expanded(
-                            child: PageView.builder(
-                              controller: _pageController,
-                              itemCount: displayReward.photoPaths.length,
-                              itemBuilder: (context, index) {
-                                final imageService = ref.read(imageServiceProvider);
-                                final imageUrl = imageService.retrieveImageUrl(
-                                  displayReward.photoPaths[index],
-                                );
+              // 1. HERO IMAGE SLIDER (Fixed Layout)
+              _buildImageSlider(displayReward, theme),
 
-                                return ClipRRect(
-                                  borderRadius: BorderRadius.circular(12),
-                                  child: Image.network(
-                                    imageUrl,
-                                    width: double.infinity,
-                                    fit: BoxFit.cover,
-                                    errorBuilder: (_, __, ___) => const Icon(Icons.broken_image),
-                                    loadingBuilder: (context, child, progress) {
-                                      if (progress == null) return child;
-                                      return Center(
-                                        child: CircularProgressIndicator(
-                                          value: progress.expectedTotalBytes != null
-                                              ? progress.cumulativeBytesLoaded /
-                                                  progress.expectedTotalBytes!
-                                              : null,
-                                        ),
-                                      );
-                                    },
-                                  ),
-                                );
-                              },
-                            ),
-                          ),
-                          const SizedBox(height: 10),
-                          SmoothPageIndicator(
-                            controller: _pageController,
-                            count: displayReward.photoPaths.length,
-                            effect: ExpandingDotsEffect(
-                              dotHeight: 8,
-                              dotWidth: 8,
-                              activeDotColor: Theme.of(context).colorScheme.primary,
-                              dotColor: Colors.grey.shade400,
-                              expansionFactor: 3,
-                            ),
-                          ),
-                        ],
-                      ),
-              ),
-
-              // EXPIRY BANNER
-              if (displayReward.expiryDate != null)
-                Container(
-                  width: double.infinity,
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.errorContainer,
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  padding: const EdgeInsets.all(10),
-                  child: Text(
-                    'Expiry Date: ${_dateFormatter.format(displayReward.expiryDate!)}',
-                    style: Theme.of(context).textTheme.bodySmall!.copyWith(
-                          fontWeight: FontWeight.bold,
-                          color: Theme.of(context).colorScheme.onErrorContainer,
-                        ),
-                    textAlign: TextAlign.center,
-                  ),
-                ),
-
-              // DETAILS
-              Container(
-                width: double.infinity,
-                decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.surfaceContainerLowest,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                padding: const EdgeInsets.all(20),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Text(
-                      '#${displayReward.code}',
-                      style: Theme.of(context).textTheme.bodyLarge!.copyWith(
-                            fontWeight: FontWeight.bold,
-                            color: Theme.of(context).colorScheme.primary,
-                          ),
-                    ),
-                    const SizedBox(height: 5),
-                    Text(
-                      displayReward.name,
-                      style: Theme.of(context).textTheme.headlineSmall!.copyWith(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 20
-                      ),
-                    ),
-                    const SizedBox(height: 20),
-                    
-                    // Metadata Rows
-                    _buildMetaRow(
-                      context, 
-                      'Status', 
-                      displayReward.isClaimed ? 'Claimed' : 'Unclaimed',
-                      valueColor: displayReward.isClaimed ? Colors.green : Colors.orange,
-                    ),
-                    const SizedBox(height: 10),
-                    _buildMetaRow(
-                      context, 
-                      'Redeemed at', 
-                      _dateFormatter.format(displayReward.createdAt)
-                    ),
-                    const SizedBox(height: 10),
-                    _buildMetaRow(
-                      context, 
-                      'Updated at', 
-                      displayReward.updatedAt != null 
-                        ? _dateFormatter.format(displayReward.updatedAt!) 
-                        : '-'
-                    ),
-                    const SizedBox(height: 10),
-                    _buildMetaRow(
-                      context, 
-                      'Points used', 
-                      '${displayReward.points} pts',
-                      valueColor: Theme.of(context).colorScheme.primary
-                    ),
-                  ],
-                ),
-              ),
-
-              // DESCRIPTION
-              Container(
-                width: double.infinity,
-                decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.surfaceContainer,
-                  borderRadius: BorderRadius.circular(12),
-                ),
+              Padding(
                 padding: const EdgeInsets.all(20),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
-                      'Description',
-                      style: TextStyle(fontWeight: FontWeight.bold),
+                    // 2. EXPIRY BANNER
+                    if (displayReward.expiryDate != null)
+                      Container(
+                        width: double.infinity,
+                        margin: const EdgeInsets.only(bottom: 20),
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: displayReward.isClaimed
+                              ? Colors
+                                    .grey
+                                    .shade200 // Grey if used
+                              : theme
+                                    .colorScheme
+                                    .errorContainer, // Red if active/expiring
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.access_time_filled,
+                              size: 18,
+                              color: displayReward.isClaimed
+                                  ? Colors.grey
+                                  : theme.colorScheme.onErrorContainer,
+                            ),
+                            const SizedBox(width: 8),
+                            Text(
+                              'Expires: ${_dateFormatter.format(displayReward.expiryDate!)}',
+                              style: theme.textTheme.bodyMedium!.copyWith(
+                                fontWeight: FontWeight.bold,
+                                color: displayReward.isClaimed
+                                    ? Colors.grey.shade700
+                                    : theme.colorScheme.onErrorContainer,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+
+                    // 3. TITLE & STATUS
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                '#${displayReward.code}',
+                                style: theme.textTheme.titleMedium!.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                  color: Color(0xFF9E7C00),
+                                  letterSpacing: 1.0,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                displayReward.name,
+                                style: theme.textTheme.headlineSmall!.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        // Status Chip
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 6,
+                          ),
+                          decoration: BoxDecoration(
+                            color: displayReward.isClaimed
+                                ? Colors.grey.shade100
+                                : Colors.green.shade50,
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(
+                              color: displayReward.isClaimed
+                                  ? Colors.grey
+                                  : Colors.green,
+                            ),
+                          ),
+                          child: Text(
+                            displayReward.isClaimed ? 'USED' : 'ACTIVE',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: displayReward.isClaimed
+                                  ? Colors.grey
+                                  : Colors.green.shade700,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
-                    const SizedBox(height: 5),
-                    Text(displayReward.description),
+
+                    const SizedBox(height: 20),
+
+                    // 4. METADATA GRID
+                    Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: theme.colorScheme.surfaceContainerHighest
+                            .withValues(alpha: 0.3),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: theme.colorScheme.outlineVariant,
+                        ),
+                      ),
+                      child: Column(
+                        children: [
+                          _buildMetaRow(
+                            context,
+                            'Redeemed On',
+                            _dateFormatter.format(displayReward.createdAt),
+                          ),
+                          const Divider(height: 24),
+                          _buildMetaRow(
+                            context,
+                            'Points Used',
+                            '${displayReward.points} pts',
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    const SizedBox(height: 30),
+
+                    // 5. DESCRIPTION
+                    Text(
+                      'Description',
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      displayReward.description,
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        height: 1.5,
+                        color: theme.colorScheme.onSurface.withValues(
+                          alpha: 0.8,
+                        ),
+                      ),
+                    ),
+
+                    const SizedBox(height: 30),
+
+                    // 6. REMARKS (Friendly Style)
+                    if (displayReward.conditions?.isNotEmpty == true)
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: theme.colorScheme.surfaceContainer,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: theme.colorScheme.outlineVariant,
+                          ),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                Icon(
+                                  Icons.info_outline,
+                                  size: 18,
+                                  color: theme.colorScheme.onSurfaceVariant,
+                                ),
+                                const SizedBox(width: 8),
+                                Text(
+                                  'Terms & Conditions',
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    color: theme.colorScheme.onSurfaceVariant,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              displayReward.conditions!,
+                              style: TextStyle(
+                                color: theme.colorScheme.onSurfaceVariant,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+
+                    // Bottom Padding
+                    const SizedBox(height: 40),
                   ],
                 ),
               ),
-
-              // REMARKS
-              if (displayReward.conditions != null && displayReward.conditions!.isNotEmpty)
-                Container(
-                  width: double.infinity,
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.errorContainer,
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  padding: const EdgeInsets.all(20),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        'Remarks',
-                        style: TextStyle(fontWeight: FontWeight.bold),
-                      ),
-                      const SizedBox(height: 5),
-                      Text(
-                        displayReward.conditions!,
-                        style: TextStyle(
-                          color: Theme.of(context).colorScheme.onErrorContainer,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
             ],
           ),
         ),
@@ -263,13 +274,117 @@ class _CustomerRedeemedRewardDetailsScreenState
     );
   }
 
-  Widget _buildMetaRow(BuildContext context, String label, String value, {Color? valueColor}) {
+  // ✅ Fixed Image Slider (No Expanded issue)
+  Widget _buildImageSlider(RedeemedReward reward, ThemeData theme) {
+    if (reward.photoPaths.isEmpty) {
+      return Container(
+        height: 250,
+        width: double.infinity,
+        color: theme.colorScheme.surfaceContainerHigh,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.image_not_supported_outlined,
+              size: 48,
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'No image found',
+              style: TextStyle(color: theme.colorScheme.onSurfaceVariant),
+            ),
+          ],
+        ),
+      );
+    }
+
+    final imageService = ref.read(imageServiceProvider);
+
+    return SizedBox(
+      height: 250,
+      child: Stack(
+        alignment: Alignment.bottomCenter,
+        children: [
+          PageView.builder(
+            controller: _pageController,
+            itemCount: reward.photoPaths.length,
+            itemBuilder: (context, index) {
+              final imageUrl = imageService.retrieveImageUrl(
+                reward.photoPaths[index],
+              );
+              return Image.network(
+                imageUrl,
+                width: double.infinity,
+                fit: BoxFit.cover,
+                errorBuilder: (_, __, ___) =>
+                    Container(color: Colors.grey.shade200),
+                loadingBuilder: (_, child, loading) {
+                  if (loading == null) return child;
+                  return const Center(child: CircularProgressIndicator());
+                },
+              );
+            },
+          ),
+
+          // Gradient
+          Positioned(
+            bottom: 0,
+            left: 0,
+            right: 0,
+            height: 50,
+            child: Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    Colors.transparent,
+                    Colors.black.withValues(alpha: 0.5),
+                  ],
+                ),
+              ),
+            ),
+          ),
+
+          // Dots
+          if (reward.photoPaths.length > 1)
+            Positioned(
+              bottom: 12,
+              child: SmoothPageIndicator(
+                controller: _pageController,
+                count: reward.photoPaths.length,
+                effect: const ExpandingDotsEffect(
+                  dotHeight: 8,
+                  dotWidth: 8,
+                  activeDotColor: Colors.white,
+                  dotColor: Colors.white54,
+                  expansionFactor: 3,
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMetaRow(
+    BuildContext context,
+    String label,
+    String value, {
+    Color? valueColor,
+  }) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(label, style: const TextStyle(color: Colors.grey)),
         Text(
-          value, 
+          label,
+          style: TextStyle(
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
+          ),
+        ),
+        Text(
+          value,
           style: TextStyle(
             fontWeight: FontWeight.bold,
             color: valueColor ?? Theme.of(context).colorScheme.onSurface,
@@ -288,34 +403,57 @@ class _CustomerRedeemedRewardDetailsScreenState
     showDialog(
       context: context,
       builder: (context) => Dialog(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(15), // FIX: correct method
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         child: Padding(
-          padding: const EdgeInsets.all(20),
+          padding: const EdgeInsets.all(24),
           child: Column(
-            mainAxisSize: MainAxisSize.min, // FIX: Don't take full height
+            mainAxisSize: MainAxisSize.min,
             children: [
-              const Text(
-                'Show this QR to the staff for claiming the reward',
-                textAlign: TextAlign.center,
-                style: TextStyle(fontWeight: FontWeight.bold),
+              Text(
+                'Scan to Claim',
+                style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 8),
+              Text(
+                'Show this code to the staff',
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
+              ),
+              const SizedBox(height: 24),
+
+              // White container ensures high contrast for scanning
               Container(
-                color: Colors.white, // Ensure high contrast for scanner
-                padding: const EdgeInsets.all(10),
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.1),
+                      blurRadius: 10,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
                 child: QrImageView(
                   data: qrData,
                   version: QrVersions.auto,
                   size: 200,
+                  backgroundColor: Colors.white,
                 ),
               ),
-              const SizedBox(height: 10),
-              TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: const Text("Close"),
-              )
+
+              const SizedBox(height: 24),
+              SizedBox(
+                width: double.infinity,
+                child: FilledButton.tonal(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text("Close"),
+                ),
+              ),
             ],
           ),
         ),

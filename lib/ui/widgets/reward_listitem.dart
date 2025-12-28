@@ -10,136 +10,165 @@ class RewardListitem extends ConsumerWidget {
     super.key,
     required this.reward,
     required this.isStaff,
+    this.onTap, // ✅ Added onTap here
   });
 
   final Reward reward;
   final bool isStaff;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final imageService = ref.read(imageServiceProvider);
-    final screenSize = MediaQuery.of(context).size;
-    final dateformatter = DateFormat('dd/MM/yyyy').add_jm();
+    final theme = Theme.of(context);
+    final dateFormatter = DateFormat('dd MMM yyyy');
 
     return Card(
       clipBehavior: Clip.hardEdge,
-      color: Theme.of(context).colorScheme.surfaceContainer,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-      child: Column(
-        children: [
-          if (reward.availableUntil != null)
-            Container(
-              padding: EdgeInsets.all(5),
-              width: double.infinity,
-              color: Theme.of(context).colorScheme.primaryContainer,
-              child: Text(
-                'Available until: ${dateformatter.format(reward.availableUntil!)}',
-                style: Theme.of(context).textTheme.bodySmall!.copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: Theme.of(context).colorScheme.onPrimaryContainer,
+      child: InkWell(
+        onTap: onTap, // ✅ InkWell is now INSIDE the card
+        child: Column(
+          children: [
+            // --- BANNER (Optional) ---
+            if (reward.availableUntil != null)
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(
+                  vertical: 4,
+                  horizontal: 12,
+                ),
+                color: theme.colorScheme.primaryContainer,
+                child: Text(
+                  'Available until: ${dateFormatter.format(reward.availableUntil!)}',
+                  style: theme.textTheme.labelSmall!.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: theme.colorScheme.onPrimaryContainer,
+                  ),
+                  textAlign: TextAlign.center,
                 ),
               ),
-            ),
-          IntrinsicHeight(
-            child: Padding(
-              padding: const EdgeInsets.all(10.0),
+
+            // --- CONTENT ROW ---
+            Padding(
+              padding: const EdgeInsets.all(12.0),
               child: Row(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  //picture
-                  imageBuilder(
-                    url: reward.photoPaths.isNotEmpty
-                        ? imageService.retrieveImageUrl(reward.photoPaths.first)
-                        : null,
-                    containerWidth: screenSize.width * 0.22,
-                    containerHeight: double.infinity,
-                    noImageContent: Container(
-                      color: Colors.white,
-                      child: Icon(Icons.redeem),
+                  // 1. IMAGE
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(8),
+                    child: imageBuilder(
+                      url: reward.photoPaths.isNotEmpty
+                          ? imageService.retrieveImageUrl(
+                              reward.photoPaths.first,
+                            )
+                          : null,
+                      containerWidth: 80,
+                      containerHeight: 80,
+                      noImageContent: Container(
+                        width: 80,
+                        height: 80,
+                        color: theme.colorScheme.surfaceContainerHigh,
+                        child: Icon(
+                          Icons.redeem,
+                          color: theme.colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                      context: context,
                     ),
-                    context: context,
                   ),
 
-                  const SizedBox(
-                    width: 10,
-                  ),
+                  const SizedBox(width: 16),
 
-                  //details
+                  // 2. DETAILS
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
+                      // ✅ Removed MainAxisAlignment.spaceBetween (relied on IntrinsicHeight)
                       children: [
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              '#${reward.code}',
-                              overflow: TextOverflow.ellipsis,
-                              maxLines: 1,
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            Text(
-                              reward.name,
-                              overflow: TextOverflow.ellipsis,
-                              maxLines: 2,
-                            ),
-
-                            const SizedBox(
-                              height: 20,
-                            ),
-
-                            Text(
-                              '${reward.points.toString()} pts',
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                color: Theme.of(context).colorScheme.primary,
-                              ),
-                            ),
-                          ],
+                        Text(
+                          reward.name,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: theme.textTheme.titleMedium?.copyWith(
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          'Code: #${reward.code}',
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: theme.colorScheme.onSurfaceVariant,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          '${reward.points} pts',
+                          style: theme.textTheme.titleMedium?.copyWith(
+                            fontWeight: FontWeight.w800,
+                            color: Color(0xFF9E7C00),
+                          ),
                         ),
                       ],
                     ),
                   ),
 
-                  if (isStaff == true)
-                    Column(
-                      children: [
-                        const SizedBox(
-                          width: 20,
-                        ),
-                        Chip(
-                          side: BorderSide.none,
-                          label: Text(
-                            reward.status == true ? 'Active' : 'Inactive',
-                            style: TextStyle(color: Colors.white),
-                          ),
-                          labelStyle: Theme.of(context).textTheme.labelSmall,
-                          padding: EdgeInsets.all(0),
-                          backgroundColor: reward.status == true
-                              ? Colors.green
-                              : Theme.of(context).colorScheme.error,
-                        ),
-
-                        const Spacer(),
-
-                        Text(
-                          'Qty: ${reward.quantity}',
-                          style: Theme.of(context).textTheme.bodySmall!
-                              .copyWith(
-                                color: reward.quantity > 0
-                                    ? Colors.grey
-                                    : Theme.of(context).colorScheme.error,
+                  // 3. STAFF CONTROLS (Right Side)
+                  if (isStaff)
+                    Padding(
+                      padding: const EdgeInsets.only(left: 8.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          // Status Chip
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 4,
+                            ),
+                            decoration: BoxDecoration(
+                              color: reward.status
+                                  ? Colors.green.withValues(alpha: 0.1)
+                                  : theme.colorScheme.errorContainer,
+                              borderRadius: BorderRadius.circular(6),
+                              border: Border.all(
+                                color: reward.status
+                                    ? Colors.green
+                                    : theme.colorScheme.error,
                               ),
-                        ),
-                      ],
+                            ),
+                            child: Text(
+                              reward.status ? 'Active' : 'Inactive',
+                              style: theme.textTheme.labelSmall?.copyWith(
+                                fontWeight: FontWeight.bold,
+                                color: reward.status
+                                    ? Colors.green.shade700
+                                    : theme.colorScheme.error,
+                              ),
+                            ),
+                          ),
+
+                          // ✅ Replaced Spacer with fixed SizedBox for performance
+                          const SizedBox(height: 20),
+
+                          // Qty Text
+                          Text(
+                            'Qty: ${reward.quantity}',
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              fontWeight: FontWeight.bold,
+                              color: reward.quantity > 0
+                                  ? theme.colorScheme.onSurface
+                                  : theme.colorScheme.error,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                 ],
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

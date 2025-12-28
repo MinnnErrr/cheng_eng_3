@@ -25,7 +25,11 @@ Color getTowingStatusColor(String status, BuildContext context) {
   }
 }
 
-Color getProductAvailabilityColor(String status, int? quantity, BuildContext context) {
+Color getProductAvailabilityColor(
+  String status,
+  int? quantity,
+  BuildContext context,
+) {
   switch (status.toLowerCase()) {
     case 'ready stock':
       return quantity! > 0 ? Colors.green : Theme.of(context).colorScheme.error;
@@ -36,3 +40,11 @@ Color getProductAvailabilityColor(String status, int? quantity, BuildContext con
   }
 }
 
+Color getRedeemedRewardStatusColor(bool isClaimed, BuildContext context) {
+  switch (isClaimed) {
+    case true:
+      return Colors.grey;
+    case false:
+      return Colors.green;
+  }
+}

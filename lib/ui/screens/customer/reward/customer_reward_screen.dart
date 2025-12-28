@@ -36,88 +36,125 @@ class _CustomerRewardScreenState extends ConsumerState<CustomerRewardScreen> {
             search: _search,
           );
 
-          return SafeArea(
-            child: Padding(
-              padding: const EdgeInsets.all(20.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  // --- SEARCH BAR ---
-                  TextField(
-                    controller: _searchCtrl,
-                    onChanged: (v) => setState(() => _search = v),
-                    decoration: InputDecoration(
-                      hintText: "Search name...",
-                      prefixIcon: const Icon(Icons.search),
-                      // Added Clear Button
-                      suffixIcon: _search.isNotEmpty
-                          ? IconButton(
-                              icon: const Icon(Icons.clear),
-                              onPressed: () {
-                                _searchCtrl.clear();
-                                setState(() => _search = "");
-                              },
-                            )
-                          : null,
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10),
-                      ),
+          return Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                const SizedBox(height: 10),
+
+                // --- SEARCH BAR ---
+                TextField(
+                  controller: _searchCtrl,
+                  onChanged: (v) => setState(() => _search = v),
+                  decoration: InputDecoration(
+                    filled: true,
+                    fillColor: Theme.of(
+                      context,
+                    ).colorScheme.surfaceContainerHighest,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide:
+                          BorderSide.none, // Removes the underline/outline
                     ),
+                    hintText: "Search rewards...",
+                    hintStyle: TextStyle(
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
+                    prefixIcon: Icon(
+                      Icons.search,
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
+                    contentPadding: const EdgeInsets.symmetric(
+                      vertical: 14,
+                      horizontal: 16,
+                    ),
+
+                    suffixIcon: _search.isNotEmpty
+                        ? IconButton(
+                            icon: const Icon(Icons.clear),
+                            onPressed: () {
+                              _searchCtrl.clear();
+                              setState(() => _search = "");
+                            },
+                          )
+                        : null,
                   ),
+                ),
 
-                  const SizedBox(height: 20),
+                const SizedBox(height: 20),
 
-                  // --- REWARD LIST ---
-                  Expanded(
-                    child: RefreshIndicator(
-                      onRefresh: () async =>
-                          ref.refresh(customerRewardsProvider.future),
-                      child: searched.isEmpty
-                          // FIX: Scrollable Empty State allows refreshing
-                          ? ListView(
-                              physics: const AlwaysScrollableScrollPhysics(),
-                              children: [
-                                SizedBox(
-                                    height: MediaQuery.of(context).size.height *
-                                        0.3),
-                                const Center(child: Text('No reward found')),
-                              ],
-                            )
-                          : ListView.separated(
-                              physics: const AlwaysScrollableScrollPhysics(),
-                              itemCount: searched.length,
-                              separatorBuilder: (_, __) =>
-                                  const SizedBox(height: 10),
-                              itemBuilder: (_, i) {
-                                final r = searched[i];
-                                return InkWell(
-                                  borderRadius: BorderRadius.circular(10),
-                                  onTap: () => Navigator.of(context).push(
-                                    MaterialPageRoute(
-                                      builder: (context) =>
-                                          CustomerRewardDetailsScreen(
-                                        reward: r,
-                                      ),
+                // --- REWARD LIST ---
+                Expanded(
+                  child: RefreshIndicator(
+                    onRefresh: () async =>
+                        ref.refresh(customerRewardsProvider.future),
+                    child: searched.isEmpty
+                        ? ListView(
+                            physics: const AlwaysScrollableScrollPhysics(),
+                            children: [
+                              SizedBox(
+                                height:
+                                    MediaQuery.of(context).size.height * 0.3,
+                              ),
+                              Center(
+                                child: Column(
+                                  children: [
+                                    Icon(
+                                      Icons.redeem,
+                                      size: 60,
+                                      color: Colors.grey.shade300,
                                     ),
+                                    const SizedBox(height: 10),
+                                    const Text(
+                                      'No rewards found',
+                                      style: TextStyle(color: Colors.grey),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          )
+                        : ListView.separated(
+                            padding: const EdgeInsets.only(bottom: 20),
+                            physics: const AlwaysScrollableScrollPhysics(),
+                            itemCount: searched.length,
+                            separatorBuilder: (_, __) =>
+                                const SizedBox(height: 12),
+                            itemBuilder: (_, i) {
+                              final r = searched[i];
+                              return RewardListitem(
+                                reward: r,
+                                isStaff: false,
+                                onTap: () => Navigator.of(context).push(
+                                  MaterialPageRoute(
+                                    builder: (context) =>
+                                        CustomerRewardDetailsScreen(reward: r),
                                   ),
-                                  child: RewardListitem(
-                                    reward: r,
-                                    isStaff: false,
-                                  ),
-                                );
-                              },
-                            ),
-                    ),
+                                ),
+                              );
+                            },
+                          ),
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
           );
         },
         loading: () => const Center(child: CircularProgressIndicator()),
-        // Error State with Retry
-         error: (error, stackTrace) => Center(
-          child: Text('Error: $error'),
+        error: (error, stackTrace) => Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(Icons.error_outline, color: Colors.red, size: 40),
+              const SizedBox(height: 10),
+              Text('Error: $error'),
+              TextButton(
+                onPressed: () => ref.refresh(customerRewardsProvider),
+                child: const Text("Retry"),
+              ),
+            ],
+          ),
         ),
       ),
     );
