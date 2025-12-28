@@ -38,8 +38,8 @@ class _MaintenanceUpdateScreenState
 
   @override
   void initState() {
-    _loadMaintenance();
     super.initState();
+    _loadMaintenance();
   }
 
   void _loadMaintenance() {
@@ -48,10 +48,12 @@ class _MaintenanceUpdateScreenState
     _currentDist.text = widget.maintenance.currentServDistance.toString();
     _nextDist.text = widget.maintenance.nextServDistance.toString();
     _remarks.text = widget.maintenance.remarks ?? '';
+
     _currentDate = widget.maintenance.currentServDate;
     _currentDateCtrl.text = _dateFormatter.format(
       widget.maintenance.currentServDate,
     );
+
     _nextDate = widget.maintenance.nextServDate;
     _nextDateCtrl.text = _dateFormatter.format(widget.maintenance.nextServDate);
   }
@@ -70,144 +72,228 @@ class _MaintenanceUpdateScreenState
 
   @override
   Widget build(BuildContext context) {
-    // Watch specific loading state
     final isLoading = ref.watch(maintenanceProvider).isLoading;
     final maintenanceNotifier = ref.read(maintenanceProvider.notifier);
+    final theme = Theme.of(context);
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Update Maintenance'),
-      ),
+      appBar: AppBar(title: const Text('Update Maintenance')),
+      backgroundColor: theme.colorScheme.surface,
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(20),
           child: Form(
             key: _formKey,
             child: Column(
-              spacing: 20, // Requires Flutter 3.27+
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                textFormField(
-                  controller: _title,
-                  label: 'Title',
-                ),
-                textFormField(
-                  controller: _desc,
-                  label: 'Description',
-                  maxLines: null,
-                  minLines: 3,
-                  validationRequired: false,
-                ),
-                
-                // --- CURRENT SERVICE ---
-                textFormField(
-                  controller: _currentDateCtrl,
-                  label: 'Current Service Date',
-                  readOnly: true,
-                  suffix: IconButton(
-                    onPressed: () async {
-                      final date = await datePicker(_currentDate, context);
-                      if (date != null) {
-                        setState(() {
-                          _currentDate = date;
-                          _currentDateCtrl.text = _dateFormatter.format(date);
-                        });
-                      }
-                    },
-                    icon: const Icon(Icons.calendar_month),
-                  ),
-                ),
-                textFormField(
-                  controller: _currentDist,
-                  label: 'Current Service Distance (KM)',
-                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                // --- SECTION 1: BASIC INFO ---
+                _buildSectionHeader("Service Details", theme),
+                Column(
+                  children: [
+                    textFormField(
+                      controller: _title,
+                      label: 'Service Title',
+                      textCapitalization: TextCapitalization.sentences,
+                      prefixIcon: const Icon(Icons.build_circle_outlined),
+                    ),
+                    const SizedBox(height: 16),
+                    textFormField(
+                      controller: _desc,
+                      label: 'Description',
+                      maxLines: 3,
+                      validationRequired: false,
+                      textCapitalization: TextCapitalization.sentences,
+                    ),
+                  ],
                 ),
 
-                // --- NEXT SERVICE ---
-                textFormField(
-                  controller: _nextDateCtrl,
-                  label: 'Next Service Date',
-                  readOnly: true,
-                  suffix: IconButton(
-                    onPressed: () async {
-                      final date = await datePicker(_nextDate, context);
-                      if (date != null) {
-                        setState(() {
-                          _nextDate = date;
-                          _nextDateCtrl.text = _dateFormatter.format(date);
-                        });
-                      }
-                    },
-                    icon: const Icon(Icons.calendar_month),
-                  ),
-                ),
-                textFormField(
-                  controller: _nextDist,
-                  label: 'Next Service Distance (KM)',
-                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                const SizedBox(
+                  height: 30,
                 ),
 
+                // --- SECTION 2: CURRENT STATUS ---
+                _buildSectionHeader("Current Service", theme),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      child: textFormField(
+                        controller: _currentDateCtrl,
+                        label: 'Date Done',
+                        readOnly: true,
+                        suffix: const Icon(Icons.calendar_today, size: 20),
+                        onTap: () async {
+                          final date = await datePicker(
+                            _currentDate,
+                            context,
+                          );
+                          if (date != null) {
+                            setState(() {
+                              _currentDate = date;
+                              _currentDateCtrl.text = _dateFormatter.format(
+                                date,
+                              );
+                            });
+                          }
+                        },
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: textFormField(
+                        controller: _currentDist,
+                        label: 'Mileage',
+                        suffix: Text('km'),
+                        keyboardType: const TextInputType.numberWithOptions(
+                          decimal: true,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+
+                const SizedBox(height: 30),
+
+                // --- SECTION 3: NEXT SERVICE (Highlight) ---
+                _buildSectionHeader("Next Service Requirement", theme),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      child: textFormField(
+                        controller: _nextDateCtrl,
+                        label: 'Due Date',
+                        readOnly: true,
+                        suffix: const Icon(Icons.event, size: 20),
+                        onTap: () async {
+                          final date = await datePicker(_nextDate, context);
+                          if (date != null) {
+                            setState(() {
+                              _nextDate = date;
+                              _nextDateCtrl.text = _dateFormatter.format(
+                                date,
+                              );
+                            });
+                          }
+                        },
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: textFormField(
+                        controller: _nextDist,
+                        label: 'Due Mileage',
+                        suffix: Text('km'),
+                        keyboardType: const TextInputType.numberWithOptions(
+                          decimal: true,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+
+                const SizedBox(height: 30),
+
+                // --- REMARKS ---
                 textFormField(
                   controller: _remarks,
-                  label: 'Remarks',
-                  maxLines: null,
-                  minLines: 3,
+                  label: 'Remarks / Notes',
+                  maxLines: 3,
                   validationRequired: false,
+                  textCapitalization: TextCapitalization.sentences,
+                  prefixIcon: const Icon(Icons.note_alt_outlined),
                 ),
+
+                const SizedBox(height: 30),
 
                 // --- UPDATE BUTTON ---
-                SizedBox(
-                  width: double.infinity,
-                  height: 50,
-                  child: ElevatedButton(
-                    // FIX 1: Disable button while loading
-                    onPressed: isLoading
-                        ? null
-                        : () async {
-                            if (!_formKey.currentState!.validate()) return;
-                            
-                            FocusScope.of(context).unfocus(); // Close keyboard
+                FilledButton(
+                  onPressed: isLoading
+                      ? null
+                      : () async {
+                          if (!_formKey.currentState!.validate()) return;
 
-                            final success = await maintenanceNotifier.updateMaintenance(
-                              id: widget.maintenance.id,
-                              title: _title.text.trim(),
-                              // FIX 2: Pass description
-                              description: _desc.text.trim().isEmpty 
-                                  ? null 
-                                  : _desc.text.trim(),
-                              currentServDate: _currentDate,
-                              currentServDistance: double.tryParse(_currentDist.text.trim()) ?? 0.0,
-                              nextServDate: _nextDate,
-                              nextServDistance: double.tryParse(_nextDist.text.trim()) ?? 0.0,
-                              // FIX 3: Pass remarks
-                              remarks: _remarks.text.trim().isEmpty 
-                                  ? null 
-                                  : _remarks.text.trim(),
-                            );
+                          FocusScope.of(context).unfocus();
 
-                            if (!context.mounted) return;
-                            
+                          final success = await maintenanceNotifier
+                              .updateMaintenance(
+                                id: widget.maintenance.id,
+                                title: _title.text.trim(),
+                                description: _desc.text.trim().isEmpty
+                                    ? null
+                                    : _desc.text.trim(),
+                                currentServDate: _currentDate,
+                                currentServDistance:
+                                    double.tryParse(
+                                      _currentDist.text.trim(),
+                                    ) ??
+                                    0.0,
+                                nextServDate: _nextDate,
+                                nextServDistance:
+                                    double.tryParse(_nextDist.text.trim()) ??
+                                    0.0,
+                                remarks: _remarks.text.trim().isEmpty
+                                    ? null
+                                    : _remarks.text.trim(),
+                              );
+
+                          if (!context.mounted) return;
+
+                          if (success) {
                             showAppSnackBar(
                               context: context,
-                              content: success
-                                  ? 'Maintenance record updated'
-                                  : 'Failed to update maintenance record',
-                              isError: !success,
+                              content: 'Maintenance record updated',
+                              isError: false,
                             );
-
-                            if (success) Navigator.of(context).pop();
-                          },
-                    child: isLoading
-                        ? const SizedBox(
-                            height: 24,
-                            width: 24,
-                            child: CircularProgressIndicator(),
-                          )
-                        : const Text('Update Maintenance'),
+                            Navigator.of(context).pop();
+                          } else {
+                            showAppSnackBar(
+                              context: context,
+                              content: 'Failed to update maintenance record',
+                              isError: true,
+                            );
+                          }
+                        },
+                  style: FilledButton.styleFrom(
+                    backgroundColor: theme.colorScheme.primary,
+                    foregroundColor: theme.colorScheme.onPrimary,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                   ),
+                  child: isLoading
+                      ? const SizedBox(
+                          height: 24,
+                          width: 24,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : const Text(
+                          'Update Record',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
                 ),
+
+                const SizedBox(height: 20),
               ],
             ),
           ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSectionHeader(String title, ThemeData theme) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 20),
+      child: Text(
+        title,
+        style: theme.textTheme.titleSmall?.copyWith(
+          fontWeight: FontWeight.bold,
+          color: theme.colorScheme.onSurfaceVariant,
+          letterSpacing: 0.5,
         ),
       ),
     );
