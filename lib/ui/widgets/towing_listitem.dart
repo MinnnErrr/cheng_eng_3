@@ -15,68 +15,85 @@ class TowingListItem extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // final timeFormatter = DateFormat('dd/MM/yyyy').add_jm();
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
 
-    return InkWell(
-      onTap: tapAction,
-      child: Card(
-        color: Theme.of(context).colorScheme.surfaceContainer,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+    return Card(
+      clipBehavior: Clip.hardEdge,
+      child: InkWell(
+        onTap: tapAction, // ✅ InkWell is now INSIDE the card
         child: Padding(
-          padding: EdgeInsets.all(10),
-          child: IntrinsicHeight(
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                //details
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        towing.regNum,
-                        style: TextStyle(fontWeight: FontWeight.bold),
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-
-                      Text(
-                        '${towing.make}, ${towing.model} | ${towing.colour}',
-                      ),
-
-                      const SizedBox(
-                        height: 20,
-                      ),
-
-                      Row(
-                        children: [
-                          Icon(size: 20, Icons.location_on),
-                          const SizedBox(
-                            width: 5,
-                          ),
-                          Text(
-                            towing.address,
-                            softWrap: true,
-                          ),
-                        ],
-                      ),
-                    ],
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // --- ROW 1: Reg Num & Status ---
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    towing.regNum.toUpperCase(),
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: 0.5,
+                    ),
                   ),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 4,
+                    ),
+                    decoration: BoxDecoration(
+                      color: getTowingStatusColor(towing.status, context),
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    child: Text(
+                      towing.status,
+                      style: theme.textTheme.labelSmall?.copyWith(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+
+              const SizedBox(height: 4),
+
+              // --- ROW 2: Car Details ---
+              Text(
+                '${towing.make} ${towing.model} | ${towing.colour}',
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: colorScheme.onSurfaceVariant, // Grey text
                 ),
-                Chip(
-                  side: BorderSide.none,
-                  label: Text(
-                    towing.status,
-                    style: TextStyle(color: Colors.white),
+              ),
+
+              const SizedBox(height: 16),
+              const Divider(height: 1),
+              const SizedBox(height: 12),
+
+              // --- ROW 3: Location (Safe from Overflow) ---
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Icon(
+                    Icons.location_on_outlined,
+                    size: 18,
+                    color:Colors.red, 
                   ),
-                  labelStyle: Theme.of(context).textTheme.labelSmall,
-                  padding: EdgeInsets.all(0),
-                  backgroundColor: getTowingStatusColor(
-                    towing.status, context
+                  const SizedBox(width: 8),
+                  // ✅ FIX: Expanded prevents long addresses from crashing the layout
+                  Expanded(
+                    child: Text(
+                      towing.address,
+                      style: theme.textTheme.bodyMedium,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
                   ),
-                ),
-              ],
-            ),
+                ],
+              ),
+            ],
           ),
         ),
       ),

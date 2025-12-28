@@ -7,7 +7,7 @@ import 'package:cheng_eng_3/core/models/vehicle_model.dart';
 import 'package:cheng_eng_3/ui/screens/customer/towing/towing_screen.dart';
 import 'package:cheng_eng_3/ui/widgets/snackbar.dart';
 import 'package:cheng_eng_3/ui/widgets/textformfield.dart';
-import 'package:cheng_eng_3/ui/widgets/vehicle_listItem.dart';
+import 'package:cheng_eng_3/ui/widgets/vehicle_listitem.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_intl_phone_field/flutter_intl_phone_field.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -33,8 +33,7 @@ class TowingSubmitScreen extends ConsumerStatefulWidget {
 class _TowingSubmitScreenState extends ConsumerState<TowingSubmitScreen> {
   final _remarksCtrl = TextEditingController();
   final _vehicleCtrl = TextEditingController();
-  
-  // Local loading state for the submit button
+
   bool _isLoading = false;
 
   String _countryCode = 'MY';
@@ -55,7 +54,6 @@ class _TowingSubmitScreenState extends ConsumerState<TowingSubmitScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // 1. Safety Check: Ensure user is loaded
     final userState = ref.watch(authProvider);
     final user = userState.value;
 
@@ -65,165 +63,218 @@ class _TowingSubmitScreenState extends ConsumerState<TowingSubmitScreen> {
 
     final vehicleList = ref.watch(customerVehicleProvider).value;
     final vehicles = vehicleList?.vehicles ?? [];
-    
-    // We only read the notifier here, we don't watch the state for loading
-    // because we handle button loading locally
+
     final towingNotifier = ref.read(customerTowingsProvider(user.id).notifier);
+    final theme = Theme.of(context);
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Submit Towing Request'),
-      ),
+      appBar: AppBar(title: const Text('Submit Towing Request')),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(20),
           child: Form(
             key: _formKey,
             child: Column(
-              spacing: 20, // Requires Flutter 3.27+
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Address Box
+                // --- 1. LOCATION CARD ---
+                _buildSectionLabel('Location Details', theme),
+                const SizedBox(height: 10),
                 Container(
-                  padding: const EdgeInsets.all(20),
                   width: double.infinity,
+                  padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(10),
-                    color: Theme.of(context).colorScheme.surfaceContainer,
+                    color: theme.colorScheme.surfaceContainer,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: theme.colorScheme.outlineVariant.withValues(
+                        alpha: 0.6,
+                      ),
+                    ),
                   ),
-                  child: Column(
+                  child: Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text(
-                        'Address:',
-                        style: TextStyle(fontWeight: FontWeight.bold),
+                      Icon(
+                        Icons.location_on,
+                        color: Colors.red,
+                        size: 28,
                       ),
-                      Text(
-                        widget.address,
-                        softWrap: true,
-                      ),
-                      const SizedBox(height: 10),
-                      Row(
-                        children: [
-                          const Icon(Icons.location_on, size: 20, color: Colors.red),
-                          const SizedBox(width: 5),
-                          Expanded(
-                            child: Text(
-                              '${widget.latitude.toStringAsFixed(5)}, ${widget.longitude.toStringAsFixed(5)}',
-                              style: Theme.of(context).textTheme.bodySmall,
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              widget.address,
+                              style: const TextStyle(
+                                fontWeight: FontWeight.w600,
+                                fontSize: 15,
+                              ),
                             ),
-                          ),
-                        ],
+                            const SizedBox(height: 4),
+                            Text(
+                              '${widget.latitude.toStringAsFixed(5)}, ${widget.longitude.toStringAsFixed(5)}',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: theme.colorScheme.onSurfaceVariant,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     ],
                   ),
                 ),
 
-                // Emergency number
+                const SizedBox(height: 30),
+
+                // --- 2. CONTACT INFO ---
+                _buildSectionLabel('Contact Info', theme),
+                const SizedBox(height: 20),
                 IntlPhoneField(
                   initialCountryCode: 'MY',
                   initialValue: _phoneNum,
-                  decoration: const InputDecoration(
-                    labelText: 'Emergency Phone Number',
-                    border: OutlineInputBorder(),
+                  decoration: InputDecoration(
+                    labelText: 'Phone Number',
+                    filled: true,
+                    fillColor: theme.colorScheme.surfaceContainerHigh,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide.none,
+                    ),
+                    hintStyle: TextStyle(
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
+                    labelStyle: TextStyle(
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
+                    floatingLabelStyle: TextStyle(
+                      color: theme.colorScheme.onSurfaceVariant,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                   onChanged: (value) {
-                    // Update state variables directly
                     _dialCode = value.countryCode;
                     _countryCode = value.countryISOCode;
                     _phoneNum = value.number;
                   },
                 ),
 
-                // Vehicle Selection
+                const SizedBox(height: 10),
+
+                // --- 3. VEHICLE ---
                 textFormField(
                   controller: _vehicleCtrl,
-                  label: 'Vehicle',
-                  readOnly: true, 
+                  label: 'Select Vehicle',
+                  readOnly: true,
+                  suffix: const Icon(Icons.arrow_drop_down),
                   onTap: () => _showVehicleModal(context, vehicles),
                 ),
 
-                // Remarks
+                const SizedBox(height: 20),
+
+                // --- 4. DETAILS ---
                 textFormField(
                   controller: _remarksCtrl,
-                  label: 'Remarks',
-                  maxLines: null,
-                  minLines: 3,
+                  label: 'Remarks (Optional)',
+                  maxLines: 3,
                   validationRequired: false,
+                  textCapitalization: TextCapitalization.sentences,
                 ),
 
-                // Picture
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  spacing: 10,
-                  children: [
-                    const Text(
-                      'Picture of surrounding',
-                      style: TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                    _buildImagePicker(),
-                  ],
-                ),
-                
+                const SizedBox(height: 30),
+
+                // --- 5. IMAGE ---
+                _buildSectionLabel('Photo Evidence', theme),
                 const SizedBox(height: 10),
+                _buildImagePicker(theme),
 
-                // Submit Button
+                const SizedBox(height: 30),
+
+                // --- SUBMIT BUTTON ---
                 SizedBox(
                   width: double.infinity,
-                  height: 50,
-                  child: ElevatedButton(
-                    onPressed: _isLoading 
-                      ? null 
-                      : () async {
-                        if (!_formKey.currentState!.validate()) return;
-                        
-                        if (_phoneNum == null || _phoneNum!.isEmpty) {
-                           showAppSnackBar(context: context, content: "Please enter a phone number", isError: true);
-                           return;
-                        }
+                  height: 54,
+                  child: FilledButton(
+                    onPressed: _isLoading
+                        ? null
+                        : () async {
+                            if (!_formKey.currentState!.validate()) return;
 
-                        setState(() => _isLoading = true);
+                            if (_phoneNum == null || _phoneNum!.isEmpty) {
+                              showAppSnackBar(
+                                context: context,
+                                content: "Please enter a phone number",
+                                isError: true,
+                              );
+                              return;
+                            }
+                            if (_vehicle == null) {
+                              showAppSnackBar(
+                                context: context,
+                                content: "Please select a vehicle",
+                                isError: true,
+                              );
+                              return;
+                            }
 
-                        // FIX: Pass the picked image to the notifier
-                        final success = await towingNotifier.addTowing(
-                          latitude: widget.latitude,
-                          longitude: widget.longitude,
-                          address: widget.address,
-                          phoneNum: _phoneNum!,
-                          dialCode: _dialCode,
-                          countryCode: _countryCode,
-                          remarks: _remarksCtrl.text.trim().isEmpty 
-                              ? null 
-                              : _remarksCtrl.text.trim(),
-                          vehicle: _vehicle!,
-                          photo: _pickedImage, // <--- CRITICAL FIX
-                        );
+                            setState(() => _isLoading = true);
 
-                        if (!context.mounted) return;
-                        
-                        setState(() => _isLoading = false);
+                            final success = await towingNotifier.addTowing(
+                              latitude: widget.latitude,
+                              longitude: widget.longitude,
+                              address: widget.address,
+                              phoneNum: _phoneNum!,
+                              dialCode: _dialCode,
+                              countryCode: _countryCode,
+                              remarks: _remarksCtrl.text.trim().isEmpty
+                                  ? null
+                                  : _remarksCtrl.text.trim(),
+                              vehicle: _vehicle!,
+                              photo: _pickedImage,
+                            );
 
-                        showAppSnackBar(
-                          context: context,
-                          content: success
-                              ? 'Towing request submitted'
-                              : 'Failed to submit towing request',
-                          isError: !success,
-                        );
+                            if (!context.mounted) return;
+                            setState(() => _isLoading = false);
 
-                        if (success) {
-                          Navigator.of(context).pushAndRemoveUntil(
-                            MaterialPageRoute(
-                              builder: (context) => const TowingScreen(),
-                            ),
-                            (route) => route.isFirst,
-                          );
-                        }
-                      },
+                            showAppSnackBar(
+                              context: context,
+                              content: success
+                                  ? 'Towing request submitted successfully'
+                                  : 'Failed to submit towing request',
+                              isError: !success,
+                            );
+
+                            if (success) {
+                              Navigator.of(context).pushAndRemoveUntil(
+                                MaterialPageRoute(
+                                  builder: (context) => const TowingScreen(),
+                                ),
+                                (route) => route.isFirst,
+                              );
+                            }
+                          },
+                    style: FilledButton.styleFrom(
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
                     child: _isLoading
-                        ? const SizedBox(height: 24, width: 24, child: CircularProgressIndicator())
-                        : const Text('Submit Request'),
+                        ? const SizedBox(
+                            height: 24,
+                            width: 24,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : const Text(
+                            'Submit Request',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
                   ),
                 ),
+                const SizedBox(height: 20),
               ],
             ),
           ),
@@ -232,104 +283,146 @@ class _TowingSubmitScreenState extends ConsumerState<TowingSubmitScreen> {
     );
   }
 
-  Widget _buildImagePicker() {
-    Widget imageContent;
+  Widget _buildSectionLabel(String text, ThemeData theme) {
+    return Text(
+      text,
+      style: theme.textTheme.titleSmall?.copyWith(
+        fontWeight: FontWeight.bold,
+        color: theme.colorScheme.onSurfaceVariant,
+      ),
+    );
+  }
 
-    if (_pickedImage != null) {
-      imageContent = Image.file(_pickedImage!, fit: BoxFit.cover);
-    } else {
-      imageContent = Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: const [
-          Icon(Icons.camera_alt, color: Colors.grey, size: 40),
-          Text("No image selected", style: TextStyle(color: Colors.grey)),
-        ],
-      );
-    }
-
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(10),
+  Widget _buildImagePicker(ThemeData theme) {
+    return InkWell(
+      onTap: _pickImage,
+      borderRadius: BorderRadius.circular(12),
       child: Container(
         height: 180,
         width: double.infinity,
         decoration: BoxDecoration(
-          color: Theme.of(context).colorScheme.surfaceContainer,
-          borderRadius: BorderRadius.circular(10),
-          border: Border.all(color: Colors.grey.shade300),
+          color: theme.colorScheme.surfaceContainerHighest,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: theme.colorScheme.outline.withValues(alpha: 0.2),
+          ),
         ),
-        child: Stack(
-          children: [
-            // FIX: Ensure image fills the container
-            Positioned.fill(child: imageContent),
-            
-            Positioned(
-              right: 10,
-              bottom: 10,
-              child: IconButton.filled(
-                onPressed: _pickImage,
-                icon: Icon(_pickedImage == null ? Icons.add : Icons.edit),
+        clipBehavior: Clip.hardEdge,
+        child: _pickedImage != null
+            ? Stack(
+                fit: StackFit.expand,
+                children: [
+                  Image.file(_pickedImage!, fit: BoxFit.cover),
+                  Positioned(
+                    right: 12,
+                    bottom: 12,
+                    child: Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: Colors.black54,
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(
+                        Icons.edit,
+                        color: Colors.white,
+                        size: 20,
+                      ),
+                    ),
+                  ),
+                ],
+              )
+            : Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.add_a_photo,
+                    size: 50,
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
+                  const SizedBox(height: 10),
+                  Text(
+                    "Tap to add vehicle photo",
+                    style: TextStyle(
+                      color: theme.colorScheme.onSurfaceVariant,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
               ),
-            ),
-          ],
-        ),
       ),
     );
   }
 
   void _showVehicleModal(BuildContext context, List<Vehicle> vehicles) {
     if (vehicles.isEmpty) {
-      showAppSnackBar(context: context, content: "No vehicles found. Please add a vehicle first.", isError: true);
+      showAppSnackBar(
+        context: context,
+        content: "No vehicles found. Please add a vehicle first.",
+        isError: true,
+      );
       return;
     }
 
     showModalBottomSheet(
       context: context,
-      isScrollControlled: true, // Allows controlling height better
+      isScrollControlled: true,
+      useSafeArea: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
       builder: (context) {
-        return SizedBox(
-          height: MediaQuery.of(context).size.height * 0.6, // Take up 60% of screen
-          width: double.infinity,
-          child: Padding(
-            padding: const EdgeInsets.all(20),
-            child: Column(
-              children: [
-                Text(
-                  'Choose a Vehicle',
-                  style: Theme.of(context)
-                      .textTheme
-                      .titleLarge!
-                      .copyWith(fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(height: 20),
-                Expanded(
-                  child: ListView.separated(
-                    itemCount: vehicles.length,
-                    separatorBuilder: (_, __) => const SizedBox(height: 10),
-                    itemBuilder: (context, index) {
-                      final vehicle = vehicles[index];
-
-                      return InkWell(
-                        borderRadius: BorderRadius.circular(12),
-                        onTap: () {
-                          setState(() {
-                            _vehicle = vehicle;
-                            _vehicleCtrl.text = "${vehicle.regNum} (${vehicle.model})";
-                          });
-                          Navigator.pop(context);
-                        },
-                        child: VehicleListitem(
-                          vehicle: vehicle,
-                          descriptionRequired: false,
-                          colourRequired: true, // Useful to identify vehicle
-                          yearRequired: false,
-                        ),
-                      );
-                    },
+        return DraggableScrollableSheet(
+          initialChildSize: 0.6,
+          minChildSize: 0.4,
+          maxChildSize: 0.9,
+          expand: false,
+          builder: (_, controller) {
+            return Padding(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Select Vehicle',
+                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                   ),
-                ),
-              ],
-            ),
-          ),
+                  const SizedBox(height: 16),
+                  Expanded(
+                    child: ListView.separated(
+                      controller: controller,
+                      itemCount: vehicles.length,
+                      separatorBuilder: (_, __) => const SizedBox(height: 12),
+                      itemBuilder: (context, index) {
+                        final vehicle = vehicles[index];
+                        return InkWell(
+                          borderRadius: BorderRadius.circular(12),
+                          onTap: () {
+                            setState(() {
+                              _vehicle = vehicle;
+                              _vehicleCtrl.text =
+                                  "${vehicle.regNum.toUpperCase()} (${vehicle.model})";
+                            });
+                            Navigator.pop(context);
+                          },
+                          // ✅ FIXED: Passing individual fields as requested
+                          child: VehicleListitem(
+                            make: vehicle.make,
+                            model: vehicle.model,
+                            regNum: vehicle.regNum,
+                            photoPath: vehicle.photoPath,
+                            colour: vehicle.colour,
+                            year: vehicle.year,
+                            // Ensure descriptionRequired/etc are handled if your widget needs them
+                            // descriptionRequired: false,
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
         );
       },
     );

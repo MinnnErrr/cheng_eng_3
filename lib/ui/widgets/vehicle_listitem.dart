@@ -1,4 +1,3 @@
-import 'package:cheng_eng_3/core/models/vehicle_model.dart';
 import 'package:cheng_eng_3/core/services/image_service.dart';
 import 'package:cheng_eng_3/ui/widgets/imagebuilder.dart';
 import 'package:flutter/material.dart';
@@ -7,18 +6,24 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 class VehicleListitem extends ConsumerWidget {
   const VehicleListitem({
     super.key,
-    required this.vehicle,
-    required this.descriptionRequired,
-    required this.colourRequired,
-    required this.yearRequired,
+    required this.make,
+    required this.model,
+    required this.regNum,
+    this.description,
+    this.year,
+    this.colour,
+    this.photoPath,
     this.icon,
-    this.onTap
+    this.onTap,
   });
 
-  final Vehicle vehicle;
-  final bool descriptionRequired;
-  final bool yearRequired;
-  final bool colourRequired;
+  final String make;
+  final String model;
+  final String regNum;
+  final String? description;
+  final int? year;
+  final String? colour;
+  final String? photoPath;
   final Widget? icon;
   final VoidCallback? onTap;
 
@@ -29,8 +34,8 @@ class VehicleListitem extends ConsumerWidget {
     final textTheme = Theme.of(context).textTheme;
 
     final List<String> footerDetails = [];
-    if (yearRequired) footerDetails.add(vehicle.year.toString());
-    if (colourRequired) footerDetails.add(vehicle.colour);
+    if (year != null) footerDetails.add(year.toString());
+    if (colour != null) footerDetails.add(colour!);
     final footerText = footerDetails.join(" | ");
 
     return Card(
@@ -43,8 +48,8 @@ class VehicleListitem extends ConsumerWidget {
             children: [
               //picture
               imageBuilder(
-                url: vehicle.photoPath != null
-                    ? imageService.retrieveImageUrl(vehicle.photoPath!)
+                url: photoPath != null
+                    ? imageService.retrieveImageUrl(photoPath!)
                     : null,
                 containerWidth: 80,
                 containerHeight: 80,
@@ -58,21 +63,20 @@ class VehicleListitem extends ConsumerWidget {
                 ),
                 context: context,
               ),
-        
+
               const SizedBox(
                 width: 16,
               ),
-        
+
               //details
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    if (descriptionRequired &&
-                        (vehicle.description?.isNotEmpty ?? false)) ...[
+                    if (description != null && description!.isNotEmpty) ...[
                       Text(
-                        vehicle.description!,
+                        description!,
                         style: textTheme.labelMedium?.copyWith(
                           color: const Color(0xFF9E7C00),
                           fontWeight: FontWeight.w800,
@@ -81,27 +85,27 @@ class VehicleListitem extends ConsumerWidget {
                         overflow: TextOverflow.ellipsis,
                       ),
                     ],
-        
+
                     // Registration (Title)
                     Text(
-                      vehicle.regNum.toUpperCase(),
+                      regNum.toUpperCase(),
                       style: textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.bold,
                         letterSpacing: 0.5,
                         color: theme.onSurface, // Black
                       ),
                     ),
-        
+
                     // Make & Model (Subtitle)
                     Text(
-                      '${vehicle.make} ${vehicle.model}',
+                      '$make $model',
                       style: textTheme.bodyMedium?.copyWith(
                         color: theme.onSurface, // Black
                       ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
-        
+
                     if (footerText.isNotEmpty) ...[
                       const SizedBox(height: 5),
                       Text(
@@ -114,7 +118,7 @@ class VehicleListitem extends ConsumerWidget {
                   ],
                 ),
               ),
-        
+
               if (icon != null) ...[
                 const SizedBox(width: 8),
                 icon!,

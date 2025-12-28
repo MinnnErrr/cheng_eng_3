@@ -14,33 +14,39 @@ class TowingScreen extends ConsumerWidget {
     final userState = ref.watch(authProvider);
     final user = userState.value;
 
-    // FIX 1: Safety check to prevent crash on 'user!.id'
     if (user == null) {
-      return const Scaffold(
-        body: Center(child: Text('No user found')),
-      );
+      return const Scaffold(body: Center(child: Text('No user found')));
     }
 
     final towingList = ref.watch(customerTowingsProvider(user.id));
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Towing'),
-      ),
+      appBar: AppBar(title: const Text('Towing Requests')),
       body: towingList.when(
         data: (towings) {
-          // FIX 2: Add RefreshIndicator
           return RefreshIndicator(
             onRefresh: () async =>
                 ref.refresh(customerTowingsProvider(user.id).future),
             child: towings.isEmpty
-                // FIX 3: Empty state must be scrollable to allow Refresh
                 ? ListView(
                     physics: const AlwaysScrollableScrollPhysics(),
                     children: [
                       SizedBox(
-                          height: MediaQuery.of(context).size.height * 0.3),
-                      const Center(child: Text('No towing record found')),
+                        height: MediaQuery.of(context).size.height * 0.3,
+                      ),
+                      Center(
+                        child: Column(
+                          children: [
+                            Icon(
+                              Icons.no_crash_outlined,
+                              size: 60,
+                              color: Colors.grey.shade400,
+                            ),
+                            const SizedBox(height: 10),
+                            const Text('No towing requests found'),
+                          ],
+                        ),
+                      ),
                     ],
                   )
                 : SafeArea(
@@ -49,7 +55,7 @@ class TowingScreen extends ConsumerWidget {
                       physics: const AlwaysScrollableScrollPhysics(),
                       itemCount: towings.length,
                       separatorBuilder: (context, index) =>
-                          const SizedBox(height: 10),
+                          const SizedBox(height: 12), // Increased spacing
                       itemBuilder: (context, index) {
                         final towing = towings[index];
                         return TowingListItem(
@@ -57,9 +63,7 @@ class TowingScreen extends ConsumerWidget {
                           tapAction: () => Navigator.of(context).push(
                             MaterialPageRoute(
                               builder: (context) =>
-                                  CustomerTowingDetailsScreen(
-                                towing: towing,
-                              ),
+                                  CustomerTowingDetailsScreen(towing: towing),
                             ),
                           ),
                         );
@@ -68,16 +72,29 @@ class TowingScreen extends ConsumerWidget {
                   ),
           );
         },
-        // Error handling with Retry button
-         error: (error, stackTrace) => Center(
-          child: Text('Error: $error'),
+        error: (error, stackTrace) => Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(Icons.error_outline, color: Colors.red, size: 40),
+              const SizedBox(height: 10),
+              Text('Error: $error'),
+              TextButton(
+                onPressed: () => ref.refresh(customerTowingsProvider(user.id)),
+                child: const Text('Retry'),
+              ),
+            ],
+          ),
         ),
         loading: () => const Center(child: CircularProgressIndicator()),
       ),
       floatingActionButton: FloatingActionButton(
+        // Yellow FAB
+        backgroundColor: Theme.of(context).colorScheme.primary,
+        foregroundColor: Theme.of(context).colorScheme.onPrimary,
         onPressed: () => Navigator.of(context).push(
           MaterialPageRoute(
-            builder: (context) => TowingMapScreen(),
+            builder: (context) => const TowingMapScreen(),
           ),
         ),
         child: const Icon(Icons.add),

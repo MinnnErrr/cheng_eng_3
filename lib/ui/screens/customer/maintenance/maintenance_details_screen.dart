@@ -3,9 +3,9 @@ import 'package:cheng_eng_3/core/controllers/maintenance/maintenance_notifier.da
 import 'package:cheng_eng_3/core/controllers/vehicle/customer_vehicle_by_id_provider.dart';
 import 'package:cheng_eng_3/core/models/maintenance_model.dart';
 import 'package:cheng_eng_3/ui/screens/customer/maintenance/maintenance_update_screen.dart';
+import 'package:cheng_eng_3/ui/widgets/vehicle_listitem.dart';
 import 'package:cheng_eng_3/utils/status_colour.dart';
 import 'package:cheng_eng_3/ui/widgets/snackbar.dart';
-import 'package:cheng_eng_3/ui/widgets/vehicle_listItem.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
@@ -369,11 +369,10 @@ class _VehicleInfoSection extends ConsumerWidget {
 
     return vehicleAsync.when(
       data: (vehicle) => VehicleListitem(
-        vehicle: vehicle,
-        descriptionRequired: false,
-        colourRequired: false,
-        yearRequired: false,
-        // Disable tap since we are already viewing related details
+        model: vehicle.model,
+        make: vehicle.make,
+        regNum: vehicle.regNum,
+        photoPath: vehicle.photoPath,
         onTap: null,
       ),
       loading: () => const SizedBox(

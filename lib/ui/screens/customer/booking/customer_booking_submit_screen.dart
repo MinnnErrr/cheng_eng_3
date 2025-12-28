@@ -5,7 +5,7 @@ import 'package:cheng_eng_3/ui/extensions/booking_extension.dart';
 import 'package:cheng_eng_3/ui/screens/customer/booking/customer_booking_screen.dart';
 import 'package:cheng_eng_3/ui/widgets/snackbar.dart';
 import 'package:cheng_eng_3/ui/widgets/textformfield.dart';
-import 'package:cheng_eng_3/ui/widgets/vehicle_listItem.dart';
+import 'package:cheng_eng_3/ui/widgets/vehicle_listitem.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
@@ -38,6 +38,8 @@ class _CustomerBookingSubmitScreenState
         ? 'None'
         : servicesList.map((s) => s.serviceName).join(', ');
 
+    final vehicle = bookingState.vehicle;
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Submit Booking'),
@@ -55,12 +57,14 @@ class _CustomerBookingSubmitScreenState
               ).textTheme.bodyLarge!.copyWith(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 10),
-            bookingState.vehicle != null
+            vehicle != null
                 ? VehicleListitem(
-                    vehicle: bookingState.vehicle!,
-                    descriptionRequired: false,
-                    colourRequired: true,
-                    yearRequired: true,
+                    model: vehicle.model,
+                    make: vehicle.make,
+                    regNum: vehicle.regNum,
+                    colour: vehicle.colour,
+                    year: vehicle.year,
+                    photoPath: vehicle.photoPath,
                   )
                 : Container(
                     width: double.infinity,

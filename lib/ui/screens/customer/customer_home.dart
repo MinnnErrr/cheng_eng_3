@@ -164,7 +164,7 @@ class CustomerHome extends ConsumerWidget {
       _MenuItem('Towing', Icons.car_crash, const TowingScreen()),
       _MenuItem('Products', Icons.shopping_bag, const CustomerProductScreen()),
       _MenuItem('Orders', Icons.receipt_long, const CustomerOrderScreen()),
-      _MenuItem('Rewards', Icons.star, const CustomerRewardScreen()),
+      _MenuItem('Rewards', Icons.card_giftcard, const CustomerRewardScreen()),
     ];
 
     return GridView.builder(

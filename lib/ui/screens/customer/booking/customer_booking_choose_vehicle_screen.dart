@@ -2,7 +2,7 @@ import 'package:cheng_eng_3/core/controllers/booking/booking_state_notifier.dart
 import 'package:cheng_eng_3/core/controllers/vehicle/customer_vehicle_notifier.dart';
 import 'package:cheng_eng_3/ui/screens/customer/booking/customer_booking_choose_service_screen.dart';
 import 'package:cheng_eng_3/ui/screens/customer/vehicle/vehicle_create_screen.dart';
-import 'package:cheng_eng_3/ui/widgets/vehicle_listItem.dart';
+import 'package:cheng_eng_3/ui/widgets/vehicle_listitem.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -102,10 +102,11 @@ class _CustomerBookingChooseVehicleScreenState
                           )
                         : null,
                     child: VehicleListitem(
-                      vehicle: v,
-                      descriptionRequired: false,
-                      colourRequired: false,
-                      yearRequired: false,
+                      make: v.make,
+                      model: v.model,
+                      regNum: v.regNum,
+                      photoPath: v.photoPath,
+                      description: v.description,
                     ),
                   ),
                 );

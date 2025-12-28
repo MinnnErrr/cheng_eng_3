@@ -38,15 +38,16 @@ class VehicleScreen extends ConsumerWidget {
                       physics: const AlwaysScrollableScrollPhysics(),
                       itemCount: vehicles.length,
                       separatorBuilder: (context, index) =>
-                          const SizedBox(height: 10),
+                          const SizedBox(height: 12),
                       itemBuilder: (context, index) {
                         final vehicle = vehicles[index];
 
                         return VehicleListitem(
-                          vehicle: vehicle,
-                          descriptionRequired: true,
-                          colourRequired: false,
-                          yearRequired: false,
+                          make: vehicle.make,
+                          model: vehicle.model,
+                          regNum: vehicle.regNum,
+                          description: vehicle.description,
+                          photoPath: vehicle.photoPath,
                           onTap: () => Navigator.of(context).push(
                             MaterialPageRoute(
                               builder: (context) =>

@@ -67,11 +67,9 @@ class MyApp extends ConsumerWidget {
         ),
         filledButtonTheme: FilledButtonThemeData(
           style: FilledButton.styleFrom(
-            foregroundColor: chengEngCustomScheme.onPrimary,
-            backgroundColor: chengEngCustomScheme.primary,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(12),
-            ), 
+            ),
             minimumSize: const Size(double.infinity, 50),
           ),
         ),

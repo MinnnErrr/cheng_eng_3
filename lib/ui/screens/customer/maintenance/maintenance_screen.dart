@@ -1,8 +1,6 @@
 import 'package:cheng_eng_3/core/controllers/maintenance/maintenance_by_vehicle_provider.dart';
-import 'package:cheng_eng_3/core/controllers/maintenance/maintenance_notifier.dart';
 import 'package:cheng_eng_3/ui/screens/customer/maintenance/maintenance_details_screen.dart';
 import 'package:cheng_eng_3/ui/widgets/maintenance_listitem.dart';
-import 'package:cheng_eng_3/ui/widgets/snackbar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -14,7 +12,6 @@ class MaintenanceScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final maintenanceList = ref.watch(maintenanceByVehicleProvider(vehicleId));
-    final maintenanceListNotifier = ref.read(maintenanceProvider.notifier);
     final theme = Theme.of(context);
 
     return maintenanceList.when(
@@ -48,7 +45,7 @@ class MaintenanceScreen extends ConsumerWidget {
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
           itemCount: list.maintenances.length,
-          separatorBuilder: (context, index) => const SizedBox(height: 10),
+          separatorBuilder: (context, index) => const SizedBox(height: 12),
           itemBuilder: (context, index) {
             final maintenance = list.maintenances[index];
             return MaintenanceListItem(
@@ -75,6 +72,4 @@ class MaintenanceScreen extends ConsumerWidget {
       ),
     );
   }
-
-  
 }
