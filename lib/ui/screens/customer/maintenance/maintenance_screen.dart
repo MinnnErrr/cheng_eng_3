@@ -53,7 +53,6 @@ class MaintenanceScreen extends ConsumerWidget {
             final maintenance = list.maintenances[index];
             return MaintenanceListItem(
               maintenance: maintenance,
-
               tapAction: () => Navigator.of(context).push(
                 MaterialPageRoute(
                   builder: (context) => MaintenanceDetailsScreen(
@@ -77,39 +76,5 @@ class MaintenanceScreen extends ConsumerWidget {
     );
   }
 
-  Future<void> _confirmDelete(
-    BuildContext context,
-    dynamic notifier,
-    String id,
-  ) async {
-    final confirm = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text("Delete Record"),
-        content: const Text("Are you sure? This cannot be undone."),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text("Cancel"),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: const Text("Delete", style: TextStyle(color: Colors.red)),
-          ),
-        ],
-      ),
-    );
-
-    if (confirm == true) {
-      final success = await notifier.deleteMaintenance(id);
-
-      if (context.mounted) {
-        showAppSnackBar(
-          context: context,
-          content: success ? 'Record deleted' : 'Failed to delete record',
-          isError: !success,
-        );
-      }
-    }
-  }
+  
 }

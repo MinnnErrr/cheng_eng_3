@@ -124,7 +124,7 @@ class CustomerHome extends ConsumerWidget {
                   "Services",
                   style: Theme.of(context).textTheme.titleMedium!.copyWith(
                     fontWeight: FontWeight.bold,
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    color: Theme.of(context).colorScheme.onSurface,
                   ),
                 ),
                 const SizedBox(height: 15),
@@ -248,6 +248,7 @@ class CustomerHome extends ConsumerWidget {
                 'Your Loyalty Points:',
                 style: TextStyle(
                   color: Theme.of(context).colorScheme.onPrimary,
+                  fontWeight: FontWeight.w500,
                 ),
               ),
               const SizedBox(height: 5),
@@ -337,7 +338,7 @@ class CustomerHome extends ConsumerWidget {
           'Upcoming Maintenance',
           style: Theme.of(context).textTheme.titleMedium!.copyWith(
             fontWeight: FontWeight.bold,
-            color: Theme.of(context).colorScheme.onSurfaceVariant,
+            color: Theme.of(context).colorScheme.onSurface,
           ),
         ),
         const SizedBox(height: 10),

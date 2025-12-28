@@ -22,116 +22,190 @@ class MaintenanceDetailsScreen extends ConsumerStatefulWidget {
 
 class _MaintenanceDetailsScreenState
     extends ConsumerState<MaintenanceDetailsScreen> {
-  // To handle button loading state locally
   bool _isUpdatingStatus = false;
 
   @override
   Widget build(BuildContext context) {
-    // 1. OPTIMISTIC UI: Use widget data first, update with provider data if available
-    final maintenanceAsync = ref.watch(maintenanceByIdProvider(widget.maintenance.id));
+    // Optimistic UI
+    final maintenanceAsync = ref.watch(
+      maintenanceByIdProvider(widget.maintenance.id),
+    );
     final maintenance = maintenanceAsync.value ?? widget.maintenance;
-
     final maintenanceNotifier = ref.read(maintenanceProvider.notifier);
+    final theme = Theme.of(context);
 
     return Scaffold(
       appBar: AppBar(
         title: const Text('Maintenance Details'),
+        actions: [
+          // Moved Edit to AppBar for consistency
+          IconButton(
+            onPressed: () => Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (_) => MaintenanceUpdateScreen(
+                  maintenance: maintenance,
+                ),
+              ),
+            ),
+            icon: const Icon(Icons.edit),
+            tooltip: 'Edit Record',
+          ),
+        ],
       ),
       body: SafeArea(
         child: SingleChildScrollView(
+          padding: const EdgeInsets.all(20.0),
           child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // --- HEADER SECTION ---
-              Container(
-                padding: const EdgeInsets.all(20),
-                width: double.infinity,
-                color: Theme.of(context).colorScheme.surfaceContainerHighest,
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Expanded(
-                      child: Text(
-                        maintenance.title,
-                        style: Theme.of(context).textTheme.titleLarge!.copyWith(
-                              fontWeight: FontWeight.bold,
-                            ),
-                      ),
-                    ),
-                    IconButton(
-                      onPressed: () => Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (_) => MaintenanceUpdateScreen(
-                            maintenance: maintenance,
-                          ),
-                        ),
-                      ),
-                      icon: const Icon(Icons.edit),
-                    ),
-                  ],
+              // --- SECTION 1: VEHICLE ---
+              Text(
+                "Vehicle",
+                style: theme.textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.bold,
+                  color: theme.colorScheme.onSurfaceVariant,
                 ),
               ),
+              const SizedBox(height: 10),
+              _VehicleInfoSection(vehicleId: maintenance.vehicleId),
 
-              // --- BODY SECTION ---
-              Padding(
-                padding: const EdgeInsets.all(20.0),
-                child: Column(
-                  spacing: 20, // Requires Flutter 3.27+
-                  children: [
-                    // Vehicle Card
-                    _VehicleInfoSection(vehicleId: maintenance.vehicleId),
+              const SizedBox(height: 25),
 
-                    // Details
-                    _buildDetailsList(context, maintenance),
+              // --- SECTION 2: MAINTENANCE INFO CARD ---
+              Text(
+                "Service Record",
+                style: theme.textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.bold,
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
+              ),
+              const SizedBox(height: 10),
 
-                    // Status Button
-                    SizedBox(
-                      width: double.infinity,
-                      height: 50,
-                      child: ElevatedButton(
-                        onPressed: _isUpdatingStatus
-                            ? null
-                            : () async {
-                                setState(() => _isUpdatingStatus = true);
-
-                                final isComplete =
-                                    maintenance.status.toLowerCase() ==
-                                        'complete';
-                                final newStatus =
-                                    isComplete ? 'Incomplete' : 'Complete';
-
-                                final success =
-                                    await maintenanceNotifier.updateStatus(
-                                  id: maintenance.id,
-                                  status: newStatus,
-                                );
-
-                                if (context.mounted) {
-                                  setState(() => _isUpdatingStatus = false);
-                                  showAppSnackBar(
-                                    context: context,
-                                    content: success
-                                        ? 'Status updated to $newStatus'
-                                        : 'Failed to update status',
-                                    isError: !success,
-                                  );
-                                }
-                              },
-                        child: _isUpdatingStatus
-                            ? const SizedBox(
-                                height: 20,
-                                width: 20,
-                                child: CircularProgressIndicator(strokeWidth: 2),
-                              )
-                            : Text(
-                                maintenance.status.toLowerCase() == 'incomplete'
-                                    ? 'Mark as Complete'
-                                    : 'Mark as Incomplete',
+              Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(20),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Title & Status Row
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Expanded(
+                            child: Text(
+                              maintenance.title,
+                              style: theme.textTheme.titleLarge!.copyWith(
+                                fontWeight: FontWeight.bold,
                               ),
+                            ),
+                          ),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 10,
+                              vertical: 5,
+                            ),
+                            decoration: BoxDecoration(
+                              color: getMaintenanceStatusColor(
+                                maintenance.status,
+                                context,
+                              ),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Text(
+                              maintenance.status,
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 12,
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
-                    ),
-                  ],
+
+                      const SizedBox(height: 30),
+
+                      // Details List
+                      _buildDetailsList(context, maintenance),
+                    ],
+                  ),
                 ),
               ),
+
+              const SizedBox(height: 30),
+
+              // --- ACTIONS ---
+              FilledButton(
+                onPressed: _isUpdatingStatus
+                    ? null
+                    : () async {
+                        setState(() => _isUpdatingStatus = true);
+
+                        final isComplete =
+                            maintenance.status.toLowerCase() == 'complete';
+                        final newStatus = isComplete
+                            ? 'Incomplete'
+                            : 'Complete';
+
+                        final success = await maintenanceNotifier.updateStatus(
+                          id: maintenance.id,
+                          status: newStatus,
+                        );
+
+                        if (context.mounted) {
+                          setState(() => _isUpdatingStatus = false);
+                          showAppSnackBar(
+                            context: context,
+                            content: success
+                                ? 'Status updated to $newStatus'
+                                : 'Failed to update status',
+                            isError: !success,
+                          );
+                        }
+                      },
+
+                child: _isUpdatingStatus
+                    ? const SizedBox(
+                        height: 20,
+                        width: 20,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : Text(
+                        maintenance.status.toLowerCase() == 'incomplete'
+                            ? 'Mark as Complete'
+                            : 'Mark as Incomplete',
+                        style: const TextStyle(fontWeight: FontWeight.bold),
+                      ),
+              ),
+              const SizedBox(height: 15),
+
+              SizedBox(
+                width: double.infinity,
+                height: 50,
+                child: OutlinedButton.icon(
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: Colors.red,
+
+                    // ✅ 2. Define Border Color here
+                    side: const BorderSide(color: Colors.red),
+
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  onPressed: () => _confirmDelete(
+                    context,
+                    maintenanceNotifier,
+                    maintenance.id,
+                  ),
+                  icon: const Icon(Icons.delete_outline),
+                  label: const Text(
+                    'Delete Record',
+                  ),
+                ),
+              ),
+              const SizedBox(height: 20),
             ],
           ),
         ),
@@ -140,80 +214,147 @@ class _MaintenanceDetailsScreenState
   }
 
   Widget _buildDetailsList(BuildContext context, Maintenance maintenance) {
-    // Fixed Typo: removed double slash
-    final dateFormatter = DateFormat('dd/MM/yyyy'); 
-    final timeFormatter = DateFormat('dd/MM/yyyy').add_jm();
+    final dateFormatter = DateFormat('dd/MM/yyyy');
+    final timeFormatter = DateFormat('dd/MM/yyyy h:mm a'); // 12hr format
 
     return Column(
-      spacing: 15,
       children: [
-        _buildRow('Description', maintenance.description ?? '-'),
-        _buildRow('Last Service Date',
-            dateFormatter.format(maintenance.currentServDate)),
-        _buildRow(
-            'Last Service Distance', '${maintenance.currentServDistance} KM'),
-        _buildRow('Next Service Date',
-            dateFormatter.format(maintenance.nextServDate)),
-        _buildRow(
-            'Next Service Distance', '${maintenance.nextServDistance} KM'),
-        _buildRow(
-          'Status',
-          maintenance.status,
-          textColor: getMaintenanceStatusColor(maintenance.status, context),
+        _detailRow(context, 'Description', maintenance.description ?? '-'),
+        const SizedBox(height: 15),
+        _detailRow(
+          context,
+          'Last Service',
+          '${dateFormatter.format(maintenance.currentServDate)}\n(${maintenance.currentServDistance} km)',
         ),
-        _buildRow(
-          'Updated At',
+        const SizedBox(height: 15),
+        _detailRow(
+          context,
+          'Next Service',
+          '${dateFormatter.format(maintenance.nextServDate)}\n(${maintenance.nextServDistance} km)',
+        ),
+        const SizedBox(height: 15),
+        _detailRow(
+          context,
+          'Last Updated',
           maintenance.updatedAt != null
               ? timeFormatter.format(maintenance.updatedAt!)
               : '-',
         ),
-        
-        // Remarks Box
-        Container(
-          width: double.infinity,
-          padding: const EdgeInsets.all(15),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(10),
-            color: Theme.of(context).colorScheme.errorContainer,
+
+        const SizedBox(height: 20),
+
+        // ✅ IMPROVED REMARKS BOX
+        if (maintenance.remarks?.isNotEmpty == true)
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(15),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(10),
+              color: Theme.of(
+                context,
+              ).colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
+              border: Border.all(
+                color: Theme.of(
+                  context,
+                ).colorScheme.outlineVariant.withValues(alpha: 0.5),
+              ),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Icon(
+                      Icons.note_alt_outlined,
+                      size: 16,
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      'Remarks',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 5),
+                Text(
+                  maintenance.remarks!,
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurface,
+                  ),
+                ),
+              ],
+            ),
           ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Remarks',
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  color: Theme.of(context).colorScheme.onErrorContainer,
-                ),
-              ),
-              const SizedBox(height: 5),
-              Text(
-                maintenance.remarks ?? '-',
-                style: TextStyle(
-                  color: Theme.of(context).colorScheme.onErrorContainer,
-                ),
-              ),
-            ],
+      ],
+    );
+  }
+
+  // ✅ ALIGNED ROW HELPER
+  Widget _detailRow(BuildContext context, String label, String value) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        SizedBox(
+          width: 120, // Fixed width ensures alignment
+          child: Text(
+            label,
+            style: TextStyle(
+              fontWeight: FontWeight.w500,
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
+          ),
+        ),
+        Expanded(
+          child: Text(
+            value,
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              color: Theme.of(context).colorScheme.onSurface,
+            ),
           ),
         ),
       ],
     );
   }
 
-  Widget _buildRow(String title, String value, {Color? textColor}) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Text(
-          title,
-          style: const TextStyle(fontWeight: FontWeight.bold),
-        ),
-        Text(
-          value,
-          style: TextStyle(color: textColor, fontWeight: FontWeight.w500),
-        ),
-      ],
+  Future<void> _confirmDelete(
+    BuildContext context,
+    dynamic notifier,
+    String id,
+  ) async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text("Delete Record"),
+        content: const Text("Are you sure? This cannot be undone."),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text("Cancel"),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text("Delete", style: TextStyle(color: Colors.red)),
+          ),
+        ],
+      ),
     );
+
+    if (confirm == true) {
+      final success = await notifier.deleteMaintenance(id);
+      if (context.mounted) {
+        if (success) Navigator.pop(context); // Go back after delete
+        showAppSnackBar(
+          context: context,
+          content: success ? 'Record deleted' : 'Failed to delete record',
+          isError: !success,
+        );
+      }
+    }
   }
 }
 
@@ -232,6 +373,8 @@ class _VehicleInfoSection extends ConsumerWidget {
         descriptionRequired: false,
         colourRequired: false,
         yearRequired: false,
+        // Disable tap since we are already viewing related details
+        onTap: null,
       ),
       loading: () => const SizedBox(
         height: 80,

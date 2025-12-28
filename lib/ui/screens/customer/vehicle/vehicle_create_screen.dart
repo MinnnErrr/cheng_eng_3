@@ -66,13 +66,13 @@ class _VehicleCreateScreenState extends ConsumerState<VehicleCreateScreen> {
             children: [
               // PIC
               _buildImagePicker(),
-              const SizedBox(height: 40),
+              const SizedBox(height: 30),
 
               Text(
                 "Vehicle Details",
                 style: Theme.of(context).textTheme.titleMedium?.copyWith(
                   fontWeight: FontWeight.bold,
-                  color: Theme.of(context).colorScheme.onSurface,
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
                 ),
               ),
               const SizedBox(height: 20),
@@ -86,7 +86,7 @@ class _VehicleCreateScreenState extends ConsumerState<VehicleCreateScreen> {
                 hint: 'e.g. Work Car',
                 textCapitalization: TextCapitalization.sentences,
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 16),
 
               textFormField(
                 controller: _regNum,
@@ -94,7 +94,7 @@ class _VehicleCreateScreenState extends ConsumerState<VehicleCreateScreen> {
                 hint: 'e.g. ABC1234',
                 textCapitalization: TextCapitalization.characters,
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 16),
 
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -106,7 +106,7 @@ class _VehicleCreateScreenState extends ConsumerState<VehicleCreateScreen> {
                       textCapitalization: TextCapitalization.words,
                     ),
                   ),
-                  const SizedBox(width: 15),
+                  const SizedBox(width: 16),
                   Expanded(
                     child: textFormField(
                       controller: _model,
@@ -116,7 +116,7 @@ class _VehicleCreateScreenState extends ConsumerState<VehicleCreateScreen> {
                   ),
                 ],
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 16),
 
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -128,7 +128,7 @@ class _VehicleCreateScreenState extends ConsumerState<VehicleCreateScreen> {
                       textCapitalization: TextCapitalization.words,
                     ),
                   ),
-                  const SizedBox(width: 15),
+                  const SizedBox(width: 16),
                   Expanded(
                     child: textFormField(
                       controller: _yearController,
@@ -147,7 +147,7 @@ class _VehicleCreateScreenState extends ConsumerState<VehicleCreateScreen> {
                   ),
                 ],
               ),
-              const SizedBox(height: 40),
+              const SizedBox(height: 30),
 
               // BUTTON
               FilledButton(
@@ -207,7 +207,12 @@ class _VehicleCreateScreenState extends ConsumerState<VehicleCreateScreen> {
                           strokeWidth: 2,
                         ),
                       )
-                    : const Text('Create Vehicle'),
+                    : const Text(
+                        'Create Vehicle',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
               ),
             ],
           ),

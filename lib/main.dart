@@ -71,10 +71,7 @@ class MyApp extends ConsumerWidget {
             backgroundColor: chengEngCustomScheme.primary,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(12),
-            ), // Modern rounded
-            padding: const EdgeInsets.symmetric(
-              vertical: 16,
-            ), // Taller modern buttons
+            ), 
             minimumSize: const Size(double.infinity, 50),
           ),
         ),

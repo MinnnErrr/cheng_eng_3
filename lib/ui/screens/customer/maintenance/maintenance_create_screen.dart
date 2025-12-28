@@ -10,13 +10,13 @@ import 'package:intl/intl.dart';
 class MaintenanceCreateScreen extends ConsumerStatefulWidget {
   const MaintenanceCreateScreen({
     super.key,
-    required this.vehicleId, // FIX 1: Make this required to prevent crashes
+    required this.vehicleId,
   });
 
   final String vehicleId;
 
   @override
-  ConsumerState<ConsumerStatefulWidget> createState() =>
+  ConsumerState<MaintenanceCreateScreen> createState() =>
       _MaintenanceCreateScreenState();
 }
 
@@ -50,14 +50,9 @@ class _MaintenanceCreateScreenState
 
   void _requestPermission() async {
     final notificationService = ref.read(notificationServiceProvider);
-
-    // 1. Call the Service
     final bool granted = await notificationService.requestPermission();
 
-    if (!granted) {
-      // 2. Handle the Rejection (Show Dialog)
-      if (!mounted) return;
-
+    if (!granted && mounted) {
       showDialog(
         context: context,
         builder: (context) => AlertDialog(
@@ -67,13 +62,13 @@ class _MaintenanceCreateScreenState
           ),
           actions: [
             TextButton(
-              onPressed: () => Navigator.pop(context), // User gives up
+              onPressed: () => Navigator.pop(context),
               child: const Text("Cancel"),
             ),
             TextButton(
               onPressed: () {
                 Navigator.pop(context);
-                notificationService.openSettings(); // 👈 Redirect to Settings
+                notificationService.openSettings();
               },
               child: const Text("Open Settings"),
             ),
@@ -85,166 +80,248 @@ class _MaintenanceCreateScreenState
 
   @override
   Widget build(BuildContext context) {
-    // Watch the specific AsyncValue to determine loading state
     final maintenanceState = ref.watch(maintenanceProvider);
     final isLoading = maintenanceState.isLoading;
-
     final maintenanceNotifier = ref.read(maintenanceProvider.notifier);
+    final theme = Theme.of(context);
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Add Maintenance'),
-      ),
+      appBar: AppBar(title: const Text('Add Maintenance')),
+      backgroundColor:
+          theme.colorScheme.surface, // Light Grey Background usually
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(20),
           child: Form(
             key: _formKey,
             child: Column(
-              spacing: 20, // Requires Flutter 3.27+
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                textFormField(
-                  controller: _title,
-                  label: 'Title',
-                ),
-                textFormField(
-                  controller: _desc,
-                  label: 'Description',
-                  maxLines: null,
-                  minLines: 3,
-                  validationRequired: false,
-                ),
-
-                // --- CURRENT SERVICE ---
-                textFormField(
-                  controller: _currentDateCtrl,
-                  label: 'Current Service Date',
-                  readOnly: true,
-                  onTap: () async {
-                    final date = await datePicker(_currentDate, context);
-                    if (date != null) {
-                      setState(() {
-                        _currentDate = date;
-                        _currentDateCtrl.text = _dateFormatter.format(date);
-                      });
-                    }
-                  },
-                  suffix: const Icon(Icons.calendar_month),
-                ),
-                textFormField(
-                  controller: _currentDist,
-                  label: 'Current Service Distance (KM)',
-                  keyboardType: const TextInputType.numberWithOptions(
-                    decimal: true,
-                  ),
+                // --- SECTION 1: BASIC INFO ---
+                _buildSectionHeader("Service Details", theme),
+                Column(
+                  children: [
+                    textFormField(
+                      controller: _title,
+                      label: 'Service Title (e.g. Oil Change)',
+                      textCapitalization: TextCapitalization.sentences,
+                      prefixIcon: const Icon(Icons.build_circle_outlined),
+                    ),
+                    const SizedBox(height: 16),
+                    textFormField(
+                      controller: _desc,
+                      label: 'Description',
+                      maxLines: 3,
+                      validationRequired: false,
+                      textCapitalization: TextCapitalization.sentences,
+                    ),
+                  ],
                 ),
 
-                // --- NEXT SERVICE ---
-                textFormField(
-                  controller: _nextDateCtrl,
-                  label: 'Next Service Date',
-                  readOnly: true,
-                  onTap: () async {
-                    final date = await datePicker(_nextDate, context);
-                    if (date != null) {
-                      setState(() {
-                        _nextDate = date;
-                        _nextDateCtrl.text = _dateFormatter.format(date);
-                      });
-                    }
-                  },
-                  suffix: const Icon(Icons.calendar_month),
-                ),
-                textFormField(
-                  controller: _nextDist,
-                  label: 'Next Service Distance (KM)',
-                  keyboardType: const TextInputType.numberWithOptions(
-                    decimal: true,
-                  ),
+                const SizedBox(
+                  height: 30,
                 ),
 
+                // --- SECTION 2: CURRENT STATUS ---
+                _buildSectionHeader("Current Service", theme),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      child: textFormField(
+                        controller: _currentDateCtrl,
+                        label: 'Date Done',
+                        readOnly: true,
+                        suffix: const Icon(Icons.calendar_today, size: 20),
+                        onTap: () async {
+                          final date = await datePicker(
+                            _currentDate,
+                            context,
+                          );
+                          if (date != null) {
+                            setState(() {
+                              _currentDate = date;
+                              _currentDateCtrl.text = _dateFormatter.format(
+                                date,
+                              );
+                            });
+                          }
+                        },
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: textFormField(
+                        controller: _currentDist,
+                        label: 'Mileage',
+                        suffix: Text('km'), // ✅ Professional look
+                        keyboardType: const TextInputType.numberWithOptions(
+                          decimal: true,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+
+                const SizedBox(
+                  height: 30,
+                ),
+
+                // --- SECTION 3: NEXT SERVICE (Highlight) ---
+                _buildSectionHeader("Next Service", theme),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      child: textFormField(
+                        controller: _nextDateCtrl,
+                        label: 'Due Date',
+                        readOnly: true,
+                        suffix: const Icon(Icons.event, size: 20),
+                        onTap: () async {
+                          // UX: Start picking from current date if available
+                          final initialDate = _currentDate ?? DateTime.now();
+                          final date = await datePicker(
+                            _nextDate ?? initialDate,
+                            context,
+                          );
+                          if (date != null) {
+                            setState(() {
+                              _nextDate = date;
+                              _nextDateCtrl.text = _dateFormatter.format(
+                                date,
+                              );
+                            });
+                          }
+                        },
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: textFormField(
+                        controller: _nextDist,
+                        label: 'Due Mileage',
+                        suffix: Text('km'),
+                        keyboardType: const TextInputType.numberWithOptions(
+                          decimal: true,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+
+                const SizedBox(
+                  height: 30,
+                ),
+
+                // --- REMARKS ---
                 textFormField(
                   controller: _remarks,
-                  label: 'Remarks',
-                  maxLines: null,
-                  minLines: 3,
+                  label: 'Remarks / Notes',
+                  maxLines: 3,
                   validationRequired: false,
+                  textCapitalization: TextCapitalization.sentences,
+                  prefixIcon: const Icon(Icons.note_alt_outlined),
                 ),
 
-                // --- SUBMIT BUTTON ---
-                SizedBox(
-                  width: double.infinity,
-                  height: 50,
-                  child: ElevatedButton(
-                    // FIX 2: Disable button logic entirely when loading to prevent double-taps
-                    onPressed: isLoading
-                        ? null
-                        : () async {
-                            if (!_formKey.currentState!.validate()) return;
+                const SizedBox(height: 30),
 
-                            _requestPermission();
+                FilledButton(
+                  onPressed: isLoading
+                      ? null
+                      : () async {
+                          if (!_formKey.currentState!.validate()) return;
+                          _requestPermission();
 
-                            if (_currentDate == null || _nextDate == null) {
-                              showAppSnackBar(
-                                context: context,
-                                content: 'Please select service dates',
-                                isError: true,
-                              );
-                              return;
-                            }
-
-                            // Close keyboard
-                            FocusScope.of(context).unfocus();
-
-                            final success = await maintenanceNotifier
-                                .addMaintenance(
-                                  title: _title.text.trim(),
-                                  // FIX 3: Added missing description parameter
-                                  description: _desc.text.trim().isEmpty
-                                      ? null
-                                      : _desc.text.trim(),
-                                  currentServDate: _currentDate!,
-                                  // Safer parsing
-                                  currentServDistance:
-                                      double.tryParse(
-                                        _currentDist.text.trim(),
-                                      ) ??
-                                      0.0,
-                                  nextServDate: _nextDate!,
-                                  nextServDistance:
-                                      double.tryParse(_nextDist.text.trim()) ??
-                                      0.0,
-                                  remarks: _remarks.text.trim().isEmpty
-                                      ? null
-                                      : _remarks.text.trim(),
-                                  vehicleId:
-                                      widget.vehicleId, // No ! needed anymore
-                                );
-
-                            if (!context.mounted) return;
-
+                          if (_currentDate == null || _nextDate == null) {
                             showAppSnackBar(
                               context: context,
-                              content: success
-                                  ? 'Maintenance record added'
-                                  : 'Failed to add maintenance record',
-                              isError: !success,
+                              content: 'Please select both service dates',
+                              isError: true,
                             );
+                            return;
+                          }
 
-                            if (success) Navigator.of(context).pop();
-                          },
-                    child: isLoading
-                        ? const SizedBox(
-                            height: 24,
-                            width: 24,
-                            child: CircularProgressIndicator(),
-                          )
-                        : const Text('Create Maintenance'),
+                          FocusScope.of(context).unfocus();
+
+                          final success = await maintenanceNotifier
+                              .addMaintenance(
+                                title: _title.text.trim(),
+                                description: _desc.text.trim().isEmpty
+                                    ? null
+                                    : _desc.text.trim(),
+                                currentServDate: _currentDate!,
+                                currentServDistance:
+                                    double.tryParse(
+                                      _currentDist.text.trim(),
+                                    ) ??
+                                    0.0,
+                                nextServDate: _nextDate!,
+                                nextServDistance:
+                                    double.tryParse(_nextDist.text.trim()) ??
+                                    0.0,
+                                remarks: _remarks.text.trim().isEmpty
+                                    ? null
+                                    : _remarks.text.trim(),
+                                vehicleId: widget.vehicleId,
+                              );
+
+                          if (!context.mounted) return;
+
+                          if (success) {
+                            showAppSnackBar(
+                              context: context,
+                              content: 'Maintenance record added successfully',
+                              isError: false,
+                            );
+                            Navigator.of(context).pop();
+                          } else {
+                            showAppSnackBar(
+                              context: context,
+                              content: 'Failed to add maintenance record',
+                              isError: true,
+                            );
+                          }
+                        },
+                  style: FilledButton.styleFrom(
+                    backgroundColor: theme.colorScheme.primary,
+                    foregroundColor: theme.colorScheme.onPrimary,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                   ),
+                  child: isLoading
+                      ? const SizedBox(
+                          height: 24,
+                          width: 24,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : const Text(
+                          'Save Record',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
                 ),
+
+                const SizedBox(height: 20),
               ],
             ),
           ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSectionHeader(String title, ThemeData theme) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 20),
+      child: Text(
+        title,
+        style: theme.textTheme.titleSmall?.copyWith(
+          fontWeight: FontWeight.bold,
+          color: theme.colorScheme.onSurfaceVariant,
+          letterSpacing: 0.5,
         ),
       ),
     );

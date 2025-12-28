@@ -91,7 +91,7 @@ class VehicleDetailsScreen extends ConsumerWidget {
             // --- LIST ---
             MaintenanceScreen(vehicleId: vehicle.id),
 
-            const SizedBox(height: 40),
+            const SizedBox(height: 30),
           ],
         ),
       ),
@@ -157,7 +157,7 @@ class VehicleDetailsScreen extends ConsumerWidget {
                 const SizedBox(height: 20),
                 _detailRow(
                   context,
-                  'Registration',
+                  'Registration Number',
                   vehicle.regNum.toUpperCase(),
                 ),
                 _detailRow(context, 'Make', vehicle.make),

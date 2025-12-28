@@ -91,14 +91,14 @@ class _VehicleUpdateScreenState extends ConsumerState<VehicleUpdateScreen> {
             children: [
               // ✅ IMPROVED IMAGE PICKER (Matches Create Screen)
               _buildImagePicker(),
-              const SizedBox(height: 40),
+              const SizedBox(height: 30),
 
               Text(
                 "Vehicle Details",
                 style: Theme.of(context).textTheme.titleMedium?.copyWith(
                   fontWeight: FontWeight.bold,
                   // Use Black/Grey for readability on white
-                  color: Theme.of(context).colorScheme.onSurface,
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
                 ),
               ),
               const SizedBox(height: 20),
@@ -110,14 +110,14 @@ class _VehicleUpdateScreenState extends ConsumerState<VehicleUpdateScreen> {
                 validationRequired: false,
                 textCapitalization: TextCapitalization.sentences,
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 16),
 
               textFormField(
                 controller: _regNum,
                 label: 'Registration Number',
                 textCapitalization: TextCapitalization.characters,
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 16),
 
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -129,7 +129,7 @@ class _VehicleUpdateScreenState extends ConsumerState<VehicleUpdateScreen> {
                       textCapitalization: TextCapitalization.words,
                     ),
                   ),
-                  const SizedBox(width: 15),
+                  const SizedBox(width: 16),
                   Expanded(
                     child: textFormField(
                       controller: _model,
@@ -139,7 +139,7 @@ class _VehicleUpdateScreenState extends ConsumerState<VehicleUpdateScreen> {
                   ),
                 ],
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 16),
 
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -151,7 +151,7 @@ class _VehicleUpdateScreenState extends ConsumerState<VehicleUpdateScreen> {
                       textCapitalization: TextCapitalization.words,
                     ),
                   ),
-                  const SizedBox(width: 15),
+                  const SizedBox(width: 16),
                   Expanded(
                     child: textFormField(
                       controller: _yearController,
@@ -170,71 +170,65 @@ class _VehicleUpdateScreenState extends ConsumerState<VehicleUpdateScreen> {
                   ),
                 ],
               ),
-              const SizedBox(height: 40),
+              const SizedBox(height: 30),
 
               // BUTTON
-              SizedBox(
-                width: double.infinity,
-                height: 50,
-                child: ElevatedButton(
-                  onPressed: isLoading
-                      ? null
-                      : () async {
-                          if (!_formKey.currentState!.validate()) return;
+              FilledButton(
+                onPressed: isLoading
+                    ? null
+                    : () async {
+                        if (!_formKey.currentState!.validate()) return;
 
-                          FocusScope.of(context).unfocus();
+                        FocusScope.of(context).unfocus();
 
-                          final success = await vehicleNotifier.updateVehicle(
-                            id: widget.vehicle.id,
-                            description: _description.text.trim().isEmpty
-                                ? null
-                                : _description.text.trim(),
-                            regNum: _regNum.text.trim(),
-                            make: _make.text.trim(),
-                            model: _model.text.trim(),
-                            colour: _colour.text.trim(),
-                            year: _year,
-                            photo: _pickedImage,
+                        final success = await vehicleNotifier.updateVehicle(
+                          id: widget.vehicle.id,
+                          description: _description.text.trim().isEmpty
+                              ? null
+                              : _description.text.trim(),
+                          regNum: _regNum.text.trim(),
+                          make: _make.text.trim(),
+                          model: _model.text.trim(),
+                          colour: _colour.text.trim(),
+                          year: _year,
+                          photo: _pickedImage,
+                        );
+
+                        if (!context.mounted) return;
+
+                        if (success) {
+                          showAppSnackBar(
+                            context: context,
+                            content: 'Vehicle updated successfully',
+                            isError: false,
                           );
+                          Navigator.of(context).pop();
+                        } else {
+                          showAppSnackBar(
+                            context: context,
+                            content: 'Failed to update vehicle',
+                            isError: true,
+                          );
+                        }
+                      },
 
-                          if (!context.mounted) return;
-
-                          if (success) {
-                            showAppSnackBar(
-                              context: context,
-                              content: 'Vehicle updated successfully',
-                              isError: false,
-                            );
-                            Navigator.of(context).pop();
-                          } else {
-                            showAppSnackBar(
-                              context: context,
-                              content: 'Failed to update vehicle',
-                              isError: true,
-                            );
-                          }
-                        },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Theme.of(context).colorScheme.primary,
-                    foregroundColor: Theme.of(context).colorScheme.onPrimary,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                  child: isLoading
-                      ? SizedBox(
-                          height: 24,
-                          width: 24,
-                          child: CircularProgressIndicator(
-                            color: Theme.of(context).colorScheme.onPrimary,
-                            strokeWidth: 2,
-                          ),
-                        )
-                      : const Text(
-                          'Update Vehicle',
+                child: isLoading
+                    ? SizedBox(
+                        height: 24,
+                        width: 24,
+                        child: CircularProgressIndicator(
+                          color: Theme.of(context).colorScheme.onPrimary,
+                          strokeWidth: 2,
                         ),
-                ),
+                      )
+                    : const Text(
+                        'Update Vehicle',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
               ),
+
               const SizedBox(height: 20),
             ],
           ),
