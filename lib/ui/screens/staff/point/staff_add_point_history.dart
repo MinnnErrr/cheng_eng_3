@@ -1,13 +1,14 @@
+import 'package:cheng_eng_3/colorscheme/colorscheme.dart'; // Ensure this import is here for textYellow
 import 'package:cheng_eng_3/core/controllers/point/point_history_notifier.dart';
 import 'package:cheng_eng_3/core/controllers/point/total_points_provider.dart';
 import 'package:cheng_eng_3/core/controllers/profile/user_profile_provider.dart';
 import 'package:cheng_eng_3/core/models/message_model.dart';
 import 'package:cheng_eng_3/core/models/profile_model.dart';
-import 'package:cheng_eng_3/ui/widgets/profile_listitem.dart';
 import 'package:cheng_eng_3/ui/widgets/snackbar.dart';
 import 'package:cheng_eng_3/ui/widgets/textformfield.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
 
 enum PointHistoryAction {
   addition,
@@ -24,17 +25,14 @@ class StaffAddPointHistoryScreen extends ConsumerStatefulWidget {
 
 class _StaffAddPointHistoryScreenState
     extends ConsumerState<StaffAddPointHistoryScreen> {
-  // Use a controller for search so we can clear it if needed
   final _searchCtrl = TextEditingController();
-
-  String _searchedEmail = ""; // Store the committed search term
   final _amountCtrl = TextEditingController();
   final _reasonCtrl = TextEditingController();
-
-  PointHistoryAction _action = PointHistoryAction.addition;
-  bool _isLoading = false; // Prevent double taps
-
   final _formKey = GlobalKey<FormState>();
+
+  String _searchedEmail = "";
+  PointHistoryAction _action = PointHistoryAction.addition;
+  bool _isLoading = false;
 
   @override
   void dispose() {
@@ -45,7 +43,8 @@ class _StaffAddPointHistoryScreenState
   }
 
   void _performSearch() {
-    FocusScope.of(context).unfocus(); // Hide keyboard
+    FocusScope.of(context).unfocus();
+    if (_searchCtrl.text.trim().isEmpty) return;
     setState(() {
       _searchedEmail = _searchCtrl.text.trim();
     });
@@ -53,27 +52,24 @@ class _StaffAddPointHistoryScreenState
 
   @override
   Widget build(BuildContext context) {
-    // Only watch the provider if we actually have an email to search
+    final theme = Theme.of(context);
     final profileAsync = _searchedEmail.isEmpty
         ? null
         : ref.watch(userProfileByEmailProvider(_searchedEmail));
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Manage Membership Points'),
-      ),
+      appBar: AppBar(title: const Text('Manage Points')),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(20),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // --- Search Bar ---
+              // --- 1. SEARCH BAR ---
               TextField(
                 controller: _searchCtrl,
                 textInputAction: TextInputAction.search,
-                onSubmitted: (_) =>
-                    _performSearch(), // Optimization: Search on Enter
+                onSubmitted: (_) => _performSearch(),
                 decoration: InputDecoration(
                   hintText: "Search customer email...",
                   prefixIcon: const Icon(Icons.search),
@@ -81,82 +77,45 @@ class _StaffAddPointHistoryScreenState
                     onPressed: _performSearch,
                     icon: const Icon(Icons.arrow_forward),
                   ),
+                  filled: true,
+                  fillColor: theme.colorScheme.surfaceContainerHigh,
                   border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide.none,
+                  ),
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 14,
                   ),
                 ),
               ),
 
               const SizedBox(height: 30),
 
-              // --- Results Section ---
+              // --- 2. RESULTS ---
               if (profileAsync != null)
                 profileAsync.when(
-                  data: (profile) {
-                    if (profile == null) {
-                      return Container(
-                        width: double.infinity,
-                        padding: const EdgeInsets.all(10),
-                        decoration: BoxDecoration(
-                          color: Theme.of(context).colorScheme.errorContainer,
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Text(
-                          'No user found',
-                          style: TextStyle(
-                            color: Theme.of(
-                              context,
-                            ).colorScheme.onErrorContainer,
-                          ),
-                        ),
-                      );
-                    }
-
-                    return Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        _userDetails(profile),
-                        const SizedBox(height: 30),
-
-                        _addRecordForm(),
-                        const SizedBox(height: 30),
-
-                        SizedBox(
-                          height: 50,
-                          child: ElevatedButton(
-                            onPressed: _isLoading
-                                ? null
-                                : () async {
-                                    await _submitForm(profile.userId);
-                                  },
-                            child: _isLoading
-                                ? const CircularProgressIndicator.adaptive()
-                                : const Text("Add Record"),
-                          ),
-                        ),
-                      ],
-                    );
-                  },
-                  error: (error, stackTrace) => Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.all(10),
-                    decoration: BoxDecoration(
-                      color: Theme.of(context).colorScheme.errorContainer,
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Text(
-                      "Error finding user: $error",
-                      style: TextStyle(
-                        color: Theme.of(context).colorScheme.onErrorContainer,
-                      ),
-                    ),
-                  ),
                   loading: () =>
                       const Center(child: CircularProgressIndicator()),
+                  error: (err, stack) => Center(child: Text("Error: $err")),
+                  data: (profile) {
+                    if (profile == null) return _buildNotFoundState();
+                    return _buildContent(profile, theme);
+                  },
                 ),
 
               if (_searchedEmail.isNotEmpty && profileAsync == null)
-                const Center(child: Text("Please enter an email")),
+                Center(
+                  child: Padding(
+                    padding: const EdgeInsets.only(top: 40),
+                    child: Text(
+                      "Please enter an email",
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ),
+                ),
             ],
           ),
         ),
@@ -164,39 +123,251 @@ class _StaffAddPointHistoryScreenState
     );
   }
 
+  Widget _buildContent(Profile profile, ThemeData theme) {
+    final balanceAsync = ref.watch(totalPointsProvider(profile.userId));
+    final int currentBalance = balanceAsync.value ?? 0;
+    final dateFormatter = DateFormat('dd MMM yyyy');
+
+    return Form(
+      key: _formKey,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // --- A. CUSTOMER DETAILS CARD (Matches Order Summary Card) ---
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: theme.colorScheme.surfaceContainer,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                color: theme.colorScheme.outlineVariant,
+              ),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      "Customer Details",
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 4,
+                      ),
+                      decoration: BoxDecoration(
+                        color: theme.colorScheme.primaryContainer,
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: Text(
+                        profile.role.toUpperCase(),
+                        style: TextStyle(
+                          fontSize: 10,
+                          fontWeight: FontWeight.bold,
+                          color: theme.colorScheme.onPrimaryContainer,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const Divider(height: 24),
+                _buildInfoRow("Name", profile.name),
+                _buildInfoRow("Email", profile.email),
+                _buildInfoRow(
+                  "Phone",
+                  "${profile.dialCode} ${profile.phoneNum}",
+                ),
+                _buildInfoRow(
+                  "DOB",
+                  profile.birthday != null
+                      ? dateFormatter.format(profile.birthday!)
+                      : "-",
+                ),
+                const SizedBox(height: 12),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text(
+                      "Current Balance",
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                    Text(
+                      '$currentBalance pts',
+                      style: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w900,
+                        // Assuming textYellow is defined globally or imported
+                        color: textYellow,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+
+          const SizedBox(height: 24),
+
+          // --- B. ACTION SELECTION (Matches Delivery Method Cards) ---
+          Text(
+            'Transaction Type',
+            style: theme.textTheme.titleMedium?.copyWith(
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              Expanded(
+                child: _ActionOptionCard(
+                  label: "Add Points",
+                  icon: Icons.add_circle_outline,
+                  isSelected: _action == PointHistoryAction.addition,
+                  activeColor: Colors.green,
+                  onTap: () =>
+                      setState(() => _action = PointHistoryAction.addition),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: _ActionOptionCard(
+                  label: "Deduct Points",
+                  icon: Icons.remove_circle_outline,
+                  isSelected: _action == PointHistoryAction.deduction,
+                  activeColor: Colors.red,
+                  onTap: () =>
+                      setState(() => _action = PointHistoryAction.deduction),
+                ),
+              ),
+            ],
+          ),
+
+          const SizedBox(height: 30),
+
+          // --- C. FORM INPUTS ---
+          Text(
+            'Transaction Details',
+            style: theme.textTheme.titleMedium?.copyWith(
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 16),
+
+          textFormField(
+            controller: _amountCtrl,
+            label: "Points Amount",
+            keyboardType: TextInputType.number,
+          ),
+          const SizedBox(height: 20),
+
+          textFormField(
+            controller: _reasonCtrl,
+            label: "Reason / Remarks",
+            minLines: 2,
+            maxLines: 3,
+          ),
+
+          const SizedBox(height: 30),
+
+          // --- D. SUBMIT BUTTON ---
+          SizedBox(
+            width: double.infinity,
+            height: 54, // Matching Checkout Button Height
+            child: FilledButton(
+              onPressed: _isLoading ? null : () => _submitForm(profile.userId),
+              child: _isLoading
+                  ? const SizedBox(
+                      height: 24,
+                      width: 24,
+                      child: CircularProgressIndicator(
+                        color: Colors.white,
+                        strokeWidth: 2,
+                      ),
+                    )
+                  : Text(
+                      _action == PointHistoryAction.addition
+                          ? "CONFIRM ADDITION"
+                          : "CONFIRM DEDUCTION",
+                      style: const TextStyle(fontWeight: FontWeight.bold),
+                    ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildInfoRow(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(label, style: const TextStyle(color: Colors.grey)),
+          Text(value, style: const TextStyle(fontWeight: FontWeight.w500)),
+        ],
+      ),
+    );
+  }
+
   Future<void> _submitForm(String userId) async {
     if (!_formKey.currentState!.validate()) return;
 
-    setState(() => _isLoading = true);
-
-    // 1. We assume this won't crash
-    final notifier = ref.read(pointHistoryProvider(userId).notifier);
-    final points = int.tryParse(_amountCtrl.text.trim()) ?? 0;
-
-    Message message;
-
-    // 2. We trust these methods to return a Message, not throw
     if (_action == PointHistoryAction.deduction) {
-      message = await notifier.deductPoints(
-        userId: userId,
-        pointsToDeduct: points,
-        reason: _reasonCtrl.text.trim(),
-        isIssuedByStaff: true,
+      final confirm = await showDialog<bool>(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: const Text("Confirm Deduction"),
+          content: Text("Deduct ${_amountCtrl.text} points from this user?"),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: const Text("Cancel"),
+            ),
+            TextButton(
+              onPressed: () => Navigator.pop(ctx, true),
+
+              child: const Text(
+                "Confirm",
+                style: TextStyle(
+                  color: Colors.red,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ],
+        ),
       );
-    } else {
-      message = await notifier.addPoints(
-        userId: userId,
-        points: points,
-        reason: _reasonCtrl.text.trim(),
-        isIssuedByStaff: true,
-      );
+      if (confirm != true) return;
     }
 
-    if (!mounted) return;
+    setState(() => _isLoading = true);
 
+    final notifier = ref.read(pointHistoryProvider(userId).notifier);
+    final points = int.parse(_amountCtrl.text.trim());
+
+    final Message message = _action == PointHistoryAction.deduction
+        ? await notifier.deductPoints(
+            userId: userId,
+            pointsToDeduct: points,
+            reason: _reasonCtrl.text.trim(),
+            isIssuedByStaff: true,
+          )
+        : await notifier.addPoints(
+            userId: userId,
+            points: points,
+            reason: _reasonCtrl.text.trim(),
+            isIssuedByStaff: true,
+          );
+
+    if (!mounted) return;
     setState(() => _isLoading = false);
 
-    // 3. Handle the result (Success OR Failure) here
     showAppSnackBar(
       context: context,
       content: message.message,
@@ -210,115 +381,91 @@ class _StaffAddPointHistoryScreenState
     }
   }
 
-  Widget _userDetails(Profile profile) {
-    // FIX: AsyncValue handling.
-    final balanceAsync = ref.watch(totalPointsProvider(profile.userId));
-
-    // Extract actual value, defaulting to 0 if loading/error
-    final int currentBalance = balanceAsync.value ?? 0;
-
+  Widget _buildNotFoundState() {
     return Container(
       width: double.infinity,
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Theme.of(context)
-            .colorScheme
-            .primaryContainer, // Use Container color for better contrast
+        color: Theme.of(context).colorScheme.errorContainer,
         borderRadius: BorderRadius.circular(12),
       ),
-      padding: const EdgeInsets.all(20),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      child: Row(
         children: [
+          Icon(
+            Icons.error_outline,
+            color: Theme.of(context).colorScheme.onErrorContainer,
+          ),
+          const SizedBox(width: 12),
           Text(
-            'User Details',
-            style: Theme.of(context).textTheme.bodyLarge!.copyWith(
+            'No user found with that email.',
+            style: TextStyle(
+              color: Theme.of(context).colorScheme.onErrorContainer,
               fontWeight: FontWeight.bold,
-              color: Theme.of(context).colorScheme.onPrimaryContainer,
             ),
-          ),
-          const SizedBox(height: 10),
-
-          // Assuming ProfileListitem handles its own styling,
-          // ensure it looks good on primaryContainer background
-          ProfileListitem(email: profile.email, name: profile.name, dialCode: profile.dialCode, phoneNum: profile.phoneNum, gender: profile.gender),
-
-          const SizedBox(height: 10),
-          Divider(
-            color: Theme.of(
-              context,
-            ).colorScheme.onPrimaryContainer.withValues(alpha: 0.2),
-          ),
-          const SizedBox(height: 10),
-
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                "Current Balance:",
-                style: TextStyle(
-                  color: Theme.of(context).colorScheme.onPrimaryContainer,
-                ),
-              ),
-              Text(
-                '$currentBalance pts',
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 18,
-                  color: Theme.of(context).colorScheme.onPrimaryContainer,
-                ),
-              ),
-            ],
           ),
         ],
       ),
     );
   }
+}
 
-  Widget _addRecordForm() {
-    return Form(
-      key: _formKey,
-      child: Column(
-        children: [
-          DropdownButtonFormField<PointHistoryAction>(
-            initialValue: _action, // FIX: Use value instead of initialValue
-            decoration: const InputDecoration(labelText: "Action"),
-            items: const [
-              DropdownMenuItem(
-                value: PointHistoryAction.addition,
-                child: Text("Add Points"),
+// --- HELPER: Action Selection Card ---
+// Exact replica of _DeliveryOptionCard styling logic
+class _ActionOptionCard extends StatelessWidget {
+  const _ActionOptionCard({
+    required this.label,
+    required this.icon,
+    required this.isSelected,
+    required this.onTap,
+    required this.activeColor,
+  });
+
+  final String label;
+  final IconData icon;
+  final bool isSelected;
+  final VoidCallback onTap;
+  final Color activeColor;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    // Background Color
+    final bgColor = isSelected
+        ? activeColor.withValues(alpha: 0.1)
+        : theme.colorScheme.surface;
+
+    // Border Color
+    final borderColor = isSelected ? activeColor : theme.colorScheme.outline;
+
+    // Content Color
+    final contentColor = isSelected
+        ? activeColor
+        : theme.colorScheme.onSurfaceVariant;
+
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 16),
+        decoration: BoxDecoration(
+          color: bgColor,
+          border: Border.all(color: borderColor, width: isSelected ? 2.0 : 1.0),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Column(
+          children: [
+            Icon(icon, color: contentColor),
+            const SizedBox(height: 8),
+            Text(
+              label,
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                color: contentColor,
               ),
-              DropdownMenuItem(
-                value: PointHistoryAction.deduction,
-                child: Text("Deduct Points"),
-              ),
-            ],
-            onChanged: (value) {
-              if (value != null) {
-                setState(() {
-                  _action = value;
-                });
-              }
-            },
-            validator: (value) => value == null ? "Required" : null,
-          ),
-
-          const SizedBox(height: 20),
-
-          textFormField(
-            controller: _amountCtrl,
-            label: "Point Amount",
-            keyboardType: TextInputType.number,
-          ),
-
-          const SizedBox(height: 20),
-
-          textFormField(
-            controller: _reasonCtrl,
-            label: "Reason / Remarks",
-            minLines: 2,
-            maxLines: null,
-          ),
-        ],
+            ),
+          ],
+        ),
       ),
     );
   }

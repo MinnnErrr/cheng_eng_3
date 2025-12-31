@@ -58,6 +58,8 @@ final productRealTimeProvider = Provider<void>((ref) {
         schema: 'public',
         table: 'products',
         callback: (payload) {
+          print('new record: ${payload.newRecord}');
+          print('old record: ${payload.oldRecord}');
           final productId = payload.newRecord['id'];
 
           // staff refresh
@@ -69,7 +71,21 @@ final productRealTimeProvider = Provider<void>((ref) {
           ref.invalidate(productByIdProvider(productId));
         },
       )
-      .subscribe();
+      .subscribe(
+        (status, error) {
+          print('Product Realtime Status: $status');
+
+          if (status == RealtimeSubscribeStatus.subscribed) {
+            print('✅ Successfully connected to products!');
+          } else if (status == RealtimeSubscribeStatus.closed) {
+            print('❌ Connection CLOSED!');
+          } else if (status == RealtimeSubscribeStatus.timedOut) {
+            print('⏰ Connection TIMED OUT - Retrying?');
+          } else if (error != null) {
+            print('🔥 Realtime ERROR: $error');
+          }
+        },
+      );
   ref.onDispose(() {
     supabase.removeChannel(channel);
   });

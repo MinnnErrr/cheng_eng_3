@@ -40,6 +40,24 @@ class AuthService {
     await supabase.auth.resend(type: OtpType.signup, email: email);
   }
 
+  Future<void> sendPasswordResetEmail(String email) async {
+    const redirectUrl = 'com.example.chengeng3://login-callback/';
+
+    await supabase.auth.resetPasswordForEmail(
+      email,
+      redirectTo: redirectUrl,
+    );
+  }
+
+  Future<User?> resetPassword(String newPassword) async {
+    final UserResponse res = await supabase.auth.updateUser(
+      UserAttributes(
+        password: newPassword,
+      ),
+    );
+    return res.user;
+  }
+
   Future<void> signOut() async {
     await supabase.auth.signOut();
   }

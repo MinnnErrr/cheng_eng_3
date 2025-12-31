@@ -22,7 +22,6 @@ sealed class Profile with _$Profile {
     DateTime? birthday,
     required String role,
     required String userId,
-    DateTime? deletedAt
   }) = _Profile;
 
   factory Profile.fromJson(Map<String, dynamic> json) =>

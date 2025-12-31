@@ -1,3 +1,4 @@
+import 'package:cheng_eng_3/core/models/message_model.dart';
 import 'package:cheng_eng_3/core/services/auth_service.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -12,9 +13,13 @@ class AuthNotifier extends _$AuthNotifier {
   FutureOr<User?> build() {
     final supabase = Supabase.instance.client;
 
-    supabase.auth.onAuthStateChange.listen((event) {
+    final subscription = supabase.auth.onAuthStateChange.listen((event) {
       final session = event.session;
       state = AsyncData(session?.user);
+    });
+
+    ref.onDispose(() {
+      subscription.cancel();
     });
 
     return supabase.auth.currentUser;
@@ -92,6 +97,43 @@ class AuthNotifier extends _$AuthNotifier {
       return e.message;
     } catch (e) {
       return e.toString();
+    }
+  }
+
+  Future<Message> sendPasswordResetEmail(String email) async {
+    try {
+      await _authService.sendPasswordResetEmail(email);
+      return Message(
+        isSuccess: true,
+        message: 'Reset link sent! Check your email',
+      );
+    } on AuthException catch (e) {
+      return Message(
+        isSuccess: false,
+        message: e.toString(),
+      );
+    } catch (e) {
+      return Message(
+        isSuccess: false,
+        message: e.toString(),
+      );
+    }
+  }
+
+  Future<Message> resetPassword(String newPassword) async {
+    try {
+      await _authService.resetPassword(newPassword);
+      return Message(isSuccess: true, message: 'Password updated successfully');
+    } on AuthException catch (e) {
+      return Message(
+        isSuccess: false,
+        message: e.toString(),
+      );
+    } catch (e) {
+      return Message(
+        isSuccess: false,
+        message: e.toString(),
+      );
     }
   }
 

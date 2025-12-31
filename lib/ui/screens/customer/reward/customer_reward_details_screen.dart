@@ -46,7 +46,7 @@ class _CustomerRewardDetailsScreenState
     final totalPointsAsync = ref.watch(totalPointsProvider(user.id));
 
     // Notifier
-    final redeemedRewardNotifier = ref.read(
+    final redeemedRewardNotifier = ref.watch(
       redeemedRewardProvider(user.id).notifier,
     );
 
@@ -299,6 +299,7 @@ class _CustomerRewardDetailsScreenState
                               redeemedRewardNotifier,
                               currentReward,
                               user.id,
+                              total,
                             )
                           : null,
                       style: FilledButton.styleFrom(
@@ -436,6 +437,7 @@ class _CustomerRewardDetailsScreenState
     RedeemedRewardNotifier notifier,
     Reward reward,
     String userId,
+    int currentPoints,
   ) async {
     final confirm = await showDialog<bool>(
       context: context,
@@ -461,8 +463,9 @@ class _CustomerRewardDetailsScreenState
       setState(() => _isRedeeming = true);
 
       final message = await notifier.addRedeemedReward(
-        rewardId: reward.id,
+        reward: reward,
         userId: userId,
+        currentPoints: currentPoints,
       );
 
       if (context.mounted) {
@@ -473,10 +476,6 @@ class _CustomerRewardDetailsScreenState
           content: message.message,
           isError: !message.isSuccess,
         );
-
-        if (message.isSuccess) {
-          Navigator.pop(context);
-        }
       }
     }
   }

@@ -3,6 +3,7 @@ import 'package:cheng_eng_3/core/controllers/redeem_reward/redeemed_reward_by_id
 import 'package:cheng_eng_3/core/controllers/reward/reward_by_id_provider.dart';
 import 'package:cheng_eng_3/core/models/message_model.dart';
 import 'package:cheng_eng_3/core/models/redeemed_reward_model.dart';
+import 'package:cheng_eng_3/core/models/reward_model.dart';
 import 'package:cheng_eng_3/core/services/point_history_service.dart';
 import 'package:cheng_eng_3/core/services/redeemed_reward_service.dart';
 import 'package:cheng_eng_3/core/services/reward_service.dart';
@@ -30,12 +31,10 @@ class RedeemedRewardNotifier extends _$RedeemedRewardNotifier {
   // void refresh() => ref.invalidateSelf();
 
   Future<Message> addRedeemedReward({
-    required String rewardId,
+    required Reward reward,
+    required int currentPoints,
     required String userId,
   }) async {
-    // 1. Fetch Reward Data
-    final reward = await ref.read(rewardByIdProvider(rewardId).future);
-
     // 2. Check Stock (New Logic)
     if (reward.quantity <= 0) {
       return Message(
@@ -45,8 +44,7 @@ class RedeemedRewardNotifier extends _$RedeemedRewardNotifier {
     }
 
     // 3. Check Points Balance
-    final userPoint = await ref.read(totalPointsProvider(userId).future);
-    if (userPoint < reward.points) {
+    if (currentPoints < reward.points) {
       return Message(
         isSuccess: false,
         message: 'Not enough points to redeem this reward',
@@ -75,7 +73,7 @@ class RedeemedRewardNotifier extends _$RedeemedRewardNotifier {
       expiryDate: expiryDate,
       photoPaths: reward.photoPaths,
       isClaimed: false,
-      rewardId: rewardId,
+      rewardId: reward.id,
       userId: userId,
       updatedAt: null,
     );
@@ -84,9 +82,11 @@ class RedeemedRewardNotifier extends _$RedeemedRewardNotifier {
     try {
       // A. Create the "Voucher"
       await _redeemedRewardService.create(redeemedReward);
+      print('a');
 
       // B. Deduct the Stock (RPC Call)
-      await _rewardService.decreaseQuantity(rewardId);
+      await _rewardService.decreaseQuantity(reward.id);
+      print('b');
 
       // C. Deduct the Points (Wallet Update)
       await _pointHistoryService.deductPoints(
@@ -95,6 +95,7 @@ class RedeemedRewardNotifier extends _$RedeemedRewardNotifier {
         'Redeemed: ${reward.name}',
         false,
       );
+      print('c');
 
       return Message(isSuccess: true, message: 'Reward redeemed successfully');
     } catch (e) {
@@ -121,6 +122,7 @@ class RedeemedRewardNotifier extends _$RedeemedRewardNotifier {
 
       return Message(isSuccess: true, message: 'Reward successfully claimed');
     } catch (e) {
+      print('error: $e');
       return Message(
         isSuccess: false,
         message: 'Failed to claim reward',

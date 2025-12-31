@@ -32,7 +32,11 @@ class ProductService {
   }
 
   Future<Product?> getByProductId(String id) async {
-    final data = await supabase.from('products').select().eq('id', id).maybeSingle();
+    final data = await supabase
+        .from('products')
+        .select()
+        .eq('id', id)
+        .maybeSingle();
     return data == null ? null : Product.fromJson(data);
   }
 
@@ -41,7 +45,10 @@ class ProductService {
   }
 
   Future<void> update(Product product) async {
-    await supabase.from('products').update(product.toJson()).eq('id', product.id);
+    await supabase
+        .from('products')
+        .update(product.toJson())
+        .eq('id', product.id);
   }
 
   Future<void> updateQuantity(int quantity, String productId) async {
@@ -64,7 +71,10 @@ class ProductService {
   Future<void> updateStatus(bool isActive, String productId) async {
     await supabase
         .from('products')
-        .update({'status': isActive, 'updatedAt': DateTime.now()})
+        .update({
+          'status': isActive,
+          'updatedAt': DateTime.now().toIso8601String(),
+        })
         .eq('id', productId);
   }
 

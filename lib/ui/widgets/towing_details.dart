@@ -124,14 +124,13 @@ class TowingDetailsWidget extends ConsumerWidget {
                 padding: const EdgeInsets.all(12),
                 width: double.infinity,
                 decoration: BoxDecoration(
-                  color: theme.colorScheme.primaryContainer.withValues(
-                    alpha: 0.3,
-                  ),
-                  borderRadius: BorderRadius.circular(8),
+                  // 1. Use Primary Container (Light Yellow) for visibility
+                  color: theme.colorScheme.primaryContainer,
+                  borderRadius: BorderRadius.circular(12),
+                  // 2. Add a solid primary border to frame it
                   border: Border.all(
-                    color: theme.colorScheme.primary.withValues(
-                      alpha: 0.5,
-                    ),
+                    color: theme.colorScheme.primary,
+                    width: 1.5,
                   ),
                 ),
                 child: Column(

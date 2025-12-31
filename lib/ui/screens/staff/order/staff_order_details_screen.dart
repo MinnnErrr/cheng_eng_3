@@ -1,4 +1,3 @@
-
 import 'package:cheng_eng_3/core/controllers/order/staff_order_details_notifier.dart';
 import 'package:cheng_eng_3/core/controllers/order_item/order_item_controller.dart';
 import 'package:cheng_eng_3/core/controllers/realtime_provider.dart';
@@ -13,8 +12,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
-// Move formatter to global scope for performance
-final _timeFormatter = DateFormat('dd/MM/yyyy').add_jm();
+final _timeFormatter = DateFormat('dd MMM yyyy, h:mm a');
 
 class StaffOrderDetailsScreen extends ConsumerWidget {
   const StaffOrderDetailsScreen({super.key, required this.order});
@@ -22,62 +20,108 @@ class StaffOrderDetailsScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // 1. Activate Realtime Listener (Background)
     ref.watch(orderRealTimeProvider);
 
-    // 2. Watch the Staff Detail Notifier
     final stateAsync = ref.watch(staffOrderDetailProvider(order.id));
-
-    // 3. Construct View State (Optimistic)
-    // If AsyncValue has data, use it. If loading/null, wrap the 'order' passed in constructor.
-    // This ensures buttons/labels appear immediately without waiting for the fetch.
     final viewState = stateAsync.value ?? StaffOrderDetailState(order: order);
     final currentOrder = viewState.order;
     final items = currentOrder.items;
+    final theme = Theme.of(context);
 
-    // 1. For Item Actions (Checkboxes)
+    // Item Action Notifiers
     final itemNotifier = ref.read(orderItemProvider.notifier);
-    // Watch this to disable checkboxes while one is updating
     final itemState = ref.watch(orderItemProvider);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Order Details')),
+      backgroundColor: theme.colorScheme.surface,
+      appBar: AppBar(
+        title: const Text('Order Details'),
+        centerTitle: true,
+      ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // --- HEADER SECTION ---
-            Text(
-              'Order Info',
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
-            const SizedBox(height: 8),
-
+            // --- 1. STATUS CARD (Light Theme) ---
             Container(
               width: double.infinity,
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                // Use light background tint based on status color
+                color: currentOrder.status.color.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(
+                  color: currentOrder.status.color.withOpacity(0.5),
+                  width: 1.5,
+                ),
+              ),
+              child: Column(
+                children: [
+                  Text(
+                    'CURRENT STATUS',
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                      // Use status color for text to make it pop
+                      color: currentOrder.status.color,
+                      letterSpacing: 1.2,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    currentOrder.status.label.toUpperCase(),
+                    style: theme.textTheme.titleLarge?.copyWith(
+                      fontWeight: FontWeight.w900,
+                      color: currentOrder.status.color,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  // Order ID Chip
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 5,
+                      vertical: 4,
+                    ),
+                    decoration: BoxDecoration(
+                      color: theme.colorScheme.surfaceContainer,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Text(
+                      '#${currentOrder.id.toUpperCase()}',
+                      style: Theme.of(context).textTheme.bodySmall!.copyWith(
+                        color: theme.colorScheme.onSurface,
+                        fontWeight: FontWeight.bold,
+                        fontFamily: 'Monospace',
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            const SizedBox(height: 30),
+
+            // --- 2. TIMELINE DETAILS ---
+            _SectionHeader(title: "Timeline"),
+            Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.surfaceContainer,
+                color: theme.colorScheme.surfaceContainer,
                 borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: theme.colorScheme.outlineVariant),
               ),
               child: Column(
                 children: [
                   _buildDetailRow(
-                    'Order ID',
-                    currentOrder.id,
-                  ),
-                  _buildDetailRow(
-                    'Status',
-                    currentOrder.status.label,
-                    color: currentOrder.status.color,
-                  ),
-                  _buildDetailRow(
-                    'Created at',
+                    context,
+                    'Created',
                     _timeFormatter.format(currentOrder.createdAt),
                   ),
+                  const Divider(height: 24),
                   _buildDetailRow(
-                    'Updated at',
+                    context,
+                    'Last Update',
                     currentOrder.updatedAt != null
                         ? _timeFormatter.format(currentOrder.updatedAt!)
                         : '-',
@@ -86,202 +130,173 @@ class StaffOrderDetailsScreen extends ConsumerWidget {
               ),
             ),
 
-            const SizedBox(height: 16),
+            const SizedBox(height: 30),
 
-            // --- COLLAPSIBLE CUSTOMER INFO ---
-            // Wrapped in ExpansionTile to hide details if not needed
-            Card(
-              elevation: 0,
-              color: Theme.of(context).colorScheme.surfaceContainer,
-              shape: RoundedRectangleBorder(
+            // --- 3. CUSTOMER INFO ---
+            _SectionHeader(title: "Customer Information"),
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: theme.colorScheme.surfaceContainer,
                 borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: theme.colorScheme.outlineVariant),
               ),
-              clipBehavior: Clip.antiAlias,
-              child: ExpansionTile(
-                shape: RoundedRectangleBorder(
-                  side: BorderSide(color: Colors.transparent),
-                ),
-                collapsedShape: RoundedRectangleBorder(
-                  side: BorderSide(color: Colors.transparent),
-                ),
-                title: Text(
-                  'Customer Info',
-                  style: Theme.of(context).textTheme.titleMedium,
-                ),
-                childrenPadding: const EdgeInsets.all(16).copyWith(top: 0),
+              child: Column(
                 children: [
-                  _buildDetailRow('Username', currentOrder.username),
-                  _buildDetailRow('Email', currentOrder.userEmail),
+                  _buildDetailRow(context, 'Name', currentOrder.username),
+                  const Divider(height: 24),
+                  _buildDetailRow(context, 'Email', currentOrder.userEmail),
+                  const Divider(height: 24),
                   _buildDetailRow(
-                    'Phone Number',
-                    '${currentOrder.userDialCode}${currentOrder.userPhoneNum}',
+                    context,
+                    'Phone',
+                    '${currentOrder.userDialCode} ${currentOrder.userPhoneNum}',
                   ),
                 ],
               ),
             ),
 
-            const SizedBox(height: 16),
-
-            // --- COLLAPSIBLE ORDER SUMMARY ---
-            Card(
-              elevation: 0,
-              color: Theme.of(context).colorScheme.surfaceContainer,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-              clipBehavior: Clip.antiAlias,
-              child: ExpansionTile(
-                shape: RoundedRectangleBorder(
-                  side: BorderSide(color: Colors.transparent),
-                ),
-                collapsedShape: RoundedRectangleBorder(
-                  side: BorderSide(color: Colors.transparent),
-                ),
-                title: Text(
-                  'Order Summary',
-                  style: Theme.of(context).textTheme.titleMedium,
-                ),
-                childrenPadding: const EdgeInsets.all(16).copyWith(top: 0),
+            // --- 4. CHECKLIST (If Processing) ---
+            if (currentOrder.status == OrderStatus.processing &&
+                items != null) ...[
+              const SizedBox(height: 30),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  OrderSummary(
-                    subtotal: currentOrder.subtotal,
-                    total: currentOrder.total,
-                    items: items,
-                    points: null,
-                    deliveryFee: currentOrder.deliveryFee,
+                  const _SectionHeader(
+                    title: "Preparation Checklist",
+                    padding: 0,
                   ),
-                ],
-              ),
-            ),
-
-            const SizedBox(height: 24),
-
-            // --- DELIVERY INFO (Conditional) ---
-            if (currentOrder.deliveryMethod == DeliveryMethod.delivery)
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Delivery Info',
-                    style: Theme.of(context).textTheme.titleMedium,
-                  ),
-                  const SizedBox(height: 8),
-                  OrderDelivery(
-                    firstName: currentOrder.deliveryFirstName!,
-                    lastName: currentOrder.deliveryLastName!,
-                    addressLine1: currentOrder.deliveryAddressLine1!,
-                    addressLine2: currentOrder.deliveryAddressLine2,
-                    city: currentOrder.deliveryCity!,
-                    country: currentOrder.deliveryCountry!,
-                    dialCode: currentOrder.deliveryDialCode!,
-                    phoneNum: currentOrder.deliveryPhoneNum!,
-                    postcode: currentOrder.deliveryPostcode!,
-                    state:
-                        currentOrder.deliveryState!, // Assuming enum has .label
-                  ),
-                  const SizedBox(height: 24),
-                ],
-              ),
-
-            // --- CHECKLIST SECTION (Only if Processing) ---
-            if (currentOrder.status == OrderStatus.processing && items != null)
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        'Item Checklist',
-                        style: Theme.of(context).textTheme.titleMedium,
-                      ),
-                      // Helper text to show progress
-                      Text(
-                        "${items.where((i) => i.isReady).length}/${items.length} Ready",
-                        style: TextStyle(
-                          color: items.every((i) => i.isReady)
-                              ? Colors.green
-                              : Colors.orange,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
-
-                  // Checklist Container
+                  // Progress Chip
                   Container(
-                    decoration: BoxDecoration(
-                      color: Theme.of(context).colorScheme.surfaceContainer,
-                      borderRadius: BorderRadius.circular(12),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 6,
                     ),
-                    child: Column(
-                      children: items.map((item) {
-                        final isUpdating = itemState.isLoading;
-                        final imageUrl = item.photoPaths.isNotEmpty
-                            ? item.photoPaths.first
-                            : '';
-
-                        return CheckboxListTile(
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
+                    decoration: BoxDecoration(
+                      color: items.every((i) => i.isReady)
+                          ? Colors.green
+                          : Colors.orange,
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Text(
+                      "${items.where((i) => i.isReady).length}/${items.length} Ready",
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 12,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              // Checklist Items
+              Container(
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.surfaceContainer,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: theme.colorScheme.outlineVariant),
+                ),
+                child: Column(
+                  children: items.map((item) {
+                    final isUpdating = itemState.isLoading;
+                    return Column(
+                      children: [
+                        CheckboxListTile(
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 4,
                           ),
-                          secondary: imageBuilder(
-                            url: imageUrl,
-                            containerWidth: 50,
-                            containerHeight: 50,
-                            noImageContent: const Icon(
-                              Icons.image_not_supported_outlined,
-                              color: Colors.grey,
-                              size: 24,
-                            ),
-                            context: context,
-                          ),
+                          activeColor: Colors.green,
+                          checkColor: Colors.white,
                           title: Text(
-                            [
-                              item.productBrand,
-                              item.productName,
-                              item.productModel ?? '', // Handle null safely
-                            ].join(' ').trim(), // Removes extra spaces
-                            // 2. LIMIT LINES (Optional but recommended)
-                            // For staff, maybe allow 2 lines so they can read the full model number.
-                            overflow: TextOverflow
-                                .ellipsis, // Adds "..." if it's still too long
+                            "${item.productBrand} ${item.productName}",
                             style: const TextStyle(
                               fontWeight: FontWeight.w600,
-                            ), // Make title slightly bold
+                              fontSize: 14,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                           ),
-                          subtitle: Text('x${item.quantity}'),
+                          subtitle: Text(
+                            "Model: ${item.productModel ?? '-'} • Qty: ${item.quantity}",
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: theme.colorScheme.onSurfaceVariant,
+                            ),
+                          ),
+
                           value: item.isReady,
-                          activeColor: Colors.green,
                           onChanged: isUpdating
                               ? null
-                              : (bool? newValue) async {
-                                  if (newValue == null) return;
-
+                              : (val) async {
+                                  if (val == null) return;
                                   await itemNotifier.updateReady(
                                     orderItemId: item.id,
-                                    isReady: newValue,
+                                    isReady: val,
                                   );
                                 },
-                        );
-                      }).toList(),
-                    ),
-                  ),
-                  const SizedBox(height: 100), // Space for bottom bar
-                ],
+                        ),
+                        if (item != items.last) const Divider(height: 1),
+                      ],
+                    );
+                  }).toList(),
+                ),
               ),
+            ],
+
+            const SizedBox(height: 30),
+
+            // --- 5. ORDER SUMMARY ---
+            _SectionHeader(title: "Order Summary"),
+            OrderSummary(
+              subtotal: currentOrder.subtotal,
+              total: currentOrder.total,
+              items: items,
+              points: null,
+              deliveryFee: currentOrder.deliveryFee,
+            ),
+
+            // --- 6. DELIVERY ADDRESS (Separated) ---
+            if (currentOrder.deliveryMethod == DeliveryMethod.delivery) ...[
+              const SizedBox(height: 30),
+              _SectionHeader(title: "Delivery Details"),
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.surfaceContainer,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: theme.colorScheme.outlineVariant),
+                ),
+                child: OrderDelivery(
+                  firstName: currentOrder.deliveryFirstName!,
+                  lastName: currentOrder.deliveryLastName!,
+                  addressLine1: currentOrder.deliveryAddressLine1!,
+                  addressLine2: currentOrder.deliveryAddressLine2,
+                  city: currentOrder.deliveryCity!,
+                  country: currentOrder.deliveryCountry!,
+                  dialCode: currentOrder.deliveryDialCode!,
+                  phoneNum: currentOrder.deliveryPhoneNum!,
+                  postcode: currentOrder.deliveryPostcode!,
+                  state: currentOrder.deliveryState!,
+                ),
+              ),
+            ],
+
+            const SizedBox(height: 50), // Space for bottom bar
           ],
         ),
       ),
 
-      // --- FIXED BOTTOM UPDATE BAR ---
+      // --- BOTTOM ACTION BAR ---
       bottomNavigationBar: viewState.isTerminal
           ? null
           : Container(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.surface,
+                color: theme.colorScheme.surface,
                 boxShadow: [
                   BoxShadow(
                     color: Colors.black.withValues(alpha: 0.05),
@@ -293,40 +308,81 @@ class StaffOrderDetailsScreen extends ConsumerWidget {
               child: SafeArea(
                 child: Row(
                   children: [
+                    // Cancel Button
                     Expanded(
-                      child: OutlinedButton(
-                        onPressed: stateAsync.isLoading
-                            ? null
-                            : () async {
-                                final notifier = ref.read(
-                                  staffOrderDetailProvider(order.id).notifier,
-                                );
-                                final msg = await notifier.cancelOrder();
-
-                                if (context.mounted && !msg.isSuccess) {
-                                  showAppSnackBar(
+                      flex: 1,
+                      child: SizedBox(
+                        height: 54,
+                        child: OutlinedButton(
+                          onPressed: stateAsync.isLoading
+                              ? null
+                              : () async {
+                                  final confirm = await showDialog<bool>(
                                     context: context,
-                                    content: msg.message,
-                                    isError: true,
+                                    builder: (ctx) => AlertDialog(
+                                      title: const Text("Cancel Order?"),
+                                      content: const Text(
+                                        "This action cannot be undone.",
+                                      ),
+                                      actions: [
+                                        TextButton(
+                                          onPressed: () =>
+                                              Navigator.pop(ctx, false),
+                                          child: const Text("Back"),
+                                        ),
+                                        TextButton(
+                                          onPressed: () =>
+                                              Navigator.pop(ctx, true),
+                                          child: Text(
+                                            "Confirm Cancel",
+                                            style: TextStyle(
+                                              color: theme.colorScheme.error,
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
                                   );
-                                }
-                              },
-                        child: const Text('Cancel Order'),
+
+                                  if (confirm != true) return;
+
+                                  final notifier = ref.read(
+                                    staffOrderDetailProvider(order.id).notifier,
+                                  );
+                                  final msg = await notifier.cancelOrder();
+                                  if (context.mounted && !msg.isSuccess) {
+                                    showAppSnackBar(
+                                      context: context,
+                                      content: msg.message,
+                                      isError: true,
+                                    );
+                                  }
+                                },
+                          style: OutlinedButton.styleFrom(
+                            side: BorderSide(
+                              color: theme.colorScheme.error,
+                            ),
+                            foregroundColor: theme.colorScheme.error,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                          child: const Text("Cancel"),
+                        ),
                       ),
                     ),
                     const SizedBox(width: 12),
+
+                    // Advance Button (Yellow Primary)
                     Expanded(
                       child: FilledButton(
-                        // Disable if Processing AND not all items are ready
                         onPressed: stateAsync.isLoading || !viewState.canProceed
                             ? null
                             : () async {
                                 final notifier = ref.read(
                                   staffOrderDetailProvider(order.id).notifier,
                                 );
-
                                 final msg = await notifier.advanceOrder();
-
                                 if (context.mounted) {
                                   showAppSnackBar(
                                     context: context,
@@ -335,17 +391,22 @@ class StaffOrderDetailsScreen extends ConsumerWidget {
                                   );
                                 }
                               },
+
                         child: stateAsync.isLoading
                             ? const SizedBox(
-                                width: 20,
-                                height: 20,
+                                height: 24,
+                                width: 24,
                                 child: CircularProgressIndicator(
-                                  color: Colors.white,
+                                  color: Colors.black, // Contrast on Yellow
                                   strokeWidth: 2,
                                 ),
                               )
-                            // Logic: Ask State "What is my label?"
-                            : Text(viewState.primaryButtonLabel),
+                            : Text(
+                                viewState.primaryButtonLabel,
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
                       ),
                     ),
                   ],
@@ -355,27 +416,42 @@ class StaffOrderDetailsScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildDetailRow(String label, String value, {Color? color}) {
+  Widget _buildDetailRow(BuildContext context, String label, String value) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(
+          label,
+          style: TextStyle(
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
+            fontSize: 14,
+          ),
+        ),
+        SelectableText(
+          value,
+          style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
+        ),
+      ],
+    );
+  }
+}
+
+// Header Helper
+class _SectionHeader extends StatelessWidget {
+  final String title;
+  final double padding;
+  const _SectionHeader({required this.title, this.padding = 12});
+
+  @override
+  Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 8.0),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(label, style: const TextStyle(color: Colors.grey)),
-          const SizedBox(
-            width: 30,
-          ),
-          Expanded(
-            child: Text(
-              textAlign: TextAlign.right,
-              value,
-              style: TextStyle(
-                fontWeight: FontWeight.w500,
-                color: color ?? Colors.black87,
-              ),
-            ),
-          ),
-        ],
+      padding: EdgeInsets.only(bottom: padding),
+      child: Text(
+        title,
+        style: Theme.of(context).textTheme.titleMedium?.copyWith(
+          fontWeight: FontWeight.bold,
+          color: Theme.of(context).colorScheme.onSurface,
+        ),
       ),
     );
   }

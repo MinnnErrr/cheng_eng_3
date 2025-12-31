@@ -23,8 +23,19 @@ enum TowingStatus {
 
   static final List<TowingEntry> entries = UnmodifiableListView<TowingEntry>(
     values.map<TowingEntry>(
-      (TowingStatus status) =>
-          TowingEntry(label: status.label, value: status.value),
+      (TowingStatus status) => TowingEntry(
+        label: status.label,
+        value: status.value,
+        // Optional: Add icons for a better look
+        leadingIcon: Icon(
+          status == TowingStatus.decline
+              ? Icons.close
+              : status == TowingStatus.accept
+              ? Icons.check
+              : Icons.flag,
+          color: status == TowingStatus.decline ? Colors.red : null,
+        ),
+      ),
     ),
   );
 }
@@ -50,47 +61,59 @@ class _StaffTowingDetailsScreenState
 
     // Watch the towing provider for updates
     final towingAsync = ref.watch(towingByIdProvider(widget.towing.id));
-
-    // Optimistic UI Pattern
     final Towing currentTowing = towingAsync.value ?? widget.towing;
     final towingNotifier = ref.read(staffTowingsProvider.notifier);
     final bool isCancelled = currentTowing.status.toLowerCase() == 'cancelled';
+    final theme = Theme.of(context);
 
     return Scaffold(
       appBar: AppBar(
         title: const Text('Towing Details'),
-        centerTitle: true, // Optional: Center title looks better in this layout
-        // 1. Make Status Bar Transparent so the AppBar color shows through it
-        systemOverlayStyle: const SystemUiOverlayStyle(
-          statusBarColor: Colors.transparent,
-          statusBarIconBrightness: Brightness.dark, // Use .light for dark mode
-        ),
+        systemOverlayStyle: SystemUiOverlayStyle.dark,
 
-        // 2. This controls the "tint" intensity when you scroll.
-        // Default is usually 3.0. You can increase it for a darker scroll color.
-        scrolledUnderElevation: 3.0,
-
-        // 3. Ensure the base background matches your page before scrolling
-        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-
-        // The bottom widget
+        // Sticky Status Bar
         bottom: isCancelled
             ? null
             : PreferredSize(
-                preferredSize: const Size.fromHeight(80),
-                child: Padding(
-                  // REMOVED THE CONTAINER WITH 'color:' PROPERTY
-                  // Now this section is transparent and shows the AppBar's
-                  // scrolled color underneath.
-                  padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+                preferredSize: const Size.fromHeight(90),
+                child: Container(
+                  padding: const EdgeInsets.fromLTRB(20, 10, 20, 20),
+                  decoration: BoxDecoration(
+                    color: theme.scaffoldBackgroundColor,
+                    border: Border(
+                      bottom: BorderSide(
+                        color: theme.colorScheme.outlineVariant.withValues(
+                          alpha: 0.5,
+                        ),
+                      ),
+                    ),
+                  ),
                   child: Row(
                     children: [
+                      // --- DROPDOWN ---
                       Expanded(
                         child: DropdownMenu<String>(
-                          width: MediaQuery.sizeOf(context).width * 0.70,
-                          label: const Text('Status'),
+                          width: double.infinity, // Fills the Expanded
                           initialSelection: currentTowing.status,
                           dropdownMenuEntries: TowingStatus.entries,
+                          label: const Text('Update Status'),
+                          textStyle: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                          ),
+                          inputDecorationTheme: InputDecorationTheme(
+                            filled: true,
+                            fillColor: theme.colorScheme.surfaceContainer,
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: BorderSide(
+                                color: theme.colorScheme.outlineVariant,
+                              ),
+                            ),
+                            contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 14,
+                            ),
+                          ),
                           onSelected: (value) {
                             setState(() {
                               _selectedStatus = value;
@@ -98,54 +121,78 @@ class _StaffTowingDetailsScreenState
                           },
                         ),
                       ),
+
                       const SizedBox(width: 12),
+
+                      // --- CONFIRM BUTTON ---
+                      // Styled to match the Yellow/Black theme
                       IconButton.filled(
                         style: IconButton.styleFrom(
+                          backgroundColor: theme.colorScheme.primary, // Yellow
+                          foregroundColor: theme.colorScheme.onPrimary, // Black
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
                           ),
-                          minimumSize: const Size(50, 50),
+                          minimumSize: const Size(
+                            56,
+                            56,
+                          ), // Matches Dropdown height
+                          elevation: 0,
                         ),
                         onPressed:
                             _selectedStatus != null &&
                                 _selectedStatus != currentTowing.status
-                            ? () async {
-                                final success = await towingNotifier
-                                    .updateStatus(
-                                      id: currentTowing.id,
-                                      status: _selectedStatus!,
-                                    );
-
-                                if (!context.mounted) return;
-                                showAppSnackBar(
-                                  context: context,
-                                  content: success
-                                      ? 'Status updated'
-                                      : 'Failed to update status',
-                                  isError: !success,
-                                );
-
-                                if (success) {
-                                  setState(() => _selectedStatus = null);
-                                }
-                              }
-                            : null,
-                        icon: const Icon(Icons.check),
+                            ? () => _updateStatus(
+                                context,
+                                towingNotifier,
+                                currentTowing.id,
+                              )
+                            : null, // Disabled state handles grey out auto
+                        icon: const Icon(Icons.check, size: 28),
                       ),
                     ],
                   ),
                 ),
               ),
       ),
-      // Standard SingleChildScrollView for the content
       body: SingleChildScrollView(
-        padding: const EdgeInsets.fromLTRB(20, 20, 20, 40),
+        padding: const EdgeInsets.all(20),
         child: Column(
           children: [
+            // Details Card
             TowingDetailsWidget(towing: currentTowing),
+
+            // Bottom Padding for scrolling
+            const SizedBox(height: 40),
           ],
         ),
       ),
     );
+  }
+
+  // --- LOGIC HELPER ---
+  Future<void> _updateStatus(
+    BuildContext context,
+    StaffTowingsNotifier notifier,
+    String id,
+  ) async {
+    final success = await notifier.updateStatus(
+      id: id,
+      status: _selectedStatus!,
+    );
+
+    if (!context.mounted) return;
+
+    showAppSnackBar(
+      context: context,
+      content: success
+          ? 'Status updated successfully'
+          : 'Failed to update status',
+      isError: !success,
+    );
+
+    if (success) {
+      setState(() => _selectedStatus = null);
+    }
   }
 }

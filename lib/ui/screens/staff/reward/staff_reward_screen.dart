@@ -34,7 +34,7 @@ class _StaffRewardScreenState extends ConsumerState<StaffRewardScreen> {
                 rewards: rewards,
                 search: _search,
               );
-    
+
               return SafeArea(
                 child: Padding(
                   padding: const EdgeInsets.all(20.0),
@@ -49,24 +49,29 @@ class _StaffRewardScreenState extends ConsumerState<StaffRewardScreen> {
                           hintText: "Search name...",
                           prefixIcon: const Icon(Icons.search),
                           filled: true,
-                          fillColor: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
+                          fillColor: Theme.of(
+                            context,
+                          ).colorScheme.surfaceContainerHighest,
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(10),
                             borderSide: BorderSide.none,
                           ),
-                          contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                          ),
                         ),
                       ),
-    
+
                       const SizedBox(height: 20),
-    
+
                       // Reward List
                       Expanded(
                         child: searched.isEmpty
                             ? SingleChildScrollView(
                                 physics: const AlwaysScrollableScrollPhysics(),
                                 child: SizedBox(
-                                  height: MediaQuery.of(context).size.height * 0.5,
+                                  height:
+                                      MediaQuery.of(context).size.height * 0.5,
                                   child: const Center(
                                     child: Text('No reward found'),
                                   ),
@@ -74,12 +79,14 @@ class _StaffRewardScreenState extends ConsumerState<StaffRewardScreen> {
                               )
                             : ListView.separated(
                                 // Allow dismissing keyboard on scroll
-                                keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+                                keyboardDismissBehavior:
+                                    ScrollViewKeyboardDismissBehavior.onDrag,
                                 itemCount: searched.length,
-                                separatorBuilder: (_, __) => const SizedBox(height: 10),
+                                separatorBuilder: (_, __) =>
+                                    const SizedBox(height: 10),
                                 itemBuilder: (_, i) {
                                   final r = searched[i];
-                                  
+
                                   // Better to pass tap action into the widget if possible
                                   // to ensure ripples respect card border radius
                                   return GestureDetector(

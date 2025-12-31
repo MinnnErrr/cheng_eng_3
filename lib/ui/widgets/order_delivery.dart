@@ -42,10 +42,11 @@ class OrderDelivery extends ConsumerWidget {
 
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surfaceContainer,
         borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Theme.of(context).colorScheme.outlineVariant),
       ),
       child: Column(
         children: [
@@ -85,7 +86,12 @@ class OrderDelivery extends ConsumerWidget {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           // Label (Fixed width or flexible)
-          Text(label, style: const TextStyle(color: Colors.grey)),
+          Text(
+            label,
+            style: TextStyle(
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
+          ),
 
           const SizedBox(width: 20),
 
@@ -95,7 +101,7 @@ class OrderDelivery extends ConsumerWidget {
               value,
               textAlign: TextAlign.right, // Aligns value to the right
               style: TextStyle(
-                fontWeight: FontWeight.w500,
+                fontWeight: FontWeight.w600,
                 // Use Theme color for Dark Mode support
                 color: color ?? Theme.of(context).colorScheme.onSurface,
               ),

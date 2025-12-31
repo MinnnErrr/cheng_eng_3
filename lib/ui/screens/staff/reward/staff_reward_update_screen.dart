@@ -33,17 +33,17 @@ class _StaffRewardUpdateState extends ConsumerState<StaffRewardUpdateScreen> {
   final _validityCtrl = TextEditingController();
 
   // State Variables
-  // Remove 'late' to avoid initialization errors. Set defaults.
   bool _limitedPeriod = false;
   DateTime? _availableUntil;
   bool _hasValidity = false;
-  bool _isLoading = false; // Added loading state
+  bool _isActive = true; // Added active state tracking
+  bool _isLoading = false;
 
   // List to hold Strings (URLs) and Files (New Photos)
   final List<dynamic> _photos = [];
 
   final _formKey = GlobalKey<FormState>();
-  final _dateFormatter = DateFormat('dd/MM/yyyy').add_jm();
+  final _dateFormatter = DateFormat('dd MMM yyyy, h:mm a');
 
   @override
   void initState() {
@@ -53,7 +53,6 @@ class _StaffRewardUpdateState extends ConsumerState<StaffRewardUpdateScreen> {
   }
 
   void _loadReward(Reward reward) {
-    // Note: It's safe to read providers in initState, but don't watch them.
     final imageService = ref.read(imageServiceProvider);
 
     _codeCtrl.text = reward.code;
@@ -61,9 +60,8 @@ class _StaffRewardUpdateState extends ConsumerState<StaffRewardUpdateScreen> {
     _descCtrl.text = reward.description;
     _pointCtrl.text = reward.points.toString();
     _qtyCtrl.text = reward.quantity.toString();
-    
-    // Simplified null check
     _conditionCtrl.text = reward.conditions ?? '';
+    _isActive = reward.status; // Load status
 
     // Handle Limited Period Logic
     if (reward.availableUntil != null) {
@@ -93,7 +91,6 @@ class _StaffRewardUpdateState extends ConsumerState<StaffRewardUpdateScreen> {
 
   Future<void> _pickPhoto() async {
     final picker = ImagePicker();
-    // Added image optimization to prevent memory crashes
     final image = await picker.pickImage(
       source: ImageSource.gallery,
       maxWidth: 1024,
@@ -113,6 +110,16 @@ class _StaffRewardUpdateState extends ConsumerState<StaffRewardUpdateScreen> {
     return NetworkImage(item as String); // Cast as String for safety
   }
 
+  Future<void> _handleDateSelection() async {
+    final date = await datePicker(DateTime.now(), context);
+    if (date != null) {
+      setState(() {
+        _availableUntil = date;
+        _availableDateCtrl.text = _dateFormatter.format(date);
+      });
+    }
+  }
+
   @override
   void dispose() {
     _nameCtrl.dispose();
@@ -126,151 +133,7 @@ class _StaffRewardUpdateState extends ConsumerState<StaffRewardUpdateScreen> {
     super.dispose();
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Update Reward'),
-      ),
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(20),
-          child: Form(
-            key: _formKey,
-            child: Column(
-              spacing: 20,
-              children: [
-                textFormField(controller: _codeCtrl, label: 'Reward Code'),
-
-                textFormField(controller: _nameCtrl, label: 'Name'),
-
-                textFormField(
-                  controller: _pointCtrl, 
-                  label: 'Points Required',
-                  keyboardType: TextInputType.number,
-                ),
-
-                textFormField(
-                  controller: _qtyCtrl,
-                  label: 'Quantity',
-                  keyboardType: TextInputType.number,
-                ),
-
-                DropdownButtonFormField<bool>(
-                  initialValue: _limitedPeriod, // Changed from initialValue to value
-                  decoration: const InputDecoration(
-                    labelText: "Display reward for limited period?",
-                  ),
-                  items: const [
-                    DropdownMenuItem(value: true, child: Text("Yes")),
-                    DropdownMenuItem(value: false, child: Text("No")),
-                  ],
-                  onChanged: (value) {
-                    if (value != null) {
-                      setState(() {
-                        _limitedPeriod = value;
-                         // Clear data if user switches to No
-                        if (!value) {
-                          _availableUntil = null;
-                          _availableDateCtrl.clear();
-                        }
-                      });
-                    }
-                  },
-                ),
-
-                if (_limitedPeriod)
-                  textFormField(
-                    controller: _availableDateCtrl,
-                    label: 'Available Until',
-                    readOnly: true,
-                    // Better UX: Tap anywhere on field to open picker
-                    onTap: () async {
-                       final date = await datePicker(DateTime.now(), context);
-                       if (date != null) {
-                          setState(() {
-                            _availableUntil = date;
-                            _availableDateCtrl.text = _dateFormatter.format(date);
-                          });
-                       }
-                    },
-                    suffix: IconButton(
-                      onPressed: () async {
-                         // Duplicate logic handled by extracting method or keeping simple
-                         final date = await datePicker(DateTime.now(), context);
-                         if (date != null) {
-                            setState(() {
-                              _availableUntil = date;
-                              _availableDateCtrl.text = _dateFormatter.format(date);
-                            });
-                         }
-                      },
-                      icon: const Icon(Icons.calendar_month),
-                    ),
-                  ),
-
-                DropdownButtonFormField<bool>(
-                  initialValue: _hasValidity, // Changed from initialValue to value
-                  decoration: const InputDecoration(
-                    labelText: "Set validity period for the reward?",
-                  ),
-                  items: const [
-                    DropdownMenuItem(value: true, child: Text("Yes")),
-                    DropdownMenuItem(value: false, child: Text("No")),
-                  ],
-                  onChanged: (value) {
-                    if (value != null) {
-                      setState(() {
-                        _hasValidity = value;
-                        if (!value) {
-                          _validityCtrl.clear();
-                        }
-                      });
-                    }
-                  },
-                ),
-
-                if (_hasValidity)
-                  textFormField(
-                    controller: _validityCtrl,
-                    label: 'Validity Period (Weeks)',
-                    keyboardType: TextInputType.number,
-                  ),
-
-                textFormField(
-                  controller: _descCtrl,
-                  label: 'Description',
-                  minLines: 3,
-                  maxLines: null,
-                ),
-
-                textFormField(
-                  controller: _conditionCtrl,
-                  label: 'Terms & Conditions',
-                  validationRequired: false,
-                  minLines: 3,
-                  maxLines: null,
-                ),
-
-                _photoSection(),
-
-                SizedBox(
-                  width: double.infinity,
-                  height: 50,
-                  child: ElevatedButton(
-                    onPressed: _isLoading ? null : _submitUpdate, // Disable if loading
-                    child: _isLoading 
-                      ? const CircularProgressIndicator.adaptive() 
-                      : const Text('Update Reward'),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
+  // --- ACTIONS ---
 
   Future<void> _submitUpdate() async {
     if (!_formKey.currentState!.validate()) return;
@@ -282,7 +145,7 @@ class _StaffRewardUpdateState extends ConsumerState<StaffRewardUpdateScreen> {
     // Safe parsing to prevent crashes
     final points = int.tryParse(_pointCtrl.text.trim()) ?? 0;
     final quantity = int.tryParse(_qtyCtrl.text.trim()) ?? 0;
-    
+
     final validityWeeks = _hasValidity && _validityCtrl.text.isNotEmpty
         ? int.tryParse(_validityCtrl.text.trim())
         : null;
@@ -294,7 +157,7 @@ class _StaffRewardUpdateState extends ConsumerState<StaffRewardUpdateScreen> {
       description: _descCtrl.text.trim(),
       points: points,
       quantity: quantity,
-      photos: _photos, // Contains mixed List<String> and List<File>
+      photos: _photos,
       conditions: _conditionCtrl.text.trim().isEmpty
           ? null
           : _conditionCtrl.text.trim(),
@@ -304,7 +167,7 @@ class _StaffRewardUpdateState extends ConsumerState<StaffRewardUpdateScreen> {
 
     if (mounted) {
       setState(() => _isLoading = false);
-      
+
       showAppSnackBar(
         context: context,
         content: message.message,
@@ -317,89 +180,380 @@ class _StaffRewardUpdateState extends ConsumerState<StaffRewardUpdateScreen> {
     }
   }
 
-  Widget _photoSection() {
+  // --- UI BUILD ---
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Scaffold(
+      backgroundColor: theme.colorScheme.surface,
+      appBar: AppBar(
+        title: const Text('Update Reward'),
+        centerTitle: true,
+      ),
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(20),
+          child: Form(
+            key: _formKey,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _SectionHeader(title: "Basic Information"),
+                textFormField(controller: _codeCtrl, label: 'Reward Code'),
+                const SizedBox(height: 20),
+                textFormField(controller: _nameCtrl, label: 'Reward Name'),
+                const SizedBox(height: 20),
+                textFormField(
+                  controller: _descCtrl,
+                  label: 'Description',
+                  minLines: 3,
+                  maxLines: null,
+                ),
+
+                const SizedBox(height: 30),
+                _SectionHeader(title: "Value & Stock"),
+                Row(
+                  children: [
+                    Expanded(
+                      child: textFormField(
+                        controller: _pointCtrl,
+                        label: 'Points Cost',
+                        keyboardType: TextInputType.number,
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: textFormField(
+                        controller: _qtyCtrl,
+                        label: 'Quantity',
+                        keyboardType: TextInputType.number,
+                      ),
+                    ),
+                  ],
+                ),
+
+                const SizedBox(height: 30),
+                _SectionHeader(title: "Availability"),
+
+                // Limited Period Toggle
+                DropdownButtonFormField<bool>(
+                  initialValue: _limitedPeriod,
+                  decoration: InputDecoration(
+                    labelText: "Display reward for limited period?",
+                    filled: true,
+                    fillColor: theme.colorScheme.surfaceContainerHigh,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide.none,
+                    ),
+                  ),
+                  items: const [
+                    DropdownMenuItem(
+                      value: false,
+                      child: Text("No (Permanent)"),
+                    ),
+                    DropdownMenuItem(
+                      value: true,
+                      child: Text("Yes (Set Date)"),
+                    ),
+                  ],
+                  onChanged: (val) {
+                    if (val != null) {
+                      setState(() {
+                        _limitedPeriod = val;
+                        if (!val) {
+                          _availableUntil = null;
+                          _availableDateCtrl.clear();
+                        }
+                      });
+                    }
+                  },
+                ),
+
+                if (_limitedPeriod) ...[
+                  const SizedBox(height: 20),
+                  GestureDetector(
+                    onTap: _handleDateSelection,
+                    child: AbsorbPointer(
+                      child: textFormField(
+                        controller: _availableDateCtrl,
+                        label: 'Available Until',
+                        suffix: const Icon(Icons.calendar_today),
+                      ),
+                    ),
+                  ),
+                ],
+
+                const SizedBox(height: 20),
+
+                // Validity Toggle
+                DropdownButtonFormField<bool>(
+                  initialValue: _hasValidity,
+                  decoration: InputDecoration(
+                    labelText: "Set validity period for the reward?",
+                    filled: true,
+                    fillColor: theme.colorScheme.surfaceContainerHigh,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide.none,
+                    ),
+                  ),
+                  items: const [
+                    DropdownMenuItem(value: false, child: Text("No (Forever)")),
+                    DropdownMenuItem(
+                      value: true,
+                      child: Text("Yes (Set Weeks)"),
+                    ),
+                  ],
+                  onChanged: (val) {
+                    if (val != null) {
+                      setState(() {
+                        _hasValidity = val;
+                        if (!val) _validityCtrl.clear();
+                      });
+                    }
+                  },
+                ),
+
+                if (_hasValidity) ...[
+                  const SizedBox(height: 20),
+                  textFormField(
+                    controller: _validityCtrl,
+                    label: 'Validity Period (Weeks)',
+                    keyboardType: TextInputType.number,
+                    suffix: const Padding(
+                      padding: EdgeInsets.all(12.0),
+                      child: Text(
+                        "Weeks",
+                        style: TextStyle(color: Colors.grey),
+                      ),
+                    ),
+                  ),
+                ],
+
+                const SizedBox(height: 30),
+                _SectionHeader(title: 'Terms & Conditions'),
+                textFormField(
+                  controller: _conditionCtrl,
+                  validationRequired: false,
+                  minLines: 3,
+                  maxLines: null,
+                ),
+
+                const SizedBox(height: 30),
+                _photoSection(theme),
+
+                // const SizedBox(height: 30),
+
+                // // Status Toggle (Active/Inactive)
+                // _SectionHeader(title: "Status"),
+                // DropdownButtonFormField<bool>(
+                //   value: _isActive,
+                //   decoration: InputDecoration(
+                //     labelText: "Reward Status",
+                //     filled: true,
+                //     fillColor: theme.colorScheme.surfaceContainer,
+                //     border: OutlineInputBorder(
+                //       borderRadius: BorderRadius.circular(12),
+                //       borderSide: BorderSide.none,
+                //     ),
+                //   ),
+                //   items: const [
+                //     DropdownMenuItem(
+                //       value: true,
+                //       child: Text("Active (Visible)",
+                //           style: TextStyle(color: Colors.green)),
+                //     ),
+                //     DropdownMenuItem(
+                //       value: false,
+                //       child: Text("Inactive (Hidden)",
+                //           style: TextStyle(color: Colors.grey)),
+                //     ),
+                //   ],
+                //   onChanged: (val) {
+                //     if (val != null) setState(() => _isActive = val);
+                //   },
+                // ),
+                const SizedBox(height: 40),
+
+                // Submit Button
+                SizedBox(
+                  width: double.infinity,
+                  height: 54,
+                  child: FilledButton(
+                    onPressed: _isLoading ? null : _submitUpdate,
+                    style: FilledButton.styleFrom(
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    child: _isLoading
+                        ? const SizedBox(
+                            width: 24,
+                            height: 24,
+                            child: CircularProgressIndicator(
+                              color: Colors.black,
+                              strokeWidth: 2,
+                            ),
+                          )
+                        : Text(
+                            "UPDATE REWARD",
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: theme.colorScheme.onPrimary,
+                            ),
+                          ),
+                  ),
+                ),
+
+                const SizedBox(height: 40), // Bottom Padding
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  // --- SUB WIDGETS ---
+
+  Widget _photoSection(ThemeData theme) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            const Text(
-              "Photos",
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-            ),
-            const Spacer(),
-            TextButton.icon(
-              onPressed: _pickPhoto,
-              label: const Text('Add'),
-              icon: const Icon(Icons.add),
-            ),
+            const _SectionHeader(title: "Photos", padding: 0),
           ],
         ),
-        
-        const SizedBox(height: 10),
-
-        _photos.isEmpty
-            ? Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(border: Border.all(color: Colors.grey)),
-                child: const Center(child: Text('No photo added')),
-              )
-            : GridView.builder(
-                physics: const NeverScrollableScrollPhysics(),
-                shrinkWrap: true,
-                itemCount: _photos.length,
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 3,
-                  crossAxisSpacing: 10,
-                  mainAxisSpacing: 10,
-                ),
-                itemBuilder: (context, index) {
-                  final photo = _photos[index];
-
-                  return Stack(
+        const SizedBox(height: 12),
+        GridView.builder(
+          physics: const NeverScrollableScrollPhysics(),
+          shrinkWrap: true,
+          itemCount: _photos.length + 1, // +1 for Add button
+          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 3,
+            crossAxisSpacing: 12,
+            mainAxisSpacing: 12,
+            childAspectRatio: 1.0,
+          ),
+          itemBuilder: (context, index) {
+            // "Add Photo" Button
+            if (index == _photos.length) {
+              return InkWell(
+                onTap: _pickPhoto,
+                borderRadius: BorderRadius.circular(12),
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: theme.colorScheme.surfaceContainerHighest.withValues(
+                      alpha: 0.3,
+                    ),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: theme.colorScheme.outlineVariant,
+                      style: BorderStyle.solid,
+                    ),
+                  ),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(8),
-                        child: Image(
-                          image: _getImage(photo),
-                          width: double.infinity,
-                          height: double.infinity,
-                          fit: BoxFit.cover,
-                          // Loading builder specifically for network images
-                          loadingBuilder: (context, child, loadingProgress) {
-                            if (loadingProgress == null) return child;
-                            return const Center(child: CircularProgressIndicator());
-                          },
-                        ),
+                      Icon(
+                        Icons.add_a_photo,
+                        color: theme.colorScheme.onSurfaceVariant,
                       ),
-                      Positioned(
-                        right: 4,
-                        top: 4,
-                        child: GestureDetector(
-                          onTap: () {
-                            setState(() {
-                              _photos.removeAt(index);
-                            });
-                          },
-                          child: Container(
-                            decoration: BoxDecoration(
-                              color: Colors.red,
-                              shape: BoxShape.circle,
-                            ),
-                            padding: const EdgeInsets.all(4),
-                            child: const Icon(
-                              Icons.close,
-                              size: 16,
-                              color: Colors.white,
-                            ),
-                          ),
+                      const SizedBox(height: 4),
+                      Text(
+                        "Add",
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: theme.colorScheme.onSurfaceVariant,
                         ),
                       ),
                     ],
-                  );
-                },
-              ),
+                  ),
+                ),
+              );
+            }
+
+            final photo = _photos[index];
+            return Stack(
+              children: [
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(12),
+                  child: Image(
+                    image: _getImage(photo),
+                    width: double.infinity,
+                    height: double.infinity,
+                    fit: BoxFit.cover,
+                    loadingBuilder: (context, child, loadingProgress) {
+                      if (loadingProgress == null) return child;
+                      return Center(
+                        child: CircularProgressIndicator(
+                          value: loadingProgress.expectedTotalBytes != null
+                              ? loadingProgress.cumulativeBytesLoaded /
+                                    loadingProgress.expectedTotalBytes!
+                              : null,
+                        ),
+                      );
+                    },
+                    errorBuilder: (context, error, stackTrace) => Container(
+                      color: Colors.grey.shade200,
+                      child: const Center(
+                        child: Icon(Icons.broken_image, color: Colors.grey),
+                      ),
+                    ),
+                  ),
+                ),
+                Positioned(
+                  top: 4,
+                  right: 4,
+                  child: GestureDetector(
+                    onTap: () {
+                      setState(() => _photos.removeAt(index));
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.all(4),
+                      decoration: const BoxDecoration(
+                        color: Colors.red,
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(
+                        Icons.close,
+                        size: 14,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            );
+          },
+        ),
       ],
+    );
+  }
+}
+
+// Reusable Header
+class _SectionHeader extends StatelessWidget {
+  final String title;
+  final double padding;
+  const _SectionHeader({required this.title, this.padding = 20});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: EdgeInsets.only(bottom: padding),
+      child: Text(
+        title,
+        style: Theme.of(context).textTheme.titleMedium?.copyWith(
+          fontWeight: FontWeight.bold,
+          color: Theme.of(context).colorScheme.onSurfaceVariant,
+        ),
+      ),
     );
   }
 }

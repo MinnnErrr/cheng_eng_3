@@ -1,3 +1,4 @@
+import 'package:cheng_eng_3/colorscheme/colorscheme.dart';
 import 'package:cheng_eng_3/core/controllers/profile/profile_notifier.dart';
 import 'package:cheng_eng_3/ui/screens/staff/booking/staff_booking_screen.dart';
 import 'package:cheng_eng_3/ui/screens/staff/claim_reward/staff_claim_reward_screen.dart';
@@ -64,25 +65,25 @@ class StaffHome extends ConsumerWidget {
         label: 'Product Inventory',
         icon: Icons.inventory_2_outlined,
         screen: const StaffProductScreen(),
-        color: colorScheme.onPrimaryContainer,
+        color: textYellow,
       ),
       _StaffMenuItem(
         label: 'Manage Points',
         icon: Icons.stars,
         screen: const StaffPointsHistoryScreen(),
-        color: colorScheme.onPrimaryContainer,
+        color: textYellow,
       ),
       _StaffMenuItem(
         label: 'Reward Catalog',
         icon: Icons.card_giftcard,
         screen: const StaffRewardScreen(),
-        color: colorScheme.onPrimaryContainer,
+        color: textYellow,
       ),
       _StaffMenuItem(
         label: 'Claim Reward',
         icon: Icons.qr_code_scanner_outlined,
         screen: const StaffClaimRewardScreen(),
-        color: colorScheme.onPrimaryContainer,
+        color: textYellow,
       ),
     ];
 

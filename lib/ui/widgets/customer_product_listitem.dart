@@ -1,87 +1,158 @@
 import 'package:cheng_eng_3/core/models/product_model.dart';
 import 'package:cheng_eng_3/core/services/image_service.dart';
 import 'package:cheng_eng_3/ui/widgets/imagebuilder.dart';
+import 'package:cheng_eng_3/utils/status_colour.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class CustomerProductListitem extends ConsumerWidget {
-  const CustomerProductListitem({super.key, required this.product});
+  const CustomerProductListitem({super.key, required this.product, this.onTap});
 
   final Product product;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final imageService = ref.read(imageServiceProvider);
-    final String? url;
+    final theme = Theme.of(context);
 
-    url = product.photoPaths.isNotEmpty
+    final url = product.photoPaths.isNotEmpty
         ? imageService.retrieveImageUrl(product.photoPaths.first)
         : null;
 
+    final isOutOfStock = product.quantity != null && product.quantity! <= 0;
+    final isPreorder = product.availability == ProductAvailability.preorder;
+
     return Card(
-      color: Theme.of(context).colorScheme.surfaceContainerLowest,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(10),
-      ),
-      child: Stack(
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(10.0),
-            child: Column(
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: onTap,
+        child: Stack(
+          children: [
+            Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                imageBuilder(
-                  url: url,
-                  containerWidth: double.infinity,
-                  containerHeight: 130,
-                  noImageContent: Container(
-                    height: 130,
-                    width: double.infinity,
-                    color: Colors.grey.shade200,
-                    child: const Icon(Icons.store),
+                // 1. IMAGE AREA (Fixed aspect ratio)
+                AspectRatio(
+                  aspectRatio: 1.2, // Square-ish image area
+                  child: imageBuilder(
+                    url: url,
+                    containerWidth: double.infinity,
+                    containerHeight:
+                        double.infinity, // Let AspectRatio control size
+                    noImageContent: Container(
+                      color: theme.colorScheme.surfaceContainerHighest,
+                      child: Icon(
+                        Icons.image_not_supported_outlined,
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                    context: context,
+                    borderRadius: 0,
                   ),
-                  context: context,
                 ),
-                const SizedBox(
-                  height: 10,
-                ),
-                Text(
-                  '${product.brand} ${product.name} ${product.model}',
-                  maxLines: 3,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(fontWeight: FontWeight.bold),
-                ),
-                if (product.colour != null) Text(product.colour!),
-                const Spacer(),
-                Text(
-                  'RM ${product.price.toStringAsFixed(2)}',
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    color: Theme.of(context).colorScheme.primary,
+
+                // 2. DETAILS AREA
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.all(10.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              '${product.brand} ${product.name} ${product.model ?? ''}',
+                              maxLines: 3,
+                              overflow: TextOverflow.ellipsis,
+                              style: theme.textTheme.titleSmall?.copyWith(
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            if (product.colour != null)
+                              Text(
+                                product.colour!,
+                                style: theme.textTheme.bodySmall?.copyWith(
+                                  color: theme.colorScheme.onSurfaceVariant,
+                                ),
+                              ),
+                          ],
+                        ),
+
+                        Text(
+                          'RM ${product.price.toStringAsFixed(2)}',
+                          style: theme.textTheme.titleMedium?.copyWith(
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFF9E7C00),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ],
             ),
-          ),
-          if (product.quantity != null && product.quantity! <= 0)
-            Positioned.fill(
-              child: Container(
-                decoration: BoxDecoration(
-                  color: const Color.fromARGB(200, 117, 117, 117),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Center(
-                  child: Text(
-                    'Out of Stock',
+
+            if (isPreorder)
+              Positioned(
+                top: 8,
+                right: 8,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
+                  ),
+                  decoration: BoxDecoration(
+                    color: getProductAvailabilityColor(
+                      product.availability,
+                      product.quantity,
+                      context,
+                    ),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: const Text(
+                    'Preorder',
                     style: TextStyle(
-                      color: Colors.grey.shade200,
+                      color: Colors.white,
                       fontWeight: FontWeight.bold,
+                      fontSize: 10,
                     ),
                   ),
                 ),
               ),
-            ),
-        ],
+
+            // 3. OUT OF STOCK OVERLAY
+            if (isOutOfStock)
+              Positioned.fill(
+                child: Container(
+                  color: theme.colorScheme.surfaceContainerHighest.withValues(
+                    alpha: 0.8,
+                  ),
+                  alignment: Alignment.center,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 6,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Colors.grey.shade800,
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    child: const Text(
+                      'SOLD OUT',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 12,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+          ],
+        ),
       ),
     );
   }

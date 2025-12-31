@@ -113,8 +113,8 @@ class NotificationService {
       0,
     );
 
-    final largeIcon = 
-        DrawableResourceAndroidBitmap('@mipmap/cheng_eng_logo_black_background');
+    // final largeIcon = 
+    //     DrawableResourceAndroidBitmap('@mipmap/cheng_eng_logo_black_background');
 
     final AndroidNotificationDetails androidDetails = AndroidNotificationDetails(
       'maintenance_channel',
@@ -124,10 +124,10 @@ class NotificationService {
       priority: Priority.high,
 
       // A. Small Icon (Status Bar): White Silhouette
-      icon: '@mipmap/cheng_eng_logo_icon', 
+      icon: '@mipmap/cheng_eng_logo_black_background', 
 
-      // C. Large Icon (Content): Full Color Brand Logo
-      largeIcon: largeIcon,
+      // // C. Large Icon (Content): Full Color Brand Logo
+      // largeIcon: largeIcon,
     );
 
     await flutterLocalNotificationsPlugin.zonedSchedule(

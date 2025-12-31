@@ -31,15 +31,16 @@ class RedeemedRewardService {
   }
 
   Future<void> create(RedeemedReward redeemed) async {
-    await supabase
-        .from('redeemed_rewards')
-        .insert(redeemed.toJson());
+    await supabase.from('redeemed_rewards').insert(redeemed.toJson());
   }
 
   Future<void> updateStatus(bool isClaimed, String id) async {
     await supabase
         .from('redeemed_rewards')
-        .update({'isClaimed': isClaimed, 'updatedAt': DateTime.now()})
+        .update({
+          'isClaimed': isClaimed,
+          'updatedAt': DateTime.now().toIso8601String(),
+        })
         .eq('id', id);
   }
 }

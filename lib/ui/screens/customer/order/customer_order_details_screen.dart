@@ -1,8 +1,8 @@
 import 'package:cheng_eng_3/core/controllers/order/order_providers.dart';
 import 'package:cheng_eng_3/core/controllers/payment/payment_notifier.dart';
-import 'package:cheng_eng_3/core/controllers/realtime_provider.dart'; // Ensure this matches your file path
+import 'package:cheng_eng_3/core/controllers/realtime_provider.dart';
 import 'package:cheng_eng_3/core/models/order_model.dart';
-import 'package:cheng_eng_3/ui/extensions/order_extension.dart'; // Ensure this matches your file path
+import 'package:cheng_eng_3/ui/extensions/order_extension.dart';
 import 'package:cheng_eng_3/ui/widgets/order_delivery.dart';
 import 'package:cheng_eng_3/ui/widgets/order_summary.dart';
 import 'package:cheng_eng_3/ui/widgets/snackbar.dart';
@@ -11,8 +11,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:cheng_eng_3/core/services/payment_service.dart';
 
-// Move formatter to global scope for performance
-final _timeFormatter = DateFormat('dd/MM/yyyy').add_jm();
+final _timeFormatter = DateFormat('dd MMM yyyy, h:mm a');
 
 class CustomerOrderDetailsScreen extends ConsumerStatefulWidget {
   const CustomerOrderDetailsScreen({super.key, this.order, this.orderId});
@@ -27,8 +26,6 @@ class CustomerOrderDetailsScreen extends ConsumerStatefulWidget {
 class _CustomerOrderDetailsScreenState
     extends ConsumerState<CustomerOrderDetailsScreen> {
   Future<void> _handlePayment(Order order) async {
-    // 1. Trigger Payment
-    // We reuse the exact same logic from the Checkout Screen
     final result = await ref
         .read(paymentProvider.notifier)
         .payForOrder(
@@ -41,14 +38,12 @@ class _CustomerOrderDetailsScreenState
 
     if (!mounted) return;
 
-    // 2. Handle Result
     String message;
     bool isError = false;
 
     switch (result) {
       case PaymentResult.success:
         message = 'Payment Successful! Status will update shortly.';
-        isError = false;
         break;
       case PaymentResult.canceled:
         message = 'Payment cancelled';
@@ -60,27 +55,22 @@ class _CustomerOrderDetailsScreenState
         break;
     }
 
-    showAppSnackBar(
-      context: context,
-      content: message,
-      isError: isError,
-    );
+    showAppSnackBar(context: context, content: message, isError: isError);
   }
 
   @override
   Widget build(BuildContext context) {
     final String effectiveId = widget.order?.id ?? widget.orderId!;
-    // 1. Activate Realtime Listener
     ref.watch(orderRealTimeProvider);
 
-    // Watch Payment State (To show loading spinner on button)
     final paymentState = ref.watch(paymentProvider);
     final isPaying = paymentState.isLoading;
+    final theme = Theme.of(context);
 
-    // 2. Data Fetching
     final orderAsync = ref.watch(orderByIdProvider(effectiveId));
-    Order? currentOrder;
 
+    // Optimistic / Fallback logic
+    Order? currentOrder;
     if (orderAsync.hasValue) {
       currentOrder = orderAsync.value;
     } else if (widget.order != null) {
@@ -98,134 +88,131 @@ class _CustomerOrderDetailsScreenState
 
     return Scaffold(
       appBar: AppBar(title: const Text('Order Details')),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start, // Align text to left
-          children: [
-            // --- HEADER SECTION ---
-            Text(
-              'Order Status',
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
-            const SizedBox(height: 8),
-
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.surfaceContainer,
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Column(
-                children: [
-                  // Status Banner
-                  Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: currentOrder.status.color.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Row(
-                      children: [
-                        Icon(
-                          Icons.info_outline,
-                          color: currentOrder.status.color,
-                        ),
-                        const SizedBox(width: 10),
-                        Expanded(
-                          child: Text(
-                            // Correctly call the extension method
-                            currentOrder.status.getMessage(
-                              currentOrder.deliveryMethod,
-                            ),
-                            style: TextStyle(
-                              color: currentOrder.status.color,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-
-                  // Key Value Rows
-                  _buildDetailRow(
-                    'Order ID',
-                    currentOrder.id,
-                  ),
-                  _buildDetailRow(
-                    'Status',
-                    currentOrder.status.label,
-                    color: currentOrder.status.color,
-                  ),
-                  _buildDetailRow(
-                    'Created at',
-                    _timeFormatter.format(currentOrder.createdAt),
-                  ),
-                  _buildDetailRow(
-                    'Updated at',
-                    currentOrder.updatedAt != null
-                        ? _timeFormatter.format(currentOrder.updatedAt!)
-                        : '-',
-                  ),
-                ],
-              ),
-            ),
-
-            const SizedBox(height: 24),
-
-            // --- SUMMARY SECTION ---
-            Text(
-              'Order Summary',
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
-            const SizedBox(height: 8),
-            OrderSummary(
-              subtotal: currentOrder.subtotal,
-              total: currentOrder.total,
-              items: items,
-              points: currentOrder.points,
-              deliveryFee: currentOrder.deliveryFee,
-            ),
-
-            //address
-            if (currentOrder.deliveryMethod == DeliveryMethod.delivery)
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Delivery Info',
-                    style: Theme.of(context).textTheme.titleMedium,
-                  ),
-                  const SizedBox(height: 8),
-                  OrderDelivery(
-                    firstName: currentOrder.deliveryFirstName!,
-                    lastName: currentOrder.deliveryLastName!,
-                    addressLine1: currentOrder.deliveryAddressLine1!,
-                    addressLine2: currentOrder.deliveryAddressLine2,
-                    city: currentOrder.deliveryCity!,
-                    country: currentOrder.deliveryCountry!,
-                    dialCode: currentOrder.deliveryDialCode!,
-                    phoneNum: currentOrder.deliveryPhoneNum!,
-                    postcode: currentOrder.deliveryPostcode!,
-                    state: currentOrder.deliveryState!,
-                  ),
-                ],
-              ),
-
-            if (currentOrder.status == OrderStatus.unpaid) ...[
-              const SizedBox(height: 30),
-              SizedBox(
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // --- 1. STATUS HEADER ---
+              Container(
                 width: double.infinity,
-                height: 50,
-                child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.amber, // High visibility color
-                    foregroundColor: Colors.black,
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  // Use Status Color for background with low opacity
+                  color: currentOrder.status.color.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(
+                    color: currentOrder.status.color.withValues(alpha: 0.3),
                   ),
-                  // Disable button if payment is currently processing
+                ),
+                child: Column(
+                  children: [
+                    Text(
+                      currentOrder.status.label.toUpperCase(),
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                        color: currentOrder.status.color,
+                        letterSpacing: 1.2,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      currentOrder.status.getMessage(
+                        currentOrder.deliveryMethod,
+                      ),
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        color: theme.colorScheme.onSurface,
+                        fontSize: 13,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              const SizedBox(height: 30),
+
+              // --- 2. ORDER INFO CARD ---
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.surfaceContainer,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: theme.colorScheme.outlineVariant),
+                ),
+                child: Column(
+                  children: [
+                    _buildDetailRow(
+                      context,
+                      'Order ID',
+                      '#${currentOrder.id.substring(0, 8)}',
+                    ),
+                    const Divider(height: 24),
+                    _buildDetailRow(
+                      context,
+                      'Date',
+                      _timeFormatter.format(currentOrder.createdAt),
+                    ),
+                    const Divider(height: 24),
+                    _buildDetailRow(
+                      context,
+                      'Method',
+                      currentOrder.deliveryMethod.label,
+                    ),
+                  ],
+                ),
+              ),
+
+              const SizedBox(height: 30),
+
+              // --- 3. ORDER SUMMARY ---
+              Text(
+                'Order Summary',
+                style: theme.textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 12),
+
+              // Ensure OrderSummary handles its own styling, but we wrap it for consistency
+              OrderSummary(
+                subtotal: currentOrder.subtotal,
+                total: currentOrder.total,
+                items: items,
+                points: currentOrder.points,
+                deliveryFee: currentOrder.deliveryFee,
+              ),
+
+              // --- 4. DELIVERY DETAILS ---
+              if (currentOrder.deliveryMethod == DeliveryMethod.delivery) ...[
+                const SizedBox(height: 30),
+                Text(
+                  'Delivery Information',
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                OrderDelivery(
+                  firstName: currentOrder.deliveryFirstName!,
+                  lastName: currentOrder.deliveryLastName!,
+                  addressLine1: currentOrder.deliveryAddressLine1!,
+                  addressLine2: currentOrder.deliveryAddressLine2,
+                  city: currentOrder.deliveryCity!,
+                  country: currentOrder.deliveryCountry!,
+                  dialCode: currentOrder.deliveryDialCode!,
+                  phoneNum: currentOrder.deliveryPhoneNum!,
+                  postcode: currentOrder.deliveryPostcode!,
+                  state: currentOrder.deliveryState!,
+                ),
+              ],
+
+              // --- 5. PAY NOW BUTTON ---
+              if (currentOrder.status == OrderStatus.unpaid) ...[
+                const SizedBox(height: 40),
+                FilledButton(
                   onPressed: isPaying
                       ? null
                       : () => _handlePayment(currentOrder!),
@@ -235,49 +222,42 @@ class _CustomerOrderDetailsScreenState
                           width: 24,
                           child: CircularProgressIndicator(
                             strokeWidth: 2,
-                            color: Colors.black,
+                            color: Colors.white,
                           ),
                         )
                       : const Text(
                           'Pay Now',
                           style: TextStyle(
-                            fontSize: 16,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
                 ),
-              ),
-              const SizedBox(height: 20),
+
+                const SizedBox(height: 20),
+              ],
             ],
-          ],
+          ),
         ),
       ),
     );
   }
 
-  // Helper method to keep code clean DRY (Don't Repeat Yourself)
-  Widget _buildDetailRow(String label, String value, {Color? color}) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8.0),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(label, style: const TextStyle(color: Colors.grey)),
-          const SizedBox(
-            width: 30,
+  Widget _buildDetailRow(BuildContext context, String label, String value) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(
+          label,
+          style: TextStyle(
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
           ),
-          Expanded(
-            child: Text(
-              textAlign: TextAlign.right,
-              value,
-              style: TextStyle(
-                fontWeight: FontWeight.w500,
-                color: color ?? Colors.black87,
-              ),
-            ),
-          ),
-        ],
-      ),
+        ),
+        SelectableText(
+          // Use SelectableText so users can copy IDs
+          value,
+          style: const TextStyle(fontWeight: FontWeight.w600),
+        ),
+      ],
     );
   }
 }

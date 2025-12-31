@@ -1,5 +1,4 @@
-
-
+import 'package:cheng_eng_3/colorscheme/colorscheme.dart';
 import 'package:cheng_eng_3/core/services/image_service.dart';
 import 'package:cheng_eng_3/ui/widgets/imagebuilder.dart';
 import 'package:flutter/material.dart';
@@ -15,7 +14,7 @@ class OrderSummaryListItem extends ConsumerWidget {
     required this.color,
     required this.quantity,
     required this.priceTotal,
-    required this.installationTotal
+    required this.installationTotal,
   });
 
   final List<String> photoPaths;
@@ -30,6 +29,7 @@ class OrderSummaryListItem extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final imageService = ref.read(imageServiceProvider);
+    final theme = Theme.of(context);
 
     String? getUrl() {
       return photoPaths.isNotEmpty
@@ -42,7 +42,7 @@ class OrderSummaryListItem extends ConsumerWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // --- IMAGE ---
+          // --- 1. IMAGE ---
           ClipRRect(
             borderRadius: BorderRadius.circular(8),
             child: imageBuilder(
@@ -52,72 +52,76 @@ class OrderSummaryListItem extends ConsumerWidget {
               noImageContent: Container(
                 height: 80,
                 width: 80,
-                color: Colors.grey.shade200,
-                child: const Icon(
-                  Icons.image_not_supported,
-                  color: Colors.grey,
+                // ✅ Matches other screens
+                color: theme.colorScheme.surfaceContainerHighest,
+                child: Icon(
+                  Icons.image_not_supported_outlined,
+                  color: theme.colorScheme.onSurfaceVariant,
                 ),
               ),
               context: context,
             ),
           ),
-          const SizedBox(width: 15),
+          const SizedBox(width: 16),
 
-          // --- DETAILS (Middle) ---
+          // --- 2. DETAILS (Middle) ---
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   '$brand $name ${model ?? ''}',
-                  maxLines: 2,
+                  maxLines: 3,
                   overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(fontWeight: FontWeight.bold),
+                  style: theme.textTheme.titleSmall?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
                 if (color != null)
                   Text(
                     color!,
-                    style: Theme.of(context).textTheme.bodySmall!.copyWith(
-                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
                     ),
                   ),
                 const SizedBox(height: 8),
                 Text(
-                  'x$quantity',
-                  style: Theme.of(context).textTheme.bodyMedium,
+                  'Qty: $quantity',
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    fontWeight: FontWeight.w500,
+                  ),
                 ),
               ],
             ),
           ),
 
-          const SizedBox(width: 10),
+          const SizedBox(width: 12),
 
-          // --- PRICE (Right) ---
+          // --- 3. PRICE (Right) ---
           Column(
-        crossAxisAlignment: CrossAxisAlignment.end,
-        children: [
-          Text(
-            'RM ${priceTotal.toStringAsFixed(2)}',
-            style: const TextStyle(fontWeight: FontWeight.bold),
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Text(
+                'RM ${priceTotal.toStringAsFixed(2)}',
+                style: theme.textTheme.titleSmall?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              // ✅ Cleaner Installation Display
+              if (installationTotal != null && installationTotal! > 0) ...[
+                const SizedBox(height: 4),
+                Text(
+                  '+ Install: RM ${installationTotal!.toStringAsFixed(2)}',
+                  style: theme.textTheme.labelSmall?.copyWith(
+                    color: textYellow,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            ],
           ),
-          if (installationTotal != null &&
-              installationTotal! > 0) ...[
-            const SizedBox(height: 4),
-            Text(
-              '+ Install',
-              style: TextStyle(fontSize: 10, color: Colors.grey.shade600),
-            ),
-            Text(
-              'RM ${installationTotal!.toStringAsFixed(2)}',
-              style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
-            ),
-          ],
-        ],
-      )
         ],
       ),
     );
   }
-
-  
 }

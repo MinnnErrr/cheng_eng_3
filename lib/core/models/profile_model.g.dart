@@ -19,9 +19,6 @@ _Profile _$ProfileFromJson(Map<String, dynamic> json) => _Profile(
       : DateTime.parse(json['birthday'] as String),
   role: json['role'] as String,
   userId: json['userId'] as String,
-  deletedAt: json['deletedAt'] == null
-      ? null
-      : DateTime.parse(json['deletedAt'] as String),
 );
 
 Map<String, dynamic> _$ProfileToJson(_Profile instance) => <String, dynamic>{
@@ -35,5 +32,4 @@ Map<String, dynamic> _$ProfileToJson(_Profile instance) => <String, dynamic>{
   'birthday': instance.birthday?.toIso8601String(),
   'role': instance.role,
   'userId': instance.userId,
-  'deletedAt': instance.deletedAt?.toIso8601String(),
 };

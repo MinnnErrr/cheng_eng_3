@@ -71,7 +71,13 @@ class __RewardClaimContentState extends ConsumerState<RewardClaimContent> {
           style: Theme.of(context).textTheme.titleLarge,
         ),
         const SizedBox(height: 10),
-        ProfileListitem(email: profileData.email, name: profileData.name, dialCode: profileData.dialCode, phoneNum: profileData.phoneNum, gender: profileData.gender),
+        ProfileListitem(
+          email: profileData.email,
+          name: profileData.name,
+          dialCode: profileData.dialCode,
+          phoneNum: profileData.phoneNum,
+          gender: profileData.gender,
+        ),
 
         const SizedBox(height: 30),
 
@@ -110,11 +116,6 @@ class __RewardClaimContentState extends ConsumerState<RewardClaimContent> {
                         content: message.message,
                         isError: !message.isSuccess,
                       );
-
-                      // Optional: Navigate back on success
-                      if (message.isSuccess) {
-                        Navigator.pop(context);
-                      }
                     }
                   },
             child: _isLoading

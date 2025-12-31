@@ -5,6 +5,7 @@ import 'package:cheng_eng_3/core/controllers/realtime_provider.dart';
 import 'package:cheng_eng_3/core/controllers/redeem_reward/redeemed_reward_by_id_provider.dart';
 import 'package:cheng_eng_3/core/models/redeemed_reward_model.dart';
 import 'package:cheng_eng_3/core/services/image_service.dart';
+import 'package:cheng_eng_3/utils/status_colour.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
@@ -112,56 +113,22 @@ class _CustomerRedeemedRewardDetailsScreenState
                       ),
 
                     // 3. TITLE & STATUS
-                    Row(
+                    Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                '#${displayReward.code}',
-                                style: theme.textTheme.titleMedium!.copyWith(
-                                  fontWeight: FontWeight.bold,
-                                  color: Color(0xFF9E7C00),
-                                  letterSpacing: 1.0,
-                                ),
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                displayReward.name,
-                                style: theme.textTheme.headlineSmall!.copyWith(
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ],
+                        Text(
+                          '#${displayReward.code}',
+                          style: theme.textTheme.titleMedium!.copyWith(
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFF9E7C00),
+                            letterSpacing: 1.0,
                           ),
                         ),
-                        // Status Chip
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 12,
-                            vertical: 6,
-                          ),
-                          decoration: BoxDecoration(
-                            color: displayReward.isClaimed
-                                ? Colors.grey.shade100
-                                : Colors.green.shade50,
-                            borderRadius: BorderRadius.circular(8),
-                            border: Border.all(
-                              color: displayReward.isClaimed
-                                  ? Colors.grey
-                                  : Colors.green,
-                            ),
-                          ),
-                          child: Text(
-                            displayReward.isClaimed ? 'USED' : 'ACTIVE',
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              color: displayReward.isClaimed
-                                  ? Colors.grey
-                                  : Colors.green.shade700,
-                            ),
+                        const SizedBox(height: 4),
+                        Text(
+                          displayReward.name,
+                          style: theme.textTheme.headlineSmall!.copyWith(
+                            fontWeight: FontWeight.bold,
                           ),
                         ),
                       ],
@@ -172,16 +139,29 @@ class _CustomerRedeemedRewardDetailsScreenState
                     // 4. METADATA GRID
                     Container(
                       padding: const EdgeInsets.all(16),
+                      width: double.infinity,
                       decoration: BoxDecoration(
-                        color: theme.colorScheme.surfaceContainerHighest
-                            .withValues(alpha: 0.3),
+                        color: theme.colorScheme.surfaceContainer,
                         borderRadius: BorderRadius.circular(12),
+                        // Add subtle border to match app theme
                         border: Border.all(
-                          color: theme.colorScheme.outlineVariant,
+                          color: theme.colorScheme.outlineVariant.withValues(
+                            alpha: 0.6,
+                          ),
                         ),
                       ),
                       child: Column(
                         children: [
+                          _buildMetaRow(
+                            context,
+                            'Status',
+                            displayReward.isClaimed ? 'USED' : 'ACTIVE',
+                            valueColor: getRedeemedRewardStatusColor(
+                              displayReward.isClaimed,
+                              context,
+                            ),
+                          ),
+                          const Divider(height: 24),
                           _buildMetaRow(
                             context,
                             'Redeemed On',

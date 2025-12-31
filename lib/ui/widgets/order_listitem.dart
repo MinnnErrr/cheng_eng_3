@@ -1,10 +1,13 @@
+import 'package:cheng_eng_3/colorscheme/colorscheme.dart';
 import 'package:cheng_eng_3/core/models/order_model.dart';
-import 'package:cheng_eng_3/ui/extensions/order_extension.dart';
+import 'package:cheng_eng_3/core/services/image_service.dart';
+import 'package:cheng_eng_3/ui/extensions/order_extension.dart'; // Ensure correct import
+import 'package:cheng_eng_3/ui/widgets/imagebuilder.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
-final _timeFormatter = DateFormat('dd/MM/yyyy').add_jm();
+final _timeFormatter = DateFormat('dd MMM yyyy, h:mm a');
 
 class OrderListitem extends ConsumerWidget {
   const OrderListitem({
@@ -15,123 +18,64 @@ class OrderListitem extends ConsumerWidget {
   });
 
   final Order order;
-  final GestureTapCallback tapAction;
+  final VoidCallback tapAction;
   final bool isStaff;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // 1. Get the "Lead Item" (First item in the list)
-    // Note: This relies on your Order model having the 'items' list populated
+    final imageService = ref.read(imageServiceProvider);
+    final theme = Theme.of(context);
+
+    // Get lead item for display
     final leadItem = (order.items != null && order.items!.isNotEmpty)
         ? order.items!.first
         : null;
-
     final otherItemCount = (order.items?.length ?? 0) - 1;
 
+    // Helper to get image URL safely
+    String? getLeadImageUrl() {
+      if (leadItem != null && leadItem.photoPaths.isNotEmpty) {
+        return imageService.retrieveImageUrl(leadItem.photoPaths.first);
+      }
+      return null;
+    }
+
     return Card(
+      clipBehavior: Clip.antiAlias,
       child: InkWell(
         onTap: tapAction,
         child: Padding(
-          padding: const EdgeInsets.all(12),
+          padding: const EdgeInsets.all(16),
           child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // --- ROW 1: HEADER (ID & DATE) ---
+              // --- ROW 1: HEADER (Date & Status) ---
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    '#${order.id.substring(0, 10)}...',
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      color: Colors.grey,
-                    ),
-                  ),
-                  Text(
                     _timeFormatter.format(order.createdAt),
-                    style: TextStyle(fontSize: 12),
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
                   ),
-                ],
-              ),
-              const Divider(height: 16),
-
-              // --- ROW 2: BODY (IMAGE & SUMMARY) ---
-              Row(
-                children: [
-                  // THUMBNAIL
+                  // Custom Status Chip (Cleaner than Material Chip)
                   Container(
-                    width: 60,
-                    height: 60,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 4,
+                    ),
                     decoration: BoxDecoration(
-                      color: Colors.grey[200],
-                      borderRadius: BorderRadius.circular(8),
-                      image:
-                          leadItem?.photoPaths != null &&
-                              leadItem!.photoPaths.isNotEmpty
-                          ? DecorationImage(
-                              image: NetworkImage(leadItem.photoPaths[0]),
-                              fit: BoxFit.cover,
-                            )
-                          : null,
+                      color: order.status.color,
+                      borderRadius: BorderRadius.circular(6),
                     ),
-                    child: leadItem == null
-                        ? const Icon(
-                            Icons.shopping_bag_outlined,
-                            color: Colors.grey,
-                          )
-                        : null,
-                  ),
-                  const SizedBox(width: 12),
-
-                  // TEXT SUMMARY
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          leadItem?.productName ?? 'Unknown Items',
-                          style: const TextStyle(
-                            fontWeight: FontWeight.w600,
-                            fontSize: 16,
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        if (otherItemCount > 0)
-                          Text(
-                            '+ $otherItemCount other items',
-                            style: TextStyle(
-                              color: Colors.grey[600],
-                              fontSize: 13,
-                            ),
-                          ),
-                        const SizedBox(height: 4),
-                        // DELIVERY METHOD ICON
-                        Row(
-                          children: [
-                            Icon(
-                              order.deliveryMethod == DeliveryMethod.delivery
-                                  ? Icons.local_shipping_outlined
-                                  : Icons.store_outlined,
-                              size: 14,
-                              color: Theme.of(context).primaryColor,
-                            ),
-                            const SizedBox(width: 4),
-                            Text(
-                              order.deliveryMethod.label,
-                              style: const TextStyle(fontSize: 12),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-
-                  // PRICE
-                  Text(
-                    'RM ${order.total.toStringAsFixed(2)}',
-                    style: const TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 15,
+                    child: Text(
+                      order.status.label,
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white, // Darker text for contrast
+                      ),
                     ),
                   ),
                 ],
@@ -139,36 +83,99 @@ class OrderListitem extends ConsumerWidget {
 
               const SizedBox(height: 12),
 
-              // --- ROW 3: FOOTER (CONTACT & STATUS) ---
+              // --- ROW 2: CONTENT ---
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // THUMBNAIL
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(8),
+                    child: imageBuilder(
+                      url: getLeadImageUrl(),
+                      containerWidth: 64,
+                      containerHeight: 64,
+                      noImageContent: Container(
+                        width: 64,
+                        height: 64,
+                        color: theme.colorScheme.surfaceContainerHighest,
+                        child: Icon(
+                          Icons.shopping_bag_outlined,
+                          color: theme.colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                      context: context,
+                    ),
+                  ),
+
+                  const SizedBox(width: 16),
+
+                  // DETAILS
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Order #${order.id.substring(0, 8).toUpperCase()}',
+                          style: theme.textTheme.titleSmall?.copyWith(
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          leadItem?.productName ?? 'Unknown Items',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: theme.textTheme.bodyMedium,
+                        ),
+                        if (otherItemCount > 0)
+                          Text(
+                            '+ $otherItemCount more items',
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              color: textYellow,
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+
+              const SizedBox(height: 16),
+              const Divider(height: 1),
+              const SizedBox(height: 12),
+
+              // --- ROW 3: FOOTER (Delivery & Total) ---
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  // CONTACT (Staff Only)
-                  if (isStaff)
-                    Row(
-                      children: [
-                        const Icon(Icons.call, size: 14, color: Colors.grey),
-                        const SizedBox(width: 4),
-                        Text(
-                          order.deliveryPhoneNum == null
-                              ? '${order.deliveryDialCode}${order.deliveryPhoneNum}'
-                              : '${order.userDialCode}${order.userPhoneNum}',
-                          style: const TextStyle(fontSize: 13),
+                  // Delivery Method
+                  Row(
+                    children: [
+                      Icon(
+                        order.deliveryMethod == DeliveryMethod.delivery
+                            ? Icons.local_shipping_outlined
+                            : Icons.store_mall_directory_outlined,
+                        size: 16,
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
+                      const SizedBox(width: 6),
+                      Text(
+                        order.deliveryMethod.label,
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: theme.colorScheme.onSurfaceVariant,
+                          fontWeight: FontWeight.w500,
                         ),
-                      ],
-                    )
-                  else
-                    const SizedBox(), // Spacer for customers
-                  // STATUS CHIP
-                  Chip(
-                    label: Text(
-                      order.status.label,
-                      style: const TextStyle(color: Colors.white, fontSize: 12),
+                      ),
+                    ],
+                  ),
+
+                  // Total Price
+                  Text(
+                    'RM ${order.total.toStringAsFixed(2)}',
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: textYellow,
                     ),
-                    backgroundColor: order.status.color,
-                    padding: EdgeInsets.zero,
-                    materialTapTargetSize: MaterialTapTargetSize
-                        .shrinkWrap, // Removes extra padding
                   ),
                 ],
               ),

@@ -1,4 +1,3 @@
-
 import 'package:cheng_eng_3/ui/screens/staff/claim_reward/staff_claim_reward_scanner_screen.dart';
 import 'package:cheng_eng_3/ui/widgets/reward_claim_content.dart';
 import 'package:flutter/material.dart';
@@ -11,7 +10,6 @@ class StaffClaimRewardScreen extends StatefulWidget {
 }
 
 class _StaffClaimRewardScreenState extends State<StaffClaimRewardScreen> {
-  // We only need simple state here, no need for ConsumerState yet
   final TextEditingController _searchController = TextEditingController();
   String? _userId;
   String? _redeemedId;
@@ -32,34 +30,54 @@ class _StaffClaimRewardScreenState extends State<StaffClaimRewardScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    // Determine if we have valid data to show content
+    final bool showContent = _userId != null && _redeemedId != null;
+
     return Scaffold(
+      backgroundColor: theme.colorScheme.surface,
       appBar: AppBar(
         title: const Text('Claim Reward'),
+        centerTitle: true,
       ),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(20),
           child: Column(
             children: [
-              // --- Search / Scan Section ---
+              // --- 1. Search / Scan Section ---
               Row(
                 children: [
+                  // Text Input
                   Expanded(
                     child: TextField(
                       controller: _searchController,
+                      readOnly: true, // Keep scan-only logic
                       decoration: InputDecoration(
                         hintText: "Reward ID...",
                         prefixIcon: const Icon(Icons.search),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
+                        filled: true,
+                        // Use White/Light Grey background for input
+                        fillColor: theme.colorScheme.surfaceContainerHighest,
                       ),
-                      // Optional: Allow manual entry if needed (logic required to map ID to User)
-                      readOnly: true, 
                     ),
                   ),
-                  const SizedBox(width: 10),
+
+                  const SizedBox(width: 12),
+
+                  // Scan Button (Styled: Yellow/Black)
                   IconButton.filled(
+                    style: IconButton.styleFrom(
+                      backgroundColor: theme.colorScheme.primary, // Yellow
+                      foregroundColor: theme.colorScheme.onPrimary, // Black
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      minimumSize: const Size(
+                        56,
+                        56,
+                      ), // Square shape matching input height
+                    ),
                     onPressed: () async {
                       final result = await Navigator.push(
                         context,
@@ -72,32 +90,60 @@ class _StaffClaimRewardScreenState extends State<StaffClaimRewardScreen> {
                         _onScanResult(result);
                       }
                     },
-                    icon: const Icon(Icons.qr_code_scanner),
+                    icon: const Icon(Icons.qr_code_scanner, size: 28),
+                    tooltip: "Scan QR Code",
                   ),
                 ],
               ),
 
               const SizedBox(height: 30),
 
-              // --- Results Section (Extracted Widget) ---
-              // Only show if we have the necessary IDs
-              if (_userId != null && _redeemedId != null)
+              // --- 2. Results or Empty State ---
+              if (showContent)
                 RewardClaimContent(
                   userId: _userId!,
                   redeemedId: _redeemedId!,
                 )
               else
-                Column(
-                  children: [
-                    const SizedBox(height: 50),
-                    Icon(Icons.qr_code_scanner, size: 80, color: Colors.grey.shade300),
-                    const SizedBox(height: 20),
-                    const Text("Scan a customer's QR code to proceed"),
-                  ],
-                ),
+                _buildEmptyState(theme),
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  // A clean, simple empty state
+  Widget _buildEmptyState(ThemeData theme) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(vertical: 60, horizontal: 20),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: theme.colorScheme.surfaceContainerHighest.withValues(
+                alpha: 0.5,
+              ),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(
+              Icons.qr_code_2,
+              size: 60,
+              color: theme.colorScheme.outline,
+            ),
+          ),
+          const SizedBox(height: 20),
+          Text(
+            "Please scan the customer's QR code\nto verify and claim the reward.",
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+          ),
+        ],
       ),
     );
   }

@@ -2,6 +2,7 @@ import 'package:cheng_eng_3/ui/screens/customer/cart/cart_screen.dart';
 import 'package:cheng_eng_3/ui/screens/customer/chat/customer_chat_screen.dart';
 import 'package:cheng_eng_3/ui/screens/customer/customer_home.dart';
 import 'package:cheng_eng_3/ui/screens/profile_screen.dart';
+import 'package:cheng_eng_3/ui/widgets/cart_icon.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -38,8 +39,16 @@ class _CustomerMainWrapperState extends ConsumerState<CustomerMainWrapper> {
         destinations: const [
           NavigationDestination(icon: Icon(Icons.home), label: 'Home'),
           NavigationDestination(icon: Icon(Icons.chat), label: 'Chat'),
-          NavigationDestination(icon: Icon(Icons.shopping_cart), label: 'Cart'),
-          NavigationDestination(icon: Icon(Icons.person), label: 'Profile',)
+          NavigationDestination(
+            icon: CartIconBadge(
+              icon: Icon(Icons.shopping_cart),
+            ),
+            label: 'Cart',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.person),
+            label: 'Profile',
+          ),
         ],
       ),
     );

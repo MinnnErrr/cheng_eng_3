@@ -9,108 +9,168 @@ class StaffProductListitem extends ConsumerWidget {
   const StaffProductListitem({
     super.key,
     required this.product,
+    required this.onTap,
   });
 
   final Product product;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final imageService = ref.read(imageServiceProvider);
-    final screenSize = MediaQuery.of(context).size;
+    final theme = Theme.of(context);
+
+    // --- 1. Stock Logic ---
+    final bool isLowStock =
+        product.quantity != null &&
+        product.quantity! <= 10 &&
+        product.quantity! > 0;
+    final bool isOOS = product.quantity != null && product.quantity! <= 0;
+
+    // --- 2. Availability Chip Logic ---
+    Color chipColor;
+    Color chipTextColor;
+    String chipLabel = product.availability.label;
+
+    if (product.availability == ProductAvailability.ready) {
+      if (isOOS) {
+        chipColor = theme.colorScheme.error.withValues(alpha: 0.1);
+        chipTextColor = theme.colorScheme.error;
+        chipLabel = "No Stock";
+      } else if (isLowStock) {
+        chipColor = Colors.orange.withValues(alpha: 0.1);
+        chipTextColor = Colors.orange;
+        chipLabel = "Low Stock";
+      } else {
+        chipColor = Colors.green.withValues(alpha: 0.1);
+        chipTextColor = Colors.green;
+      }
+    } else {
+      // Preorder
+      chipColor = Colors.blue.withValues(alpha: 0.1);
+      chipTextColor = Colors.blue;
+    }
+
+    final bool isActive = product.status;
 
     return Card(
-      color: Theme.of(context).colorScheme.surfaceContainer,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-      child: Padding(
-        padding: EdgeInsets.all(10),
-        child: IntrinsicHeight(
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              //picture
-              imageBuilder(
+      clipBehavior: Clip.hardEdge,
+      child: InkWell(
+        onTap: onTap,
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // --- 4. IMAGE ---
+            SizedBox(
+              width: 100,
+              height: 100,
+              child: imageBuilder(
                 url: product.photoPaths.isNotEmpty
                     ? imageService.retrieveImageUrl(product.photoPaths.first)
                     : null,
-                containerWidth: screenSize.width * 0.22,
-                containerHeight: double.infinity,
+                containerWidth: 100,
+                containerHeight: 100,
                 noImageContent: Container(
-                  color: Colors.white,
-                  child: Icon(Icons.store),
+                  color: theme.colorScheme.surfaceContainerHighest,
+                  child: Icon(
+                    Icons.inventory_2_outlined,
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
                 ),
                 context: context,
+                borderRadius: 0,
               ),
+            ),
 
-              const SizedBox(
-                width: 10,
-              ),
-
-              //details
-              Expanded(
+            // --- 5. DETAILS (Left Side) ---
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.all(12),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          '${product.brand} ${product.name} ${product.model ?? ''}',
-                          overflow: TextOverflow.ellipsis,
-                          maxLines: 3,
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                          ),
+                    // Brand & Name
+                    Text(
+                      '${product.brand} ${product.name} ${product.model ?? ''}',
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        // Grey out title if inactive
+                        color: isActive
+                            ? theme.colorScheme.onSurface
+                            : theme.colorScheme.onSurface.withValues(
+                                alpha: 0.5,
+                              ),
+                      ),
+                    ),
+                    if (product.colour != null)
+                      Text(
+                        product.colour!,
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: theme.colorScheme.onSurfaceVariant,
                         ),
-                        if (product.colour != null) Text(product.colour!),
+                      ),
 
-                        const SizedBox(
-                          height: 20,
-                        ),
+                    const SizedBox(height: 10),
 
-                        Text('RM${product.price.toStringAsFixed(2)}'),
-                      ],
+                    // Price
+                    Text(
+                      'RM ${product.price.toStringAsFixed(2)}',
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: isActive
+                            ? const Color(0xFF9E7C00) // Gold/Yellow
+                            : Colors.grey, // Grey if inactive
+                      ),
                     ),
                   ],
                 ),
               ),
+            ),
 
-              const SizedBox(
-                width: 20,
-              ),
-
-              Column(
+            // --- 6. STATUS & CHIPS (Right Side) ---
+            Padding(
+              padding: const EdgeInsets.all(12),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
-                  Chip(
-                    side: BorderSide.none,
-                    label: Text(
-                      product.availability.label,
-                      style: TextStyle(color: Colors.white),
+                  // B. Availability Chip
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 4,
                     ),
-                    labelStyle: Theme.of(context).textTheme.labelSmall,
-                    padding: EdgeInsets.all(0),
-                    backgroundColor:
-                        product.availability == ProductAvailability.ready
-                        ? product.quantity != null && product.quantity! <= 0
-                              ? Theme.of(context).colorScheme.error
-                              : product.availability.color
-                        : product.availability.color,
+                    decoration: BoxDecoration(
+                      color: chipColor,
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    child: Text(
+                      chipLabel,
+                      style: theme.textTheme.labelSmall?.copyWith(
+                        color: chipTextColor,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
                   ),
 
-                  const Spacer(),
+                  const SizedBox(height: 8),
 
+                  // C. Stock Count
                   if (product.quantity != null)
                     Text(
-                      'Stock: ${product.quantity}',
-                      style: Theme.of(context).textTheme.bodySmall!.copyWith(
-                        color: product.quantity! > 0
-                            ? Colors.grey
-                            : Theme.of(context).colorScheme.error,
+                      'Qty: ${product.quantity}',
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: isOOS
+                            ? theme.colorScheme.error
+                            : theme.colorScheme.onSurface,
                       ),
                     ),
                 ],
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );

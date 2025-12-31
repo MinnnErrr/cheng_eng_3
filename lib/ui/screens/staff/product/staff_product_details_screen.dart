@@ -1,3 +1,4 @@
+import 'package:cheng_eng_3/colorscheme/colorscheme.dart';
 import 'package:cheng_eng_3/core/controllers/product/product_by_id_provider.dart';
 import 'package:cheng_eng_3/core/controllers/product/staff_product_notifier.dart';
 import 'package:cheng_eng_3/core/controllers/realtime_provider.dart';
@@ -34,57 +35,109 @@ class _StaffProductDetailsScreenState
 
   @override
   Widget build(BuildContext context) {
+    // Realtime listener
     ref.watch(productRealTimeProvider);
+
+    // Watch specific ID
     final productState = ref.watch(productByIdProvider(widget.product.id));
 
     // Optimistic UI
     final Product displayedProduct = productState.value ?? widget.product;
     final bool isActive = displayedProduct.status;
     final notifier = ref.read(staffProductProvider.notifier);
-    final DateFormat timeFormatter = DateFormat('dd/MM/yyyy').add_jm();
+
+    final theme = Theme.of(context);
+    final DateFormat timeFormatter = DateFormat('dd MMM yyyy, h:mm a');
 
     return Scaffold(
+      backgroundColor: theme.colorScheme.surface,
       appBar: AppBar(
         title: const Text('Product Details'),
+        centerTitle: true,
+        actions: [
+          // Edit Button moved to AppBar
+          IconButton(
+            onPressed: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (_) => StaffProductUpdateScreen(
+                    product: displayedProduct,
+                  ),
+                ),
+              );
+            },
+            icon: const Icon(Icons.edit),
+            tooltip: "Edit Product",
+          ),
+        ],
       ),
       body: productState.when(
         data: (product) {
-          if(product == null){
-            return Center(child: Text('No product found'));
+          if (product == null) {
+            return const Center(child: Text('No product found'));
           }
           return SafeArea(
             child: SingleChildScrollView(
               padding: const EdgeInsets.all(20),
               child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  // --- Status Section ---
+                  // --- 1. STATUS CARD ---
                   Container(
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(10),
-                      color: Theme.of(context).colorScheme.surfaceContainer,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 20,
+                      vertical: 16,
                     ),
-                    width: double.infinity,
-                    padding: const EdgeInsets.all(20),
+                    decoration: BoxDecoration(
+                      color: isActive
+                          ? Colors.green.withValues(alpha: 0.1)
+                          : theme.colorScheme.errorContainer.withValues(
+                              alpha: 0.5,
+                            ),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: isActive
+                            ? Colors.green
+                            : theme.colorScheme.error,
+                        width: 1.5,
+                      ),
+                    ),
                     child: Row(
                       children: [
-                        Text(
-                          'Status',
-                          style: Theme.of(context)
-                              .textTheme
-                              .bodyLarge!
-                              .copyWith(fontWeight: FontWeight.bold),
+                        Icon(
+                          isActive ? Icons.check_circle : Icons.unpublished,
+                          color: isActive
+                              ? Colors.green
+                              : theme.colorScheme.error,
                         ),
-                        const Spacer(),
-                        Text(
-                          isActive ? "Active" : "Inactive",
-                          style: TextStyle(
-                            fontWeight: FontWeight.w600,
-                            color: isActive
-                                ? Colors.green
-                                : Theme.of(context).colorScheme.error,
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                "CURRENT STATUS",
+                                style: TextStyle(
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.bold,
+                                  letterSpacing: 1.0,
+                                  color: theme.colorScheme.onSurface,
+                                ),
+                              ),
+                              Text(
+                                isActive
+                                    ? "ACTIVE (VISIBLE)"
+                                    : "INACTIVE (HIDDEN)",
+                                style: theme.textTheme.bodyLarge!.copyWith(
+                                  fontWeight: FontWeight.w900,
+                                  color: isActive
+                                      ? Colors.green.shade800
+                                      : theme.colorScheme.error,
+                                ),
+                              ),
+                            ],
                           ),
                         ),
-                        const SizedBox(width: 10),
                         Switch(
                           value: isActive,
                           activeThumbColor: Colors.green,
@@ -109,233 +162,223 @@ class _StaffProductDetailsScreenState
                     ),
                   ),
 
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 24),
 
-                  // --- Product Details Section ---
+                  // --- 2. MAIN DETAILS CARD ---
                   Container(
                     decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(10),
-                      color: Theme.of(context).colorScheme.surfaceContainer,
+                      color: theme.colorScheme.surfaceContainer,
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(
+                        color: theme.colorScheme.outlineVariant,
+                      ),
                     ),
-                    width: double.infinity,
-                    padding: const EdgeInsets.all(20),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // Header + Edit Button
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              'Profile Details',
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .bodyLarge!
-                                  .copyWith(fontWeight: FontWeight.bold),
-                            ),
-                            IconButton(
-                              onPressed: () {
-                                Navigator.of(context).push(
-                                  MaterialPageRoute(
-                                    builder: (_) => StaffProductUpdateScreen(
-                                      product: product,
-                                    ),
-                                  ),
-                                );
-                              },
-                              icon: const Icon(Icons.edit),
-                            ),
-                          ],
-                        ),
-                        
-                        // Picture Carousel
+                        // A. Image Carousel
                         SizedBox(
                           height: 250,
                           width: double.infinity,
-                          child: product.photoPaths.isEmpty
+                          child: displayedProduct.photoPaths.isEmpty
                               ? Container(
-                                  color: Colors.white,
+                                  decoration: BoxDecoration(
+                                    color: Colors.grey.shade100,
+                                    borderRadius: const BorderRadius.vertical(
+                                      top: Radius.circular(16),
+                                    ),
+                                  ),
                                   child: Column(
                                     mainAxisAlignment: MainAxisAlignment.center,
-                                    children: const [
-                                      Icon(Icons.image_not_supported),
-                                      Text('No image found'),
-                                    ],
-                                  ),
-                                )
-                              : Column(
-                                  children: [
-                                    Expanded(
-                                      child: PageView.builder(
-                                        controller: _pageController,
-                                        itemCount: product.photoPaths.length,
-                                        itemBuilder: (context, index) {
-                                          final imageService =
-                                              ref.read(imageServiceProvider);
-                                          final imageUrl =
-                                              imageService.retrieveImageUrl(
-                                            product.photoPaths[index],
-                                          );
-
-                                          return ClipRRect(
-                                            borderRadius:
-                                                BorderRadius.circular(12),
-                                            child: Image.network(
-                                              imageUrl,
-                                              width: double.infinity,
-                                              fit: BoxFit.cover,
-                                              loadingBuilder:
-                                                  (context, child, progress) {
-                                                if (progress == null) return child;
-                                                return Center(
-                                                  child:
-                                                      CircularProgressIndicator(
-                                                    value: progress
-                                                                .expectedTotalBytes !=
-                                                            null
-                                                        ? progress
-                                                                .cumulativeBytesLoaded /
-                                                            progress
-                                                                .expectedTotalBytes!
-                                                        : null,
-                                                  ),
-                                                );
-                                              },
-                                              errorBuilder:
-                                                  (context, error, stackTrace) =>
-                                                      const Icon(
-                                                Icons.broken_image,
-                                                size: 40,
-                                              ),
-                                            ),
-                                          );
-                                        },
+                                    children: [
+                                      Icon(
+                                        Icons.image_not_supported_outlined,
+                                        size: 48,
+                                        color: Colors.grey.shade400,
                                       ),
-                                    ),
-                                    const SizedBox(height: 10),
-                                    SmoothPageIndicator(
-                                      controller: _pageController,
-                                      count: product.photoPaths.length,
-                                      effect: ExpandingDotsEffect(
-                                        dotHeight: 8,
-                                        dotWidth: 8,
-                                        activeDotColor: Theme.of(context)
-                                            .colorScheme
-                                            .primary,
-                                        dotColor: Colors.grey.shade400,
-                                        expansionFactor: 3,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                        ),
-                        
-                        const SizedBox(height: 20),
-
-                        // Text Details
-                        Text(
-                          '${product.brand} ${product.name} ${product.model ?? ''}',
-                          style: Theme.of(context)
-                              .textTheme
-                              .bodyLarge!
-                              .copyWith(fontWeight: FontWeight.bold),
-                        ),
-                        const SizedBox(height: 10),
-                        _detail(title: 'Category', content: product.category),
-                        _detail(
-                            title: 'Colour', content: product.colour ?? '-'),
-                        _detail(
-                          title: 'Price',
-                          content: 'RM ${product.price.toStringAsFixed(2)}',
-                        ),
-                        _detail(
-                            title: 'Description', content: product.description),
-                        _detail(
-                            title: 'Remarks', content: product.remarks ?? '-'),
-                        _detail(
-                          title: 'Created At',
-                          content: timeFormatter.format(product.createdAt),
-                        ),
-                        _detail(
-                          title: 'Updated At',
-                          content: product.updatedAt != null
-                              ? timeFormatter.format(product.updatedAt!)
-                              : '-',
-                        ),
-
-                        const SizedBox(height: 20),
-
-                        // Availability Box
-                        Container(
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(10),
-                            color: Theme.of(context)
-                                .colorScheme
-                                .surfaceContainerLowest,
-                          ),
-                          width: double.infinity,
-                          padding: const EdgeInsets.all(10),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const Text(
-                                'Product Availability Info',
-                                style: TextStyle(fontWeight: FontWeight.bold),
-                              ),
-                              const SizedBox(height: 10),
-                              _buildAvailabilityText(context, product),
-                              const SizedBox(height: 5),
-                              if (product.availability ==
-                                  ProductAvailability.ready)
-                                Text.rich(
-                                  TextSpan(
-                                    text: 'Stock Number: ',
-                                    children: <TextSpan>[
-                                      TextSpan(
-                                        text: product.quantity.toString(),
+                                      const SizedBox(height: 8),
+                                      Text(
+                                        'No images available',
                                         style: TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                          color: product.quantity! > 0
-                                              ? product.availability.color
-                                              : Theme.of(context)
-                                                  .colorScheme
-                                                  .error,
+                                          color: Colors.grey.shade600,
                                         ),
                                       ),
                                     ],
                                   ),
+                                )
+                              : Stack(
+                                  children: [
+                                    PageView.builder(
+                                      controller: _pageController,
+                                      itemCount:
+                                          displayedProduct.photoPaths.length,
+                                      itemBuilder: (context, index) {
+                                        final imageService = ref.read(
+                                          imageServiceProvider,
+                                        );
+                                        final imageUrl = imageService
+                                            .retrieveImageUrl(
+                                              displayedProduct
+                                                  .photoPaths[index],
+                                            );
+
+                                        return ClipRRect(
+                                          borderRadius:
+                                              const BorderRadius.vertical(
+                                                top: Radius.circular(16),
+                                              ),
+                                          child: Image.network(
+                                            imageUrl,
+                                            width: double.infinity,
+                                            fit: BoxFit.cover,
+                                            errorBuilder: (_, __, ___) =>
+                                                Container(
+                                                  color: Colors.grey.shade200,
+                                                  child: const Center(
+                                                    child: Icon(
+                                                      Icons.broken_image,
+                                                    ),
+                                                  ),
+                                                ),
+                                          ),
+                                        );
+                                      },
+                                    ),
+                                    if (displayedProduct.photoPaths.length > 1)
+                                      Positioned(
+                                        bottom: 12,
+                                        left: 0,
+                                        right: 0,
+                                        child: Center(
+                                          child: SmoothPageIndicator(
+                                            controller: _pageController,
+                                            count: displayedProduct
+                                                .photoPaths
+                                                .length,
+                                            effect: ExpandingDotsEffect(
+                                              dotHeight: 8,
+                                              dotWidth: 8,
+                                              activeDotColor:
+                                                  theme.colorScheme.primary,
+                                              dotColor: Colors.white.withValues(
+                                                alpha: 0.5,
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                  ],
                                 ),
-                            ],
-                          ),
                         ),
 
-                        const SizedBox(height: 10),
-
-                        // Installation Box
-                        Container(
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(10),
-                            color: Theme.of(context)
-                                .colorScheme
-                                .surfaceContainerLowest,
-                          ),
-                          width: double.infinity,
-                          padding: const EdgeInsets.all(10),
+                        // B. Content
+                        Padding(
+                          padding: const EdgeInsets.all(20),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              const Text(
-                                'Product Installation Info',
-                                style: TextStyle(fontWeight: FontWeight.bold),
-                              ),
-                              const SizedBox(height: 10),
+                              // Header Info
                               Text(
-                                  'Installation Provided: ${product.installation}'),
-                              const SizedBox(height: 5),
-                              if (product.installation == true)
-                                Text(
-                                  'Installation Price: RM${product.installationFee!.toStringAsFixed(2)}',
+                                '${displayedProduct.brand} ${displayedProduct.name} ${displayedProduct.model ?? ''}',
+                                style: theme.textTheme.headlineSmall!.copyWith(
+                                  fontWeight: FontWeight.w800,
+                                  height: 1.2,
                                 ),
+                              ),
+
+                              const SizedBox(height: 8),
+
+                              // 2. ROW: COLOUR (Left) & PRICE (Right)
+                              Row(
+                                crossAxisAlignment: CrossAxisAlignment.center,
+                                children: [
+                                  // Colour (Plain Text)
+                                  if (displayedProduct.colour != null)
+                                    Text(
+                                      displayedProduct.colour!,
+                                      style: theme.textTheme.titleMedium
+                                          ?.copyWith(
+                                            color: theme
+                                                .colorScheme
+                                                .onSurfaceVariant,
+                                            fontWeight: FontWeight.w500,
+                                          ),
+                                    ),
+
+                                  const Spacer(),
+
+                                  // Price
+                                  Text(
+                                    'RM ${displayedProduct.price.toStringAsFixed(2)}',
+                                    style: theme.textTheme.titleMedium
+                                        ?.copyWith(
+                                          fontWeight: FontWeight.bold,
+                                          color: textYellow,
+                                          fontSize: 22,
+                                        ),
+                                  ),
+                                ],
+                              ),
+
+                              const SizedBox(height: 30),
+
+                              // Basic Specs
+                              _buildDetailRow(
+                                context,
+                                'Category',
+                                displayedProduct.category,
+                              ),
+                              const SizedBox(height: 12),
+
+                              // Availability Logic (Integrated)
+                              _buildAvailabilityRow(context, displayedProduct),
+
+                              const SizedBox(height: 12),
+
+                              // Installation Logic (Integrated)
+                              _buildInstallationRow(context, displayedProduct),
+
+                              const SizedBox(height: 24),
+                              const Divider(),
+                              const SizedBox(height: 16),
+
+                              // Metadata
+                              _buildDetailRow(
+                                context,
+                                'Created On',
+                                timeFormatter.format(
+                                  displayedProduct.createdAt,
+                                ),
+                                isMeta: true,
+                              ),
+                              const SizedBox(height: 8),
+                              _buildDetailRow(
+                                context,
+                                'Last Updated',
+                                displayedProduct.updatedAt != null
+                                    ? timeFormatter.format(
+                                        displayedProduct.updatedAt!,
+                                      )
+                                    : '-',
+                                isMeta: true,
+                              ),
+
+                              const SizedBox(height: 24),
+                              const Divider(),
+                              const SizedBox(height: 16),
+
+                              // Long Text Sections
+                              _buildLongTextSection(
+                                context,
+                                "Description",
+                                displayedProduct.description,
+                              ),
+                              const SizedBox(height: 20),
+                              _buildLongTextSection(
+                                context,
+                                "Remarks",
+                                displayedProduct.remarks ?? '-',
+                              ),
                             ],
                           ),
                         ),
@@ -343,26 +386,56 @@ class _StaffProductDetailsScreenState
                     ),
                   ),
 
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 30),
 
-                  // Delete Button
+                  // --- 3. DELETE BUTTON ---
                   SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Theme.of(context).colorScheme.error,
-                        foregroundColor: Colors.white,
+                    height: 54,
+                    child: OutlinedButton.icon(
+                      style: OutlinedButton.styleFrom(
+                        side: BorderSide(color: theme.colorScheme.error),
+                        foregroundColor: theme.colorScheme.error,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
                       ),
                       onPressed: () async {
-                        final message = await notifier.deleteProduct(product.id);
+                        final confirm = await showDialog<bool>(
+                          context: context,
+                          builder: (ctx) => AlertDialog(
+                            title: const Text('Delete Product'),
+                            content: const Text(
+                              'Are you sure you want to delete this product?\nThis action cannot be undone.',
+                            ),
+                            actions: [
+                              TextButton(
+                                onPressed: () => Navigator.pop(ctx, false),
+                                child: const Text('Cancel'),
+                              ),
+                              TextButton(
+                                onPressed: () => Navigator.pop(ctx, true),
+                                child: Text(
+                                  'Delete',
+                                  style: TextStyle(
+                                    color: theme.colorScheme.error,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        );
+
+                        if (confirm != true) return;
+
+                        final message = await notifier.deleteProduct(
+                          displayedProduct.id,
+                        );
 
                         if (!context.mounted) return;
-                        
+
                         showAppSnackBar(
                           context: context,
-                          content: message.isSuccess
-                              ? 'Product deleted'
-                              : 'Failed to delete product',
+                          content: message.message,
                           isError: !message.isSuccess,
                         );
 
@@ -370,9 +443,11 @@ class _StaffProductDetailsScreenState
                           Navigator.of(context).pop();
                         }
                       },
-                      child: const Text('Delete Product'),
+                      icon: const Icon(Icons.delete_forever),
+                      label: const Text('DELETE PRODUCT'),
                     ),
                   ),
+                  const SizedBox(height: 40),
                 ],
               ),
             ),
@@ -384,17 +459,48 @@ class _StaffProductDetailsScreenState
     );
   }
 
-  // Extracted Helper for the complex availability logic
-  Widget _buildAvailabilityText(BuildContext context, Product product) {
+  // Helper for single line details
+  Widget _buildDetailRow(
+    BuildContext context,
+    String label,
+    String value, {
+    bool isMeta = false,
+  }) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(
+          label,
+          style: TextStyle(
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
+            fontSize: 14,
+          ),
+        ),
+        Text(
+          value,
+          style: TextStyle(
+            fontWeight: isMeta ? FontWeight.normal : FontWeight.w600,
+            fontSize: 14,
+            color: isMeta
+                ? Theme.of(context).colorScheme.onSurfaceVariant
+                : Theme.of(context).colorScheme.onSurface,
+          ),
+        ),
+      ],
+    );
+  }
+
+  // Specialized Helper for Availability
+  Widget _buildAvailabilityRow(BuildContext context, Product product) {
     String label;
     Color color;
 
     if (product.availability == ProductAvailability.ready) {
       if ((product.quantity ?? 0) > 0) {
-        label = product.availability.label; // e.g., "Ready Stock"
-        color = product.availability.color; // e.g., Green
+        label = "${product.availability.label} (${product.quantity})";
+        color = product.availability.color;
       } else {
-        label = 'Out of Stock';
+        label = 'Out of Stock (0)';
         color = Theme.of(context).colorScheme.error;
       }
     } else {
@@ -402,38 +508,87 @@ class _StaffProductDetailsScreenState
       color = ProductAvailability.preorder.color;
     }
 
-    return Text.rich(
-      TextSpan(
-        text: 'Availability: ',
-        children: <TextSpan>[
-          TextSpan(
-            text: label,
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(
+          "Availability",
+          style: TextStyle(
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
+            fontSize: 14,
+          ),
+        ),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+          decoration: BoxDecoration(
+            color: color.withValues(alpha: 0.1),
+            borderRadius: BorderRadius.circular(4),
+          ),
+          child: Text(
+            label,
             style: TextStyle(
               fontWeight: FontWeight.bold,
+              fontSize: 13,
               color: color,
             ),
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 
-  Widget _detail({required String title, required String content}) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 12.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            title,
-            style: const TextStyle(fontWeight: FontWeight.bold),
+  // Specialized Helper for Installation
+  Widget _buildInstallationRow(BuildContext context, Product product) {
+    final hasInstallation = product.installation;
+    final fee = product.installationFee ?? 0.0;
+
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(
+          "Installation",
+          style: TextStyle(
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
+            fontSize: 14,
           ),
-          Text(
-            content,
-            softWrap: true,
+        ),
+        Text(
+          hasInstallation ? "Yes (+RM ${fee.toStringAsFixed(2)})" : "No",
+          style: TextStyle(
+            fontWeight: FontWeight.w600,
+            fontSize: 14,
+            color: Theme.of(context).colorScheme.onSurface,
           ),
-        ],
-      ),
+        ),
+      ],
+    );
+  }
+
+  // Helper for long text blocks
+  Widget _buildLongTextSection(
+    BuildContext context,
+    String title,
+    String content,
+  ) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          title,
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            color: Theme.of(context).colorScheme.onSurface,
+          ),
+        ),
+        const SizedBox(height: 6),
+        Text(
+          content,
+          style: TextStyle(
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
+            height: 1.4,
+          ),
+        ),
+      ],
     );
   }
 }

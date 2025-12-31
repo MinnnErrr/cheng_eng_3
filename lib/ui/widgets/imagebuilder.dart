@@ -6,6 +6,7 @@ Widget imageBuilder({
   required double containerHeight,
   required Widget noImageContent,
   required BuildContext context,
+  double? borderRadius,
 }) {
   Widget imageContent;
   final theme = Theme.of(context);
@@ -37,14 +38,14 @@ Widget imageBuilder({
       : imageContent = noImageContent;
 
   return ClipRRect(
-    borderRadius: BorderRadius.circular(12),
-    child: Container(
+    borderRadius: BorderRadius.circular(borderRadius ?? 12),
+    child: SizedBox(
       height: containerHeight,
       width: containerWidth,
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surfaceContainerHigh,
-        borderRadius: BorderRadius.circular(10),
-      ),
+      // decoration: BoxDecoration(
+      //   color: Theme.of(context).colorScheme.surfaceContainerHigh,
+      //   borderRadius: BorderRadius.circular(borderRadius ?? 10),
+      // ),
       child: imageContent,
     ),
   );

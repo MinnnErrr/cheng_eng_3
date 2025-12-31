@@ -8,13 +8,14 @@ import 'package:cheng_eng_3/utils/search_sort_filter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+// ... imports ...
+
 class CustomerProductScreen extends ConsumerStatefulWidget {
   const CustomerProductScreen({super.key});
 
   @override
-  ConsumerState<CustomerProductScreen> createState() {
-    return _CustomerProductScreenState();
-  }
+  ConsumerState<CustomerProductScreen> createState() =>
+      _CustomerProductScreenState();
 }
 
 class _CustomerProductScreenState extends ConsumerState<CustomerProductScreen> {
@@ -47,35 +48,18 @@ class _CustomerProductScreenState extends ConsumerState<CustomerProductScreen> {
     final productState = ref.watch(customerProductProvider);
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Products'),
-      ),
-      // NO CustomScrollView needed. Just a Column.
+      appBar: AppBar(title: const Text('Products')),
       body: Column(
         children: [
-          // 1. FIXED HEADER (Search & Filter)
-          // This stays at the top and never scrolls.
+          // 1. FIXED HEADER
           _buildSearchHeader(),
 
           // 2. SCROLLABLE CONTENT
-          // Expanded takes the rest of the screen space.
           Expanded(
             child: productState.when(
               data: (products) {
                 if (products.isEmpty) {
-                  return RefreshIndicator(
-                    onRefresh: () async =>
-                        ref.refresh(customerProductProvider.future),
-                    child: ListView(
-                      physics: const AlwaysScrollableScrollPhysics(),
-                      children: [
-                        SizedBox(
-                          height: MediaQuery.of(context).size.height * 0.3,
-                        ),
-                        const Center(child: Text('No products available')),
-                      ],
-                    ),
-                  );
+                  return _buildEmptyState('No products available');
                 }
 
                 final filtered = productSearchSortFilter(
@@ -87,27 +71,14 @@ class _CustomerProductScreenState extends ConsumerState<CustomerProductScreen> {
                   isActive: null,
                 );
 
+                // Extract categories for filter
                 _categories = products.map((p) => p.category).toSet().toList()
                   ..sort();
-                      
 
                 if (filtered.isEmpty) {
-                  return RefreshIndicator(
-                    onRefresh: () async =>
-                        ref.refresh(customerProductProvider.future),
-                    child: ListView(
-                      physics: const AlwaysScrollableScrollPhysics(),
-                      children: [
-                        SizedBox(
-                          height: MediaQuery.of(context).size.height * 0.3,
-                        ),
-                        const Center(child: Text('No product found')),
-                      ],
-                    ),
-                  );
+                  return _buildEmptyState('No product found');
                 }
 
-                // Standard GridView inside RefreshIndicator
                 return RefreshIndicator(
                   onRefresh: () async =>
                       ref.refresh(customerProductProvider.future),
@@ -117,17 +88,18 @@ class _CustomerProductScreenState extends ConsumerState<CustomerProductScreen> {
                     gridDelegate:
                         const SliverGridDelegateWithFixedCrossAxisCount(
                           crossAxisCount: 2,
-                          crossAxisSpacing: 10,
-                          mainAxisSpacing: 10,
-                          childAspectRatio: 0.6,
+                          crossAxisSpacing: 12,
+                          mainAxisSpacing: 12,
+                          childAspectRatio: 0.7, // ✅ Slightly wider cards
                         ),
                     itemCount: filtered.length,
                     itemBuilder: (context, index) {
                       final product = filtered[index];
+                      // Use logic to disable click if needed
                       final isSoldOut =
                           product.quantity != null && product.quantity! <= 0;
-
-                      return InkWell(
+                      return CustomerProductListitem(
+                        product: product,
                         onTap: isSoldOut
                             ? null
                             : () => Navigator.of(context).push(
@@ -137,19 +109,13 @@ class _CustomerProductScreenState extends ConsumerState<CustomerProductScreen> {
                                   ),
                                 ),
                               ),
-                        child: Opacity(
-                          opacity: isSoldOut ? 0.6 : 1.0,
-                          child: CustomerProductListitem(
-                            product: product,
-                          ),
-                        ),
                       );
                     },
                   ),
                 );
               },
               error: (error, stackTrace) =>
-                  Center(child: Text(error.toString())),
+                  Center(child: Text('Error: $error')),
               loading: () => const Center(child: CircularProgressIndicator()),
             ),
           ),
@@ -158,10 +124,31 @@ class _CustomerProductScreenState extends ConsumerState<CustomerProductScreen> {
     );
   }
 
-  // Extracted Header Widget (No SliverDelegate needed!)
+  Widget _buildEmptyState(String message) {
+    return RefreshIndicator(
+      onRefresh: () async => ref.refresh(customerProductProvider.future),
+      child: ListView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        children: [
+          SizedBox(height: MediaQuery.of(context).size.height * 0.3),
+          Center(
+            child: Column(
+              children: [
+                Icon(Icons.search_off, size: 60, color: Colors.grey.shade300),
+                const SizedBox(height: 10),
+                Text(message, style: const TextStyle(color: Colors.grey)),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildSearchHeader() {
+    final theme = Theme.of(context);
     return Container(
-      color: Theme.of(context).scaffoldBackgroundColor,
+      color: theme.scaffoldBackgroundColor,
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
       child: Row(
         children: [
@@ -170,39 +157,81 @@ class _CustomerProductScreenState extends ConsumerState<CustomerProductScreen> {
               controller: _searchCtrl,
               onChanged: (v) => setState(() => _search = v),
               decoration: InputDecoration(
-                hintText: "Search name...",
+                hintText: "Search products...",
                 prefixIcon: const Icon(Icons.search),
+                filled: true,
+                // ✅ Improved Styling
+                fillColor: theme.colorScheme.surfaceContainerHighest,
                 contentPadding: const EdgeInsets.symmetric(horizontal: 10),
                 border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide.none,
                 ),
+                suffixIcon: _search.isNotEmpty
+                    ? IconButton(
+                        icon: const Icon(Icons.clear),
+                        onPressed: () {
+                          _searchCtrl.clear();
+                          setState(() => _search = "");
+                        },
+                      )
+                    : null,
               ),
             ),
           ),
-          const SizedBox(width: 8),
-          IconButton(
-            onPressed: _openFilterSheet,
-            icon: const Icon(Icons.filter_alt_outlined),
+          const SizedBox(width: 10),
+
+          // ✅ Filter Button (Matched Style)
+          SizedBox(
+            height: 48, // Matches standard TextField height
+            width: 48,
+            child: IconButton(
+              style: IconButton.styleFrom(
+                backgroundColor: theme.colorScheme.surfaceContainerHigh,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+              onPressed: _openFilterSheet,
+              icon: const Icon(
+                Icons.tune,
+              ), // 'tune' often looks better for filters
+            ),
           ),
-          const SizedBox(width: 8),
-          IconButton(
-            onPressed: _openSortSheet,
-            icon: const Icon(Icons.sort),
+
+          const SizedBox(width: 10),
+
+          // ✅ Sort Button (Matched Style)
+          SizedBox(
+            height: 48,
+            width: 48,
+            child: IconButton(
+              style: IconButton.styleFrom(
+                backgroundColor: theme.colorScheme.surfaceContainerHigh,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+              onPressed: _openSortSheet,
+              icon: const Icon(Icons.sort),
+            ),
           ),
         ],
       ),
     );
   }
 
-  // ... (Keep _openFilterSheet and _openSortSheet exactly as before) ...
-  // --- FILTER SHEET ---
+  // --- FILTER SHEET (Unchanged logic, kept consistent) ---
   void _openFilterSheet() {
+    // ... [Your existing filter sheet code logic] ...
+    // Just ensure you use the same style/imports
     String? sheetCategory = _category;
     ProductAvailability? sheetAvailability = _availability;
 
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
+      useSafeArea: true,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
@@ -218,30 +247,29 @@ class _CustomerProductScreenState extends ConsumerState<CustomerProductScreen> {
               ),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
+                  const Text(
                     "Filter Products",
-                    style: Theme.of(context).textTheme.bodyLarge!.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
+                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                   ),
-                  const SizedBox(height: 16),
-
+                  const SizedBox(height: 20),
                   DropdownButtonFormField<String>(
                     initialValue: _categories.contains(sheetCategory)
                         ? sheetCategory
                         : null,
-                    decoration: const InputDecoration(labelText: "Category"),
+                    decoration: InputDecoration(
+                      labelText: "Category",
+                    ),
                     items: _categories
                         .map((c) => DropdownMenuItem(value: c, child: Text(c)))
                         .toList(),
                     onChanged: (v) => setSheetState(() => sheetCategory = v),
                   ),
-                  const SizedBox(height: 12),
-
+                  const SizedBox(height: 16),
                   DropdownButtonFormField<ProductAvailability>(
                     initialValue: sheetAvailability,
-                    decoration: const InputDecoration(
+                    decoration: InputDecoration(
                       labelText: "Availability",
                     ),
                     items: ProductAvailability.values
@@ -254,7 +282,6 @@ class _CustomerProductScreenState extends ConsumerState<CustomerProductScreen> {
                         setSheetState(() => sheetAvailability = v),
                   ),
                   const SizedBox(height: 30),
-
                   Row(
                     children: [
                       Expanded(
@@ -263,12 +290,24 @@ class _CustomerProductScreenState extends ConsumerState<CustomerProductScreen> {
                             resetFilters();
                             Navigator.pop(context);
                           },
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: Theme.of(
+                              context,
+                            ).colorScheme.onSurface,
+                            side: BorderSide(
+                              color: Theme.of(context).colorScheme.onSurface,
+                            ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                          ),
                           child: const Text("Reset"),
                         ),
                       ),
                       const SizedBox(width: 12),
                       Expanded(
-                        child: ElevatedButton(
+                        child: FilledButton(
                           onPressed: () {
                             setState(() {
                               _category = sheetCategory;
@@ -281,7 +320,6 @@ class _CustomerProductScreenState extends ConsumerState<CustomerProductScreen> {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 16),
                 ],
               ),
             );
@@ -291,7 +329,7 @@ class _CustomerProductScreenState extends ConsumerState<CustomerProductScreen> {
     );
   }
 
-  // --- SORT SHEET ---
+  // --- SORT SHEET (Fixed Radio Logic) ---
   void _openSortSheet() {
     showModalBottomSheet(
       context: context,
@@ -309,9 +347,10 @@ class _CustomerProductScreenState extends ConsumerState<CustomerProductScreen> {
                 "Sort By",
                 style: Theme.of(
                   context,
-                ).textTheme.bodyLarge!.copyWith(fontWeight: FontWeight.bold),
+                ).textTheme.titleLarge!.copyWith(fontWeight: FontWeight.bold),
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 10),
+              // ✅ FIX: Use Standard Column + RadioListTile
               RadioGroup<ProductSorting>(
                 groupValue: _sorting,
 

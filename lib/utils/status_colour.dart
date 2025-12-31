@@ -1,3 +1,4 @@
+import 'package:cheng_eng_3/core/models/product_model.dart';
 import 'package:flutter/material.dart';
 
 Color getMaintenanceStatusColor(String status, BuildContext context) {
@@ -26,17 +27,28 @@ Color getTowingStatusColor(String status, BuildContext context) {
 }
 
 Color getProductAvailabilityColor(
-  String status,
+  ProductAvailability availability,
   int? quantity,
   BuildContext context,
 ) {
-  switch (status.toLowerCase()) {
-    case 'ready stock':
+  switch (availability) {
+    case ProductAvailability.ready:
       return quantity! > 0 ? Colors.green : Theme.of(context).colorScheme.error;
-    case 'preorder':
+    case ProductAvailability.preorder:
       return Colors.orange;
-    default:
-      return Theme.of(context).colorScheme.error;
+  }
+}
+
+String getProductAvailabilityName(
+  ProductAvailability availability,
+  int? quantity,
+  BuildContext context,
+) {
+  switch (availability) {
+    case ProductAvailability.ready:
+      return quantity! > 0 ? 'In Stock': 'Sold Out';
+    case ProductAvailability.preorder:
+      return 'Preorder';
   }
 }
 

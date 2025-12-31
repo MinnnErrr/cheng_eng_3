@@ -1,5 +1,6 @@
 import 'package:cheng_eng_3/core/controllers/auth/auth_notifier.dart';
 import 'package:cheng_eng_3/main.dart';
+import 'package:cheng_eng_3/ui/screens/request_email_screen.dart';
 import 'package:cheng_eng_3/ui/screens/signup_screen.dart';
 import 'package:cheng_eng_3/ui/widgets/snackbar.dart';
 import 'package:cheng_eng_3/ui/widgets/textformfield.dart';
@@ -110,7 +111,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                   ),
                                 ),
                                 TextButton(
-                                  onPressed: () {},
+                                  onPressed: () => Navigator.of(context).push(
+                                    MaterialPageRoute(
+                                      builder: (context) =>
+                                          RequestEmailScreen(),
+                                    ),
+                                  ),
                                   child: Text('Forget password?'),
                                 ),
                               ],

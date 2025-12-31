@@ -27,13 +27,22 @@ class _TowingMapScreenState extends ConsumerState<TowingMapScreen> {
   bool _gettingLocation = false;
   bool _isSearchingAddress = false;
 
+  bool _isMapReady = false;
+
   final Set<Marker> _markers = {};
 
   @override
   void initState() {
     super.initState();
     HuaweiMapInitializer.initializeMap();
-    Future.delayed(Duration.zero, _checkLocationRequirements);
+    _checkLocationRequirements();
+    Future.delayed(const Duration(milliseconds: 300), () {
+      if (mounted) {
+        setState(() {
+          _isMapReady = true;
+        });
+      }
+    });
   }
 
   @override
@@ -213,17 +222,37 @@ class _TowingMapScreenState extends ConsumerState<TowingMapScreen> {
       body: Stack(
         children: [
           // 1. FULL SCREEN MAP
-          HuaweiMap(
-            initialCameraPosition: const CameraPosition(
-              target: LatLng(3.1466, 101.6958), // KL Default
-              zoom: 12,
-            ),
-            markers: _markers,
-            myLocationEnabled: _hasLocationPermission,
-            myLocationButtonEnabled: false, // We use our own custom button
-            zoomControlsEnabled: false, // Clean UI
-            onMapCreated: (controller) => mapController = controller,
-            onClick: (LatLng latLng) => _getAddressFromCoordinates(latLng),
+          Positioned.fill(
+            child: _isMapReady
+                ? HuaweiMap(
+                    initialCameraPosition: CameraPosition(
+                      target: (_selectedLat != null && _selectedLng != null)
+                          ? LatLng(_selectedLat!, _selectedLng!)
+                          : const LatLng(3.1466, 101.6958),
+                      zoom: 15,
+                    ),
+                    markers: _markers,
+                    myLocationEnabled: _hasLocationPermission,
+                    myLocationButtonEnabled: false,
+                    zoomControlsEnabled: false,
+                    onMapCreated: (controller) {
+                      mapController = controller;
+
+                      if (_selectedLat != null && _selectedLng != null) {
+                        controller.animateCamera(
+                          CameraUpdate.newLatLng(
+                            LatLng(_selectedLat!, _selectedLng!),
+                          ),
+                        );
+                      }
+                    },
+                    onClick: (LatLng latLng) {
+                      _getAddressFromCoordinates(latLng);
+                    },
+                  )
+                : Container(
+                    color: Colors.white,
+                  ), // ✅ Show white bg while loading
           ),
 
           // 2. FLOATING SEARCH BAR (Top)

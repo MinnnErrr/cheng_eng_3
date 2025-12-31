@@ -15,14 +15,13 @@ class ProfileScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final user = ref.read(authProvider).value;
+    final userState = ref.watch(authProvider);
 
+    final user = userState.value;
+
+    // Handle loading or null user
     if (user == null) {
-      return Scaffold(
-        body: Center(
-          child: CircularProgressIndicator(),
-        ),
-      );
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
     final totalPoints = ref.watch(totalPointsProvider(user.id));
@@ -91,13 +90,14 @@ class ProfileScreen extends ConsumerWidget {
                         _profileField(profile, context),
 
                         ElevatedButton(
-                          onPressed: () {
-                            final resetAll = ref.read(appStateResetProvider);
+                          onPressed: () async {
+                            // final resetAll = ref.read(appStateResetProvider);
 
                             if (!context.mounted) return;
-                            authNotifier.signOut();
-                            resetAll();
+                            await authNotifier.signOut();
+                            // resetAll();
 
+                            if (!context.mounted) return;
                             Navigator.of(context).pushAndRemoveUntil(
                               MaterialPageRoute(builder: (_) => LoginScreen()),
                               (route) => false,

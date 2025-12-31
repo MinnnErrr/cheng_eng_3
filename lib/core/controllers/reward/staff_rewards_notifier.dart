@@ -31,7 +31,7 @@ class StaffRewardsNotifier extends _$StaffRewardsNotifier {
     required List<File> photos,
     required String? conditions,
     required DateTime? availableUntil,
-    required int? validityWeeks
+    required int? validityWeeks,
   }) async {
     final rewardId = Uuid().v4();
     List<String> photoPaths = [];
@@ -48,6 +48,7 @@ class StaffRewardsNotifier extends _$StaffRewardsNotifier {
           );
           photoPaths.add(photoPath);
         } catch (e) {
+          print(e);
           return Message(isSuccess: false, message: 'Failed to upload photos');
         }
       }
@@ -65,7 +66,7 @@ class StaffRewardsNotifier extends _$StaffRewardsNotifier {
       status: status,
       conditions: conditions,
       availableUntil: availableUntil,
-      validityWeeks: validityWeeks
+      validityWeeks: validityWeeks,
     );
 
     try {
@@ -86,7 +87,7 @@ class StaffRewardsNotifier extends _$StaffRewardsNotifier {
     required List<dynamic> photos,
     required String? conditions,
     required DateTime? availableUntil,
-    required int? validityWeeks
+    required int? validityWeeks,
   }) async {
     final previous = state.value ?? [];
     final currentReward = previous.firstWhere(
@@ -191,4 +192,3 @@ class StaffRewardsNotifier extends _$StaffRewardsNotifier {
     }
   }
 }
-

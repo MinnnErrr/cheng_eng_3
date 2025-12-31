@@ -3,10 +3,10 @@ import 'package:cheng_eng_3/core/controllers/product/product_by_id_provider.dart
 import 'package:cheng_eng_3/core/controllers/realtime_provider.dart';
 import 'package:cheng_eng_3/core/models/product_model.dart';
 import 'package:cheng_eng_3/core/services/image_service.dart';
-import 'package:cheng_eng_3/ui/extensions/product_extension.dart';
 import 'package:cheng_eng_3/ui/screens/customer/cart/cart_screen.dart';
 import 'package:cheng_eng_3/ui/widgets/cart_icon.dart';
 import 'package:cheng_eng_3/ui/widgets/snackbar.dart';
+import 'package:cheng_eng_3/utils/status_colour.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
@@ -26,18 +26,20 @@ class _CustomerProductDetailsScreenState
   final PageController _pageController = PageController();
   int _selectedQuantity = 1;
   bool _installSelected = false;
-  bool _isAddingToCart = false; // Local loading state for button
+  bool _isAddingToCart = false;
 
   @override
   Widget build(BuildContext context) {
     ref.watch(productRealTimeProvider);
 
-    // 1. Optimistic UI Pattern
-    // Watch for updates, but use the passed widget.product immediately
     final productAsync = ref.watch(productByIdProvider(widget.product.id));
     final product = productAsync.value ?? widget.product;
-
     final cartNotifier = ref.read(cartProvider.notifier);
+    final theme = Theme.of(context);
+
+    // Logic to check if item can be bought
+    final isSoldOut = product.quantity != null && product.quantity! <= 0;
+    // final isPreorder = product.availability == ProductAvailability.preorder;
 
     return Scaffold(
       appBar: AppBar(
@@ -47,224 +49,239 @@ class _CustomerProductDetailsScreenState
             onTap: () => Navigator.of(context).push(
               MaterialPageRoute(builder: (context) => const CartScreen()),
             ),
-            child: CartIconBadge(),
+            child: const Padding(
+              padding: EdgeInsets.only(right: 20),
+              child: CartIconBadge(
+                icon: Icon(Icons.shopping_cart_outlined),
+              ),
+            ),
           ),
         ],
-        actionsPadding: const EdgeInsets.symmetric(horizontal: 20),
       ),
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.all(20),
           child: Column(
-            spacing: 20, // Flutter 3.27+
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // --- PHOTO SECTION ---
-              SizedBox(
-                height: 250,
-                width: double.infinity,
-                child: product.photoPaths.isEmpty
-                    ? Container(
-                        color: Colors.white,
+              // --- 1. HERO IMAGE CAROUSEL ---
+              _buildImageSlider(product, theme),
+
+              Padding(
+                padding: const EdgeInsets.all(20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // --- 2. HEADER INFO ---
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              // Badge
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 8,
+                                  vertical: 4,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: getProductAvailabilityColor(
+                                    product.availability,
+                                    product.quantity,
+                                    context,
+                                  ).withValues(alpha: 0.2),
+                                  borderRadius: BorderRadius.circular(6),
+                                ),
+                                child: Text(
+                                  getProductAvailabilityName(
+                                    product.availability,
+                                    product.quantity,
+                                    context,
+                                  ),
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.bold,
+                                    color: getProductAvailabilityColor(
+                                      product.availability,
+                                      product.quantity,
+                                      context,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                '${product.brand} ${product.name} ${product.model ?? ''}',
+                                style: theme.textTheme.titleLarge?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              if (product.colour != null)
+                                Text(
+                                  product.colour!,
+                                  style: theme.textTheme.bodyMedium?.copyWith(
+                                    color: theme.colorScheme.onSurfaceVariant,
+                                  ),
+                                ),
+                            ],
+                          ),
+                        ),
+                        // Price
+                        Text(
+                          'RM ${product.price.toStringAsFixed(2)}',
+                          style: theme.textTheme.titleLarge?.copyWith(
+                            fontWeight: FontWeight.w900,
+                            color: Color(0xFF9E7C00),
+                          ),
+                        ),
+                      ],
+                    ),
+
+                    const SizedBox(height: 30),
+
+                    // --- 3. INSTALLATION OPTION (Improved UI) ---
+                    if (product.installation == true) ...[
+                      Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: theme.colorScheme.primaryContainer.withValues(
+                            alpha: 0.3,
+                          ),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: theme.colorScheme.primary,
+                          ),
+                        ),
                         child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: const [
-                            Icon(Icons.image_not_supported),
-                            Text('No image found'),
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Row(
+                                  children: [
+                                    Icon(
+                                      Icons.build_circle_outlined,
+                                      color: Color(0xFF9E7C00),
+                                    ),
+                                    const SizedBox(width: 8),
+                                    const Text(
+                                      "Add Installation?",
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                Text(
+                                  '+ RM ${product.installationFee?.toStringAsFixed(2) ?? '0.00'}',
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    color: Color(0xFF9E7C00),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 12),
+                            // Using ChoiceChips for standard selection
+                            Row(
+                              children: [
+                                ChoiceChip(
+                                  label: const Text("No, thanks"),
+                                  selected: !_installSelected,
+                                  onSelected: (val) =>
+                                      setState(() => _installSelected = false),
+                                  selectedColor:
+                                      theme.colorScheme.primaryContainer,
+                                  checkmarkColor: theme.colorScheme.onPrimary,
+                                ),
+                                const SizedBox(width: 12),
+                                ChoiceChip(
+                                  label: const Text("Yes, please"),
+                                  selected: _installSelected,
+                                  onSelected: (val) =>
+                                      setState(() => _installSelected = true),
+                                  selectedColor:
+                                      theme.colorScheme.primaryContainer,
+                                  checkmarkColor: theme.colorScheme.onPrimary,
+                                ),
+                              ],
+                            ),
                           ],
                         ),
-                      )
-                    : Column(
-                        children: [
-                          Expanded(
-                            child: PageView.builder(
-                              controller: _pageController,
-                              itemCount: product.photoPaths.length,
-                              itemBuilder: (context, index) {
-                                final imageService = ref.read(imageServiceProvider);
-                                final imageUrl = imageService.retrieveImageUrl(
-                                  product.photoPaths[index],
-                                );
-
-                                return ClipRRect(
-                                  borderRadius: BorderRadius.circular(12),
-                                  child: Image.network(
-                                    imageUrl,
-                                    width: double.infinity,
-                                    fit: BoxFit.cover,
-                                    loadingBuilder: (context, child, progress) {
-                                      if (progress == null) return child;
-                                      return Center(
-                                        child: CircularProgressIndicator(
-                                          value: progress.expectedTotalBytes != null
-                                              ? progress.cumulativeBytesLoaded /
-                                                  progress.expectedTotalBytes!
-                                              : null,
-                                        ),
-                                      );
-                                    },
-                                    errorBuilder: (context, error, stackTrace) =>
-                                        const Icon(Icons.broken_image, size: 50),
-                                  ),
-                                );
-                              },
-                            ),
-                          ),
-                          const SizedBox(height: 10),
-                          SmoothPageIndicator(
-                            controller: _pageController,
-                            count: product.photoPaths.length,
-                            effect: ExpandingDotsEffect(
-                              dotHeight: 8,
-                              dotWidth: 8,
-                              activeDotColor: Theme.of(context).colorScheme.primary,
-                              dotColor: Colors.grey.shade400,
-                              expansionFactor: 3,
-                            ),
-                          ),
-                        ],
                       ),
-              ),
-
-              // --- DETAILS SECTION ---
-              Container(
-                width: double.infinity,
-                color: Theme.of(context).colorScheme.surfaceContainerLowest,
-                padding: const EdgeInsets.all(20),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      '${product.brand} ${product.name} ${product.model ?? ''} | ${product.colour ?? ''}',
-                      style: Theme.of(context)
-                          .textTheme
-                          .bodyLarge!
-                          .copyWith(fontWeight: FontWeight.bold),
-                    ),
-                    const SizedBox(height: 10),
-                    
-                    // Availability Badge
-                    Text(
-                      product.availability == ProductAvailability.ready
-                          ? product.quantity! > 0
-                              ? product.availability.label
-                              : 'Out of Stock'
-                          : ProductAvailability.preorder.label,
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        color: product.availability == ProductAvailability.ready
-                            ? product.quantity! > 0
-                                ? product.availability.color
-                                : Theme.of(context).colorScheme.error
-                            : ProductAvailability.preorder.color,
-                      ),
-                    ),
-                    
-                    const SizedBox(height: 20),
-                    
-                    Text(
-                      'RM ${product.price.toStringAsFixed(2)}',
-                      style: Theme.of(context).textTheme.headlineSmall!.copyWith(
-                            fontWeight: FontWeight.bold,
-                            color: Theme.of(context).colorScheme.primary,
-                          ),
-                    ),
-
-                    // --- INSTALLATION SELECTION ---
-                    if (product.installation == true) ...[
                       const SizedBox(height: 30),
-                      const Text(
-                        "Installation Service",
-                        style: TextStyle(fontWeight: FontWeight.bold),
-                      ),
-                      const SizedBox(height: 5),
-                      Row(
-                        children: [
-                          const Text('Fee: '),
-                          Text(
-                            'RM ${product.installationFee?.toStringAsFixed(2) ?? '0.00'}',
-                            style: TextStyle(
-                              color: Theme.of(context).colorScheme.primary,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 10),
-                      Row(
-                        children: [
-                          _buildOptionButton(
-                            label: 'Yes',
-                            isSelected: _installSelected,
-                            onTap: () => setState(() => _installSelected = true),
-                          ),
-                          const SizedBox(width: 20),
-                          _buildOptionButton(
-                            label: 'No',
-                            isSelected: !_installSelected,
-                            onTap: () => setState(() => _installSelected = false),
-                          ),
-                        ],
-                      ),
                     ],
-                  ],
-                ),
-              ),
 
-              // --- DESCRIPTION ---
-              Container(
-                width: double.infinity,
-                color: Theme.of(context).colorScheme.surfaceContainer,
-                padding: const EdgeInsets.all(20),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
+                    // --- 4. DESCRIPTION ---
+                    Text(
                       'Description',
-                      style: TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                    const SizedBox(height: 5),
-                    Text(product.description),
-                  ],
-                ),
-              ),
-
-              // --- REMARKS ---
-              if (product.remarks != null && product.remarks!.isNotEmpty)
-                Container(
-                  width: double.infinity,
-                  color: Theme.of(context).colorScheme.errorContainer,
-                  padding: const EdgeInsets.all(20),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        'Remarks',
-                        style: TextStyle(fontWeight: FontWeight.bold),
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
                       ),
-                      Text(
-                        product.remarks!,
-                        style: TextStyle(
-                          color: Theme.of(context).colorScheme.onErrorContainer,
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      product.description,
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        height: 1.5,
+                        color: theme.colorScheme.onSurface.withValues(
+                          alpha: 0.8,
                         ),
                       ),
-                    ],
-                  ),
+                    ),
+
+                    const SizedBox(height: 30),
+
+                    // --- 5. REMARKS ---
+                    if (product.remarks != null && product.remarks!.isNotEmpty)
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: theme.colorScheme.surfaceContainer,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: theme.colorScheme.outlineVariant,
+                          ),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Additional Notes',
+                              style: theme.textTheme.labelLarge?.copyWith(
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(product.remarks!),
+                          ],
+                        ),
+                      ),
+
+                    const SizedBox(height: 20), // Bottom padding
+                  ],
                 ),
+              ),
             ],
           ),
         ),
       ),
-      
+
       // --- BOTTOM BAR ---
       bottomNavigationBar: BottomAppBar(
-        height: MediaQuery.of(context).size.height * 0.12,
-        child: (product.quantity != null && product.quantity! <= 0)
-            ? SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
+        height: 100, // Fixed safe height
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+        color: theme.colorScheme.surface,
+        child: isSoldOut
+            ? Center(
+                child: FilledButton.tonal(
                   onPressed: null,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.grey.shade300,
+                  style: FilledButton.styleFrom(
+                    minimumSize: const Size(double.infinity, 50),
                   ),
                   child: const Text('Sold Out'),
                 ),
@@ -272,79 +289,84 @@ class _CustomerProductDetailsScreenState
             : Row(
                 children: [
                   // Quantity Selector
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const Text("Quantity", style: TextStyle(fontWeight: FontWeight.bold)),
-                      const SizedBox(height: 5),
-                      Container(
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(10),
-                          color: Theme.of(context).colorScheme.surfaceContainerLowest,
+                  Container(
+                    height: 50,
+                    decoration: BoxDecoration(
+                      color: theme.colorScheme.surfaceContainerHighest,
+                      borderRadius: BorderRadius.circular(25), // Pill shape
+                    ),
+                    child: Row(
+                      children: [
+                        IconButton(
+                          onPressed: () {
+                            if (_selectedQuantity > 1) {
+                              setState(() => _selectedQuantity--);
+                            }
+                          },
+                          icon: const Icon(Icons.remove, size: 18),
+                          padding: const EdgeInsets.symmetric(horizontal: 8),
                         ),
-                        child: Row(
-                          children: [
-                            IconButton(
-                              visualDensity: VisualDensity.compact,
-                              iconSize: 20,
-                              onPressed: () {
-                                if (_selectedQuantity > 1) {
-                                  setState(() => _selectedQuantity--);
-                                }
-                              },
-                              icon: const Icon(Icons.remove),
-                            ),
-                            Text(
-                              '$_selectedQuantity',
-                              style: const TextStyle(fontWeight: FontWeight.bold),
-                            ),
-                            IconButton(
-                              visualDensity: VisualDensity.compact,
-                              iconSize: 20,
-                              onPressed: () {
-                                // Optional: Check against product.quantity limit here
-                                setState(() => _selectedQuantity++);
-                              },
-                              icon: const Icon(Icons.add),
-                            ),
-                          ],
+                        Text(
+                          '$_selectedQuantity',
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                          ),
                         ),
-                      ),
-                    ],
+                        IconButton(
+                          onPressed: () {
+                            // Optional: Check against product.quantity max limit
+                            setState(() => _selectedQuantity++);
+                          },
+                          icon: const Icon(Icons.add, size: 18),
+                          padding: const EdgeInsets.symmetric(horizontal: 8),
+                        ),
+                      ],
+                    ),
                   ),
-                  const SizedBox(width: 20),
-                  
+
+                  const SizedBox(width: 16),
+
                   // Add to Cart Button
                   Expanded(
                     child: SizedBox(
                       height: 50,
-                      child: ElevatedButton(
-                        onPressed: _isAddingToCart 
-                          ? null 
-                          : () async {
-                            setState(() => _isAddingToCart = true);
+                      child: FilledButton.icon(
+                        onPressed: _isAddingToCart
+                            ? null
+                            : () async {
+                                setState(() => _isAddingToCart = true);
 
-                            // 2. CRITICAL FIX: Pass _installSelected to the provider
-                            final message = await cartNotifier.addItem(
-                              productId: product.id,
-                              quantity: _selectedQuantity,
-                              requiredInstallation: _installSelected, 
-                            );
+                                final message = await cartNotifier.addItem(
+                                  productId: product.id,
+                                  quantity: _selectedQuantity,
+                                  requiredInstallation: _installSelected,
+                                );
 
-                            if (!context.mounted) return;
-                            
-                            setState(() => _isAddingToCart = false);
+                                if (!context.mounted) return;
+                                setState(() => _isAddingToCart = false);
 
-                            showAppSnackBar(
-                              context: context,
-                              content: message.message,
-                              isError: !message.isSuccess,
-                            );
-                          },
-                        child: _isAddingToCart 
-                          ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator())
-                          : const Text('Add to Cart'),
+                                showAppSnackBar(
+                                  context: context,
+                                  content: message.message,
+                                  isError: !message.isSuccess,
+                                );
+                              },
+                        icon: _isAddingToCart
+                            ? const SizedBox.shrink()
+                            : const Icon(Icons.shopping_cart_outlined),
+                        label: _isAddingToCart
+                            ? const SizedBox(
+                                height: 20,
+                                width: 20,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                ),
+                              )
+                            : const Text(
+                                "Add to Cart",
+                                style: TextStyle(fontWeight: FontWeight.bold),
+                              ),
                       ),
                     ),
                   ),
@@ -354,27 +376,96 @@ class _CustomerProductDetailsScreenState
     );
   }
 
-  // Helper widget for Yes/No buttons
-  Widget _buildOptionButton({
-    required String label,
-    required bool isSelected,
-    required VoidCallback onTap,
-  }) {
-    return Expanded(
-      child: TextButton(
-        onPressed: onTap,
-        style: TextButton.styleFrom(
-          backgroundColor: isSelected
-              ? Theme.of(context).colorScheme.primary
-              : Colors.grey.shade200,
-          foregroundColor: isSelected
-              ? Theme.of(context).colorScheme.onPrimary
-              : Colors.grey.shade700,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10),
-          ),
+  // Helper: Image Slider with Gradient
+  Widget _buildImageSlider(Product product, ThemeData theme) {
+    if (product.photoPaths.isEmpty) {
+      return Container(
+        height: 300, // Taller hero image
+        width: double.infinity,
+        color: theme.colorScheme.surfaceContainerHighest,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.image_not_supported_outlined,
+              size: 48,
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'No image found',
+              style: TextStyle(color: theme.colorScheme.onSurfaceVariant),
+            ),
+          ],
         ),
-        child: Text(label),
+      );
+    }
+
+    final imageService = ref.read(imageServiceProvider);
+
+    return SizedBox(
+      height: 300,
+      child: Stack(
+        alignment: Alignment.bottomCenter,
+        children: [
+          PageView.builder(
+            controller: _pageController,
+            itemCount: product.photoPaths.length,
+            itemBuilder: (context, index) {
+              final imageUrl = imageService.retrieveImageUrl(
+                product.photoPaths[index],
+              );
+              return Image.network(
+                imageUrl,
+                fit: BoxFit.cover,
+                width: double.infinity,
+                errorBuilder: (_, __, ___) =>
+                    Container(color: Colors.grey.shade200),
+                loadingBuilder: (_, child, loading) {
+                  if (loading == null) return child;
+                  return const Center(child: CircularProgressIndicator());
+                },
+              );
+            },
+          ),
+
+          // Gradient Overlay
+          Positioned(
+            bottom: 0,
+            left: 0,
+            right: 0,
+            height: 60,
+            child: Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    Colors.transparent,
+                    Colors.black.withValues(alpha: 0.6),
+                  ],
+                ),
+              ),
+            ),
+          ),
+
+          // Dots
+          if (product.photoPaths.length > 1)
+            Positioned(
+              bottom: 16,
+              child: SmoothPageIndicator(
+                controller: _pageController,
+                count: product.photoPaths.length,
+                effect: const ExpandingDotsEffect(
+                  dotHeight: 8,
+                  dotWidth: 8,
+                  activeDotColor: Colors.white,
+                  dotColor: Colors.white54,
+                  expansionFactor: 3,
+                ),
+              ),
+            ),
+        ],
       ),
     );
   }

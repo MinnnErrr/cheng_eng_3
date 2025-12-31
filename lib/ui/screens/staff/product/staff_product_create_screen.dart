@@ -2,7 +2,7 @@ import 'dart:io';
 
 import 'package:cheng_eng_3/core/controllers/product/staff_product_notifier.dart';
 import 'package:cheng_eng_3/core/models/product_model.dart';
-import 'package:cheng_eng_3/ui/extensions/product_extension.dart';
+import 'package:cheng_eng_3/ui/extensions/product_extension.dart'; // Ensure this extension exists for .label
 import 'package:cheng_eng_3/ui/widgets/snackbar.dart';
 import 'package:cheng_eng_3/ui/widgets/textformfield.dart';
 import 'package:flutter/material.dart';
@@ -34,27 +34,10 @@ class _StaffProductCreateState extends ConsumerState<StaffProductCreateScreen> {
   bool _isActive = true;
   bool _hasInstallation = false;
   ProductAvailability _availability = ProductAvailability.ready;
-  bool _isLoading = false; // FIX: Added loading state
+  bool _isLoading = false;
   final List<File> _photos = [];
 
   final _formKey = GlobalKey<FormState>();
-
-  Future<void> _pickPhoto() async {
-    final picker = ImagePicker();
-    // FIX: Added image optimization to prevent memory crashes
-    final image = await picker.pickImage(
-      source: ImageSource.gallery,
-      maxWidth: 1024,
-      maxHeight: 1024,
-      imageQuality: 80,
-    );
-
-    if (image != null) {
-      setState(() {
-        _photos.add(File(image.path));
-      });
-    }
-  }
 
   @override
   void dispose() {
@@ -71,173 +54,22 @@ class _StaffProductCreateState extends ConsumerState<StaffProductCreateScreen> {
     super.dispose();
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Add Product'),
-      ),
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(20),
-          child: Form(
-            key: _formKey,
-            child: Column(
-              // spacing: 20, // Keep if using Flutter 3.27+, else use SizedBox
-              children: [
-                textFormField(controller: _nameCtrl, label: 'Name'),
-                const SizedBox(height: 20),
+  // --- ACTIONS ---
 
-                textFormField(controller: _categoryCtrl, label: 'Category'),
-                const SizedBox(height: 20),
-
-                textFormField(controller: _brandCtrl, label: 'Brand'),
-                const SizedBox(height: 20),
-
-                textFormField(
-                  controller: _modelCtrl,
-                  label: 'Model',
-                  validationRequired: false,
-                ),
-                const SizedBox(height: 20),
-
-                textFormField(
-                  controller: _colourCtrl,
-                  label: 'Colour',
-                  validationRequired: false,
-                ),
-                const SizedBox(height: 20),
-
-                textFormField(
-                  controller: _descCtrl,
-                  minLines: 5,
-                  maxLines: null,
-                  label: 'Description',
-                ),
-                const SizedBox(height: 20),
-
-                textFormField(
-                  controller: _remarksCtrl,
-                  minLines: 3,
-                  maxLines: null,
-                  label: 'Remarks',
-                  validationRequired: false,
-                ),
-                const SizedBox(height: 20),
-
-                textFormField(
-                  controller: _priceCtrl,
-                  label: 'Price (RM)',
-                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                ),
-                const SizedBox(height: 20),
-
-                DropdownButtonFormField<ProductAvailability>(
-                  initialValue: _availability, // FIX: Use value, not initialValue
-                  decoration: const InputDecoration(labelText: "Availability"),
-                  items: ProductAvailability.values
-                      .map(
-                        (availability) => DropdownMenuItem(
-                          value: availability,
-                          child: Text(availability.label),
-                        ),
-                      )
-                      .toList(),
-                  onChanged: (value) {
-                    if (value != null) {
-                      setState(() {
-                        _availability = value;
-                        if (_availability != ProductAvailability.ready) {
-                          _quantityCtrl.clear();
-                        }
-                      });
-                    }
-                  },
-                ),
-                const SizedBox(height: 20),
-
-                if (_availability == ProductAvailability.ready)
-                  Column(
-                    children: [
-                      textFormField(
-                        controller: _quantityCtrl,
-                        label: 'Quantity',
-                        keyboardType: TextInputType.number,
-                      ),
-                      const SizedBox(height: 20),
-                    ],
-                  ),
-
-                DropdownButtonFormField<bool>(
-                  initialValue: _hasInstallation, // FIX: Use value
-                  decoration: const InputDecoration(
-                    labelText: "Is installation service provided?",
-                  ),
-                  items: const [
-                    DropdownMenuItem(value: true, child: Text("Yes")),
-                    DropdownMenuItem(value: false, child: Text("No")),
-                  ],
-                  onChanged: (value) {
-                    if (value != null) {
-                      setState(() {
-                        _hasInstallation = value;
-                        if (_hasInstallation == false) {
-                          _installFeeCtrl.clear();
-                        }
-                      });
-                    }
-                  },
-                ),
-                const SizedBox(height: 20),
-
-                if (_hasInstallation == true)
-                  Column(
-                    children: [
-                      textFormField(
-                        controller: _installFeeCtrl,
-                        label: 'Installation Fees (RM)',
-                        keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                      ),
-                      const SizedBox(height: 20),
-                    ],
-                  ),
-
-                _photoSection(),
-                const SizedBox(height: 20),
-
-                DropdownButtonFormField<bool>(
-                  initialValue: _isActive, // FIX: Use value
-                  decoration: const InputDecoration(
-                    labelText: "Activate the product now?",
-                  ),
-                  items: const [
-                    DropdownMenuItem(value: true, child: Text("Yes")),
-                    DropdownMenuItem(value: false, child: Text("No")),
-                  ],
-                  onChanged: (value) {
-                    if (value != null) {
-                      setState(() => _isActive = value);
-                    }
-                  },
-                ),
-                const SizedBox(height: 20),
-
-                SizedBox(
-                  width: double.infinity,
-                  height: 50,
-                  child: ElevatedButton(
-                    onPressed: _isLoading ? null : _submitForm, // FIX: Disable if loading
-                    child: _isLoading 
-                        ? const CircularProgressIndicator.adaptive()
-                        : const Text('Add Product'),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
+  Future<void> _pickPhoto() async {
+    final picker = ImagePicker();
+    final image = await picker.pickImage(
+      source: ImageSource.gallery,
+      maxWidth: 1024,
+      maxHeight: 1024,
+      imageQuality: 80,
     );
+
+    if (image != null) {
+      setState(() {
+        _photos.add(File(image.path));
+      });
+    }
   }
 
   Future<void> _submitForm() async {
@@ -247,10 +79,10 @@ class _StaffProductCreateState extends ConsumerState<StaffProductCreateScreen> {
 
     final notifer = ref.read(staffProductProvider.notifier);
 
-    // FIX: Safe Parsing to prevent crash
+    // Safe Parsing
     final quantity = int.tryParse(_quantityCtrl.text.trim()) ?? 0;
     final price = double.tryParse(_priceCtrl.text.trim()) ?? 0.0;
-    
+
     // Logic for optional Install fee
     final installFee = _hasInstallation
         ? double.tryParse(_installFeeCtrl.text.trim())
@@ -270,106 +102,377 @@ class _StaffProductCreateState extends ConsumerState<StaffProductCreateScreen> {
       installationFee: installFee,
       price: price,
       photos: _photos,
-      remarks: _remarksCtrl.text.trim().isEmpty ? null : _remarksCtrl.text.trim(),
+      remarks: _remarksCtrl.text.trim().isEmpty
+          ? null
+          : _remarksCtrl.text.trim(),
     );
 
-    if (mounted) {
-      setState(() => _isLoading = false);
-      
-      showAppSnackBar(
-        context: context,
-        content: message.message,
-        isError: !message.isSuccess,
-      );
+    if (mounted) setState(() => _isLoading = false);
 
-      if (message.isSuccess) {
-        Navigator.of(context).pop();
-      }
+    if (!mounted) return;
+
+    showAppSnackBar(
+      context: context,
+      content: message.message,
+      isError: !message.isSuccess,
+    );
+
+    if (message.isSuccess) {
+      Navigator.of(context).pop();
     }
   }
 
-  Widget _photoSection() {
+  // --- UI BUILD ---
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Scaffold(
+      backgroundColor: theme.colorScheme.surface,
+      appBar: AppBar(
+        title: const Text('Add Product'),
+        centerTitle: true,
+      ),
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(20),
+          child: Form(
+            key: _formKey,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // --- 1. Basic Info ---
+                const _SectionHeader(title: "Basic Information"),
+                textFormField(controller: _nameCtrl, label: 'Product Name'),
+                const SizedBox(height: 20),
+                Row(
+                  children: [
+                    Expanded(
+                      child: textFormField(
+                        controller: _categoryCtrl,
+                        label: 'Category',
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: textFormField(
+                        controller: _brandCtrl,
+                        label: 'Brand',
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 20),
+                Row(
+                  children: [
+                    Expanded(
+                      child: textFormField(
+                        controller: _modelCtrl,
+                        label: 'Model (Opt)',
+                        validationRequired: false,
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: textFormField(
+                        controller: _colourCtrl,
+                        label: 'Colour (Opt)',
+                        validationRequired: false,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 20),
+                textFormField(
+                  controller: _descCtrl,
+                  minLines: 3,
+                  maxLines: null,
+                  label: 'Description',
+                ),
+
+                const SizedBox(height: 30),
+
+                // --- 2. Pricing & Availability ---
+                const _SectionHeader(title: "Pricing & Stock"),
+                textFormField(
+                  controller: _priceCtrl,
+                  label: 'Price (RM)',
+                  keyboardType: const TextInputType.numberWithOptions(
+                    decimal: true,
+                  ),
+                ),
+                const SizedBox(height: 20),
+                DropdownButtonFormField<ProductAvailability>(
+                  initialValue: _availability,
+                  decoration: const InputDecoration(
+                    labelText: "Availability Status",
+                  ),
+                  items: ProductAvailability.values
+                      .map(
+                        (availability) => DropdownMenuItem(
+                          value: availability,
+                          child: Text(availability.label),
+                        ),
+                      )
+                      .toList(),
+                  onChanged: (value) {
+                    if (value != null) {
+                      setState(() {
+                        _availability = value;
+                        if (_availability != ProductAvailability.ready) {
+                          _quantityCtrl.clear();
+                        }
+                      });
+                    }
+                  },
+                ),
+
+                // Conditionally show Quantity
+                if (_availability == ProductAvailability.ready) ...[
+                  const SizedBox(height: 20),
+                  textFormField(
+                    controller: _quantityCtrl,
+                    label: 'Stock Quantity',
+                    keyboardType: TextInputType.number,
+                  ),
+                ],
+
+                const SizedBox(height: 30),
+
+                // --- 3. Installation Service ---
+                const _SectionHeader(title: "Services"),
+                DropdownButtonFormField<bool>(
+                  initialValue: _hasInstallation,
+                  decoration: const InputDecoration(
+                    labelText: "Installation Provided?",
+                  ),
+                  items: const [
+                    DropdownMenuItem(value: true, child: Text("Yes")),
+                    DropdownMenuItem(value: false, child: Text("No")),
+                  ],
+                  onChanged: (value) {
+                    if (value != null) {
+                      setState(() {
+                        _hasInstallation = value;
+                        if (!_hasInstallation) {
+                          _installFeeCtrl.clear();
+                        }
+                      });
+                    }
+                  },
+                ),
+
+                // Conditionally show Installation Fee
+                if (_hasInstallation) ...[
+                  const SizedBox(height: 20),
+                  textFormField(
+                    controller: _installFeeCtrl,
+                    label: 'Installation Fee (RM)',
+                    keyboardType: const TextInputType.numberWithOptions(
+                      decimal: true,
+                    ),
+                  ),
+                ],
+
+                const SizedBox(height: 30),
+
+                // --- 4. Photos ---
+                _photoSection(theme),
+
+                const SizedBox(height: 30),
+
+                // --- 5. Final Details ---
+                const _SectionHeader(title: "Additional Info"),
+                textFormField(
+                  controller: _remarksCtrl,
+                  minLines: 2,
+                  maxLines: null,
+                  label: 'Remarks',
+                  validationRequired: false,
+                ),
+                const SizedBox(height: 20),
+                DropdownButtonFormField<bool>(
+                  initialValue: _isActive,
+                  decoration: InputDecoration(
+                    labelText: "Product Status",
+                    filled: true,
+                    fillColor: theme.colorScheme.surface,
+                    border: OutlineInputBorder(),
+                  ),
+                  items: const [
+                    DropdownMenuItem(
+                      value: true,
+                      child: Text(
+                        "Active (Visible)",
+                        style: TextStyle(color: Colors.green),
+                      ),
+                    ),
+                    DropdownMenuItem(
+                      value: false,
+                      child: Text(
+                        "Draft (Hidden)",
+                        style: TextStyle(color: Colors.grey),
+                      ),
+                    ),
+                  ],
+                  onChanged: (value) {
+                    if (value != null) setState(() => _isActive = value);
+                  },
+                ),
+
+                const SizedBox(height: 40),
+
+                // --- Submit Button ---
+                SizedBox(
+                  width: double.infinity,
+                  height: 54,
+                  child: FilledButton(
+                    onPressed: _isLoading ? null : _submitForm,
+
+                    child: _isLoading
+                        ? const SizedBox(
+                            width: 24,
+                            height: 24,
+                            child: CircularProgressIndicator(
+                              color: Colors.black,
+                              strokeWidth: 2,
+                            ),
+                          )
+                        : Text(
+                            'ADD PRODUCT',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: theme.colorScheme.onPrimary,
+                            ),
+                          ),
+                  ),
+                ),
+
+                const SizedBox(height: 40),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  // --- WIDGETS ---
+
+  Widget _photoSection(ThemeData theme) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            const Text(
-              "Photos",
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-            ),
-            TextButton.icon(
-              onPressed: _pickPhoto,
-              label: const Text('Add'),
-              icon: const Icon(Icons.add_circle),
-              style: ButtonStyle(iconAlignment: IconAlignment.end),
-            ),
+            const _SectionHeader(title: "Photos", padding: 0),
           ],
         ),
-        
-        const SizedBox(height: 10),
-
-        _photos.isEmpty
-            ? Container(
-                padding: const EdgeInsets.all(16),
-                width: double.infinity,
-                decoration: BoxDecoration(
-                  border: Border.all(color: Colors.grey.shade400),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: const Center(child: Text('No photo added')),
-              )
-            : GridView.builder(
-                physics: const NeverScrollableScrollPhysics(),
-                shrinkWrap: true,
-                itemCount: _photos.length,
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 3,
-                  crossAxisSpacing: 10,
-                  mainAxisSpacing: 10,
-                ),
-                itemBuilder: (context, index) {
-                  final file = _photos[index];
-                  return Stack(
+        const SizedBox(height: 12),
+        GridView.builder(
+          physics: const NeverScrollableScrollPhysics(),
+          shrinkWrap: true,
+          itemCount: _photos.length + 1,
+          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 3,
+            crossAxisSpacing: 12,
+            mainAxisSpacing: 12,
+            childAspectRatio: 1.0,
+          ),
+          itemBuilder: (context, index) {
+            // Upload Button Card
+            if (index == _photos.length) {
+              return InkWell(
+                onTap: _pickPhoto,
+                borderRadius: BorderRadius.circular(12),
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: theme.colorScheme.surfaceContainerHighest,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(8),
-                        child: Image.file(
-                          file,
-                          width: double.infinity,
-                          height: double.infinity,
-                          fit: BoxFit.cover,
-                        ),
+                      Icon(
+                        Icons.add_a_photo,
+                        color: theme.colorScheme.onSurfaceVariant,
                       ),
-                      Positioned(
-                        right: 4,
-                        top: 4,
-                        child: GestureDetector(
-                          onTap: () {
-                            setState(() {
-                              _photos.removeAt(index);
-                            });
-                          },
-                          child: Container(
-                            decoration: const BoxDecoration(
-                              color: Colors.red,
-                              shape: BoxShape.circle,
-                            ),
-                            padding: const EdgeInsets.all(4),
-                            child: const Icon(
-                              Icons.close,
-                              size: 16,
-                              color: Colors.white,
-                            ),
-                          ),
+                      const SizedBox(height: 4),
+                      Text(
+                        "Upload",
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: theme.colorScheme.onSurfaceVariant,
                         ),
                       ),
                     ],
-                  );
-                },
-              ),
+                  ),
+                ),
+              );
+            }
+
+            // Image Thumbnail
+            final file = _photos[index];
+            return Stack(
+              children: [
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(12),
+                  child: Image.file(
+                    file,
+                    width: double.infinity,
+                    height: double.infinity,
+                    fit: BoxFit.cover,
+                  ),
+                ),
+                Positioned(
+                  top: 4,
+                  right: 4,
+                  child: GestureDetector(
+                    onTap: () {
+                      setState(() => _photos.removeAt(index));
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.all(4),
+                      decoration: const BoxDecoration(
+                        color: Colors.red,
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(
+                        Icons.close,
+                        size: 14,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            );
+          },
+        ),
       ],
+    );
+  }
+}
+
+// Reusable Header
+class _SectionHeader extends StatelessWidget {
+  final String title;
+  final double padding;
+  const _SectionHeader({required this.title, this.padding = 20});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: EdgeInsets.only(bottom: padding),
+      child: Text(
+        title,
+        style: Theme.of(context).textTheme.titleMedium?.copyWith(
+          fontWeight: FontWeight.bold,
+          color: Theme.of(context).colorScheme.onSurfaceVariant,
+        ),
+      ),
     );
   }
 }

@@ -1,11 +1,13 @@
 import 'package:cheng_eng_3/colorscheme/colorscheme.dart';
 import 'package:cheng_eng_3/core/controllers/auth/auth_notifier.dart';
+import 'package:cheng_eng_3/core/controllers/auth/auth_stream_provider.dart';
 import 'package:cheng_eng_3/core/controllers/profile/profile_notifier.dart';
 import 'package:cheng_eng_3/core/controllers/realtime_provider.dart';
 import 'package:cheng_eng_3/core/services/notification_service.dart';
 import 'package:cheng_eng_3/ui/screens/customer/customer_main_wrapper.dart';
 import 'package:cheng_eng_3/ui/screens/initial_profile_screen.dart';
 import 'package:cheng_eng_3/ui/screens/login_screen.dart';
+import 'package:cheng_eng_3/ui/screens/reset_password_screen.dart';
 import 'package:cheng_eng_3/ui/screens/staff/staff_main_wrapper.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -62,6 +64,7 @@ class MyApp extends ConsumerWidget {
         appBarTheme: AppBarTheme(
           backgroundColor: chengEngCustomScheme.surface,
           foregroundColor: chengEngCustomScheme.onSurface,
+          surfaceTintColor: chengEngCustomScheme.surface,
           elevation: 0,
           centerTitle: true,
         ),
@@ -102,11 +105,11 @@ class MyApp extends ConsumerWidget {
           color: chengEngCustomScheme.surfaceContainer,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
-            side: BorderSide(
-              color: chengEngCustomScheme.outlineVariant.withValues(alpha: 0.6),
-            ), // Subtle border
+            // side: BorderSide(
+            //   color: chengEngCustomScheme.outlineVariant.withValues(alpha: 0.8),
+            // ), // Subtle border
           ),
-          elevation: 0,
+          elevation: 0.3,
           margin: EdgeInsets.zero,
         ),
 
@@ -152,30 +155,65 @@ class Main extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final authState = ref.watch(authProvider);
-    final profileState = ref.watch(profileProvider);
-
-    if (authState.isLoading) {
-      return const Scaffold(body: Center(child: CircularProgressIndicator()));
-    }
-    if (authState.value == null) return const LoginScreen();
-
-    return profileState.when(
-      data: (profile) {
-        if (profile == null) {
-          return InitialProfileScreen();
+    // --- 1. LISTENERS (Side Effects) ---
+    // Handle events like Password Recovery here.
+    // Note: We don't need to handle 'signedIn' or 'signedOut' navigation here
+    // because the 'watch' logic below handles the screen switching automatically.
+    ref.listen(authStateStreamProvider, (previous, next) {
+      next.whenData((authState) {
+        if (authState.event == AuthChangeEvent.passwordRecovery) {
+          Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (context) => const ResetPasswordScreen(),
+            ),
+          );
+          // showAppSnackBar(
+          //   context: context,
+          //   content:
+          //       'Password reset link is sent to your email. Click the link to reset the password',
+          // );
         }
+      });
+    });
 
-        if (profile.role.toLowerCase() == 'staff') {
-          return const StaffMainWrapper(); // 👈 Separate File
-        } else {
-          return const CustomerMainWrapper(); // 👈 Separate File
-        }
-      },
+    // --- 2. STATE WATCHERS ---
+    final userAsync = ref.watch(authProvider);
+
+    // --- 3. UI DECISION TREE ---
+    return userAsync.when(
       loading: () =>
           const Scaffold(body: Center(child: CircularProgressIndicator())),
-      error: (_, __) =>
-          const Scaffold(body: Center(child: Text("Error detect user role"))),
+      error: (e, _) => const Scaffold(body: Center(child: Text("Auth Error"))),
+      data: (user) {
+        // [State A]: User is NOT logged in
+        if (user == null) {
+          return const LoginScreen();
+        }
+
+        // [State B]: User IS logged in -> Now check Profile/Role
+        // We watch the profile provider here because we know we have a user.
+        final profileAsync = ref.watch(profileProvider);
+
+        return profileAsync.when(
+          loading: () =>
+              const Scaffold(body: Center(child: CircularProgressIndicator())),
+          error: (e, _) =>
+              Scaffold(body: Center(child: Text("Profile Error: $e"))),
+          data: (profile) {
+            // [State B1]: Profile not created yet
+            if (profile == null) {
+              return const InitialProfileScreen();
+            }
+
+            // [State B2]: Profile exists -> Check Role
+            if (profile.role.toLowerCase() == 'staff') {
+              return const StaffMainWrapper();
+            } else {
+              return const CustomerMainWrapper();
+            }
+          },
+        );
+      },
     );
   }
 }

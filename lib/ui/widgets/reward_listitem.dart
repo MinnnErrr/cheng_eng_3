@@ -10,7 +10,7 @@ class RewardListitem extends ConsumerWidget {
     super.key,
     required this.reward,
     required this.isStaff,
-    this.onTap, // ✅ Added onTap here
+    this.onTap,
   });
 
   final Reward reward;
@@ -26,35 +26,52 @@ class RewardListitem extends ConsumerWidget {
     return Card(
       clipBehavior: Clip.hardEdge,
       child: InkWell(
-        onTap: onTap, // ✅ InkWell is now INSIDE the card
-        child: Column(
-          children: [
-            // --- BANNER (Optional) ---
-            if (reward.availableUntil != null)
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.symmetric(
-                  vertical: 4,
-                  horizontal: 12,
-                ),
-                color: theme.colorScheme.primaryContainer,
-                child: Text(
-                  'Available until: ${dateFormatter.format(reward.availableUntil!)}',
-                  style: theme.textTheme.labelSmall!.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: theme.colorScheme.onPrimaryContainer,
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(12),
+        child: Padding(
+          padding: const EdgeInsets.all(12.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // --- 1. EXPIRY DATE BADGE (Above Content) ---
+              if (reward.availableUntil != null) ...[
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
                   ),
-                  textAlign: TextAlign.center,
+                  decoration: BoxDecoration(
+                    color:
+                        theme.colorScheme.primaryContainer, // Yellow background
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        Icons.access_time_filled,
+                        size: 14,
+                        color: theme.colorScheme.onPrimaryContainer,
+                      ),
+                      const SizedBox(width: 6),
+                      Text(
+                        'Valid until ${dateFormatter.format(reward.availableUntil!)}',
+                        style: theme.textTheme.labelSmall!.copyWith(
+                          fontWeight: FontWeight.bold,
+                          color: theme.colorScheme.onPrimaryContainer,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-              ),
+                const SizedBox(height: 12), // Spacing between date and content
+              ],
 
-            // --- CONTENT ROW ---
-            Padding(
-              padding: const EdgeInsets.all(12.0),
-              child: Row(
+              // --- 2. MAIN CONTENT ROW ---
+              Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // 1. IMAGE
+                  // A. Image
                   ClipRRect(
                     borderRadius: BorderRadius.circular(8),
                     child: imageBuilder(
@@ -80,11 +97,10 @@ class RewardListitem extends ConsumerWidget {
 
                   const SizedBox(width: 16),
 
-                  // 2. DETAILS
+                  // B. Details
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
-                      // ✅ Removed MainAxisAlignment.spaceBetween (relied on IntrinsicHeight)
                       children: [
                         Text(
                           reward.name,
@@ -106,21 +122,20 @@ class RewardListitem extends ConsumerWidget {
                           '${reward.points} pts',
                           style: theme.textTheme.titleMedium?.copyWith(
                             fontWeight: FontWeight.w800,
-                            color: Color(0xFF9E7C00),
+                            color: const Color(0xFF9E7C00), // Gold/Yellow
                           ),
                         ),
                       ],
                     ),
                   ),
 
-                  // 3. STAFF CONTROLS (Right Side)
+                  // C. Staff Controls
                   if (isStaff)
                     Padding(
                       padding: const EdgeInsets.only(left: 8.0),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.end,
                         children: [
-                          // Status Chip
                           Container(
                             padding: const EdgeInsets.symmetric(
                               horizontal: 8,
@@ -128,7 +143,7 @@ class RewardListitem extends ConsumerWidget {
                             ),
                             decoration: BoxDecoration(
                               color: reward.status
-                                  ? Colors.green.withValues(alpha: 0.1)
+                                  ? Colors.green.withOpacity(0.1)
                                   : theme.colorScheme.errorContainer,
                               borderRadius: BorderRadius.circular(6),
                               border: Border.all(
@@ -147,11 +162,7 @@ class RewardListitem extends ConsumerWidget {
                               ),
                             ),
                           ),
-
-                          // ✅ Replaced Spacer with fixed SizedBox for performance
                           const SizedBox(height: 20),
-
-                          // Qty Text
                           Text(
                             'Qty: ${reward.quantity}',
                             style: theme.textTheme.bodySmall?.copyWith(
@@ -166,8 +177,8 @@ class RewardListitem extends ConsumerWidget {
                     ),
                 ],
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

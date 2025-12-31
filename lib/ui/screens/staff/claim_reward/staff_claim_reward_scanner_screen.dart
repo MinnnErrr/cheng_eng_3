@@ -43,7 +43,8 @@ class _StaffClaimRewardScannerScreenState
       final Map<String, dynamic> data = jsonDecode(raw);
 
       // 2. Validate Data Integrity
-      if (!data.containsKey("userId") || !data.containsKey("redeemedRewardId")) {
+      if (!data.containsKey("userId") ||
+          !data.containsKey("redeemedRewardId")) {
         throw const FormatException("Missing required data fields");
       }
 
@@ -107,14 +108,20 @@ class _StaffClaimRewardScannerScreenState
             left: 0,
             right: 0,
             child: Text(
-              _isProcessing ? "Processing..." : "Align QR code within the frame",
+              _isProcessing
+                  ? "Processing..."
+                  : "Align QR code within the frame",
               textAlign: TextAlign.center,
               style: const TextStyle(
                 color: Colors.white,
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
                 shadows: [
-                  Shadow(blurRadius: 4, color: Colors.black, offset: Offset(0, 2))
+                  Shadow(
+                    blurRadius: 4,
+                    color: Colors.black,
+                    offset: Offset(0, 2),
+                  ),
                 ],
               ),
             ),
