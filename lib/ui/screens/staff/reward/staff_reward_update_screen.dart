@@ -379,10 +379,7 @@ class _StaffRewardUpdateState extends ConsumerState<StaffRewardUpdateScreen> {
                 const SizedBox(height: 40),
 
                 // Submit Button
-                SizedBox(
-                  width: double.infinity,
-                  height: 54,
-                  child: FilledButton(
+               FilledButton(
                     onPressed: _isLoading ? null : _submitUpdate,
                     style: FilledButton.styleFrom(
                       shape: RoundedRectangleBorder(
@@ -402,11 +399,10 @@ class _StaffRewardUpdateState extends ConsumerState<StaffRewardUpdateScreen> {
                             "UPDATE REWARD",
                             style: TextStyle(
                               fontWeight: FontWeight.bold,
-                              color: theme.colorScheme.onPrimary,
                             ),
                           ),
                   ),
-                ),
+                
 
                 const SizedBox(height: 40), // Bottom Padding
               ],

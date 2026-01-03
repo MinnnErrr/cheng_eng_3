@@ -58,7 +58,7 @@ class CustomerOrderScreen extends ConsumerWidget {
                     ),
                   )
                 : ListView.separated(
-                    padding: const EdgeInsets.all(20),
+                    padding: const EdgeInsets.fromLTRB(20, 20, 20, 80),
                     physics: const AlwaysScrollableScrollPhysics(),
                     itemCount: orders.length,
                     separatorBuilder: (_, __) => const SizedBox(height: 12),
@@ -93,13 +93,14 @@ class CustomerOrderScreen extends ConsumerWidget {
         ),
         loading: () => const Center(child: CircularProgressIndicator()),
       ),
-      floatingActionButton: FloatingActionButton(
+      floatingActionButton: FloatingActionButton.extended(
         onPressed: () => Navigator.of(context).push(
           MaterialPageRoute(
             builder: (context) => const CustomerProductScreen(),
           ),
         ),
-        child: const Icon(Icons.add),
+        icon: const Icon(Icons.add),
+        label: const Text('Order'),
       ),
     );
   }

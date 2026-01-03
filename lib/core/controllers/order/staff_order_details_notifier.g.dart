@@ -56,7 +56,7 @@ final class StaffOrderDetailNotifierProvider
 }
 
 String _$staffOrderDetailNotifierHash() =>
-    r'4a5818ed006f22659e9463267fbf498daff99bcf';
+    r'62eba3c30d88def30d404efe14d8c37564db6f3b';
 
 final class StaffOrderDetailNotifierFamily extends $Family
     with

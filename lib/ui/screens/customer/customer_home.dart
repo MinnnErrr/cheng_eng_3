@@ -252,40 +252,37 @@ class CustomerHome extends ConsumerWidget {
                 ),
               ),
               const SizedBox(height: 5),
-              Row(
-                spacing: 10,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  Text(
-                    '$totalPoints pts',
-                    style: Theme.of(context).textTheme.headlineSmall!.copyWith(
+
+              Text(
+                '$totalPoints pts',
+                style: Theme.of(context).textTheme.headlineMedium!.copyWith(
+                  fontWeight: FontWeight.bold,
+                  color: Theme.of(context).colorScheme.onPrimary,
+                ),
+              ),
+
+              const SizedBox(height: 5),
+              if (expiryPoints != null)
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    vertical: 4,
+                    horizontal: 8,
+                  ),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(8),
+                    // Use transparent black for better contrast on Yellow
+                    color: Colors.black.withValues(alpha: 0.1),
+                  ),
+                  child: Text(
+                    expiryPoints,
+                    style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.onPrimary, // Match text color
                       fontWeight: FontWeight.bold,
-                      color: Theme.of(context).colorScheme.onPrimary,
                     ),
                   ),
-                  if (expiryPoints != null)
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        vertical: 4,
-                        horizontal: 8,
-                      ),
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(8),
-                        // Use transparent black for better contrast on Yellow
-                        color: Colors.black.withValues(alpha: 0.1),
-                      ),
-                      child: Text(
-                        expiryPoints,
-                        style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                          color: Theme.of(
-                            context,
-                          ).colorScheme.onPrimary, // Match text color
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                ],
-              ),
+                ),
 
               const SizedBox(height: 20),
               ElevatedButton(
@@ -310,11 +307,11 @@ class CustomerHome extends ConsumerWidget {
         // Image with error handling
         Positioned(
           right: -7,
-          bottom: -15,
+          bottom: -19,
           child: Opacity(
             opacity: 0.9, // Slight transparency blends it better
             child: SizedBox(
-              height: 150, // Slightly bigger
+              height: 190, // Slightly bigger
               child: Image.asset(
                 'assets/images/reward.png',
                 fit: BoxFit.contain,

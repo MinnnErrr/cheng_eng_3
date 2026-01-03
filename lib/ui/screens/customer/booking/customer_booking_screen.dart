@@ -11,10 +11,10 @@ class CustomerBookingScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final theme = Theme.of(context);
     final userState = ref.watch(authProvider);
     final user = userState.value;
 
-    // FIX 1: Safety check to prevent crash on 'user!.id'
     if (user == null) {
       return const Scaffold(
         body: Center(child: Text('No user found')),
@@ -24,67 +24,113 @@ class CustomerBookingScreen extends ConsumerWidget {
     final bookingList = ref.watch(customerBookingProvider(user.id));
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Booking'),
-      ),
+      backgroundColor: theme.colorScheme.surface,
+      appBar: AppBar(title: const Text('My Bookings')),
       body: bookingList.when(
         data: (bookings) {
-          // FIX 2: Add RefreshIndicator
           return RefreshIndicator(
             onRefresh: () async =>
                 ref.refresh(customerBookingProvider(user.id).future),
             child: bookings.isEmpty
-                // FIX 3: Empty state must be scrollable to allow Refresh
-                ? ListView(
+                ? _buildEmptyState(context)
+                : ListView.separated(
+                    padding: const EdgeInsets.fromLTRB(20, 20, 20, 80),
                     physics: const AlwaysScrollableScrollPhysics(),
-                    children: [
-                      SizedBox(
-                        height: MediaQuery.of(context).size.height * 0.3,
-                      ),
-                      const Center(child: Text('No booking record found')),
-                    ],
-                  )
-                : SafeArea(
-                    child: ListView.separated(
-                      padding: const EdgeInsets.all(20),
-                      physics: const AlwaysScrollableScrollPhysics(),
-                      itemCount: bookings.length,
-                      separatorBuilder: (context, index) =>
-                          const SizedBox(height: 10),
-                      itemBuilder: (context, index) {
-                        final booking = bookings[index];
-                        return GestureDetector(
-                          onTap: () => Navigator.of(context).push(
-                            MaterialPageRoute(
-                              builder: (context) =>
-                                  CustomerBookingDetailsScreen(
-                                    booking: booking,
-                                  ),
-                            ),
+                    itemCount: bookings.length,
+                    separatorBuilder: (context, index) =>
+                        const SizedBox(height: 16),
+                    itemBuilder: (context, index) {
+                      final booking = bookings[index];
+                      // Ensure BookingListitem is also styled well or wrapped in a card
+                      return BookingListitem(
+                        booking: booking,
+                        onTap: () => Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (context) =>
+                                CustomerBookingDetailsScreen(booking: booking),
                           ),
-                          child: BookingListitem(
-                            booking: booking,
-                          ),
-                        );
-                      },
-                    ),
+                        ),
+                      );
+                    },
                   ),
           );
         },
-        // Error handling with Retry button
         error: (error, stackTrace) => Center(
-          child: Text('Error: $error'),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(Icons.error_outline, size: 48, color: Colors.red),
+              const SizedBox(height: 16),
+              Text(
+                'Error loading bookings:\n$error',
+                textAlign: TextAlign.center,
+              ),
+              TextButton(
+                onPressed: () =>
+                    ref.refresh(customerBookingProvider(user.id).future),
+                child: const Text("Retry"),
+              ),
+            ],
+          ),
         ),
         loading: () => const Center(child: CircularProgressIndicator()),
       ),
-      floatingActionButton: FloatingActionButton(
+      floatingActionButton: FloatingActionButton.extended(
         onPressed: () => Navigator.of(context).push(
           MaterialPageRoute(
-            builder: (context) => CustomerBookingChooseVehicleScreen(),
+            builder: (context) => const CustomerBookingChooseVehicleScreen(),
           ),
         ),
-        child: const Icon(Icons.add),
+        icon: const Icon(Icons.add),
+        label: const Text("Book"),
       ),
+    );
+  }
+
+  // A nicer empty state encouraging action
+  Widget _buildEmptyState(BuildContext context) {
+    return ListView(
+      physics: const AlwaysScrollableScrollPhysics(),
+      children: [
+        SizedBox(height: MediaQuery.of(context).size.height * 0.2),
+        Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(24),
+                decoration: BoxDecoration(
+                  color: Theme.of(
+                    context,
+                  ).colorScheme.surfaceContainerHighest.withOpacity(0.5),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  Icons.calendar_today_outlined,
+                  size: 64,
+                  color: Theme.of(context).colorScheme.outline,
+                ),
+              ),
+              const SizedBox(height: 24),
+              Text(
+                "No Bookings Found",
+                style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                  fontWeight: FontWeight.bold,
+                  color: Theme.of(context).colorScheme.onSurface,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                "Schedule a service for your vehicle\neasily from here.",
+                textAlign: TextAlign.center,
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 }

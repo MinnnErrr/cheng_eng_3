@@ -124,7 +124,7 @@ class StaffHome extends ConsumerWidget {
               Text(
                 "Manage Operations",
                 style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  color: colorScheme.onSurfaceVariant,
+                  color: colorScheme.onSurface,
                 ),
               ),
               const SizedBox(height: 15),

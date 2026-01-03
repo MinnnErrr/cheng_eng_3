@@ -7,8 +7,10 @@ import 'package:cheng_eng_3/core/services/notification_service.dart';
 import 'package:cheng_eng_3/ui/screens/customer/customer_main_wrapper.dart';
 import 'package:cheng_eng_3/ui/screens/initial_profile_screen.dart';
 import 'package:cheng_eng_3/ui/screens/login_screen.dart';
+import 'package:cheng_eng_3/ui/screens/request_email_screen.dart';
 import 'package:cheng_eng_3/ui/screens/reset_password_screen.dart';
 import 'package:cheng_eng_3/ui/screens/staff/staff_main_wrapper.dart';
+import 'package:cheng_eng_3/ui/screens/verify_email_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_stripe/flutter_stripe.dart';
@@ -125,8 +127,21 @@ class MyApp extends ConsumerWidget {
           backgroundColor: chengEngCustomScheme.primary,
           foregroundColor: chengEngCustomScheme.onPrimary,
         ),
+
+        searchBarTheme: SearchBarThemeData(
+          elevation: const WidgetStatePropertyAll(0),
+          backgroundColor: WidgetStatePropertyAll(
+            chengEngCustomScheme.surfaceContainerHighest.withValues(alpha: 0.5),
+          ),
+          side: WidgetStatePropertyAll(BorderSide.none),
+          shape: WidgetStatePropertyAll(
+            RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          ),
+        ),
       ),
-      home: const GlobalListenerWrapper(child: Main()),
+      home: const GlobalListenerWrapper(
+        child: Main(),
+      ),
     );
   }
 }
@@ -167,11 +182,6 @@ class Main extends ConsumerWidget {
               builder: (context) => const ResetPasswordScreen(),
             ),
           );
-          // showAppSnackBar(
-          //   context: context,
-          //   content:
-          //       'Password reset link is sent to your email. Click the link to reset the password',
-          // );
         }
       });
     });

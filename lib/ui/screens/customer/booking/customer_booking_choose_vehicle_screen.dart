@@ -18,102 +18,159 @@ class _CustomerBookingChooseVehicleScreenState
     extends ConsumerState<CustomerBookingChooseVehicleScreen> {
   @override
   Widget build(BuildContext context) {
-    // 1. Watch the list of vehicles
+    final theme = Theme.of(context);
     final vehiclesAsync = ref.watch(customerVehicleProvider);
-
-    // 2. Watch current booking state to highlight selection (State Restoration)
     final currentBooking = ref.watch(bookingStateProvider);
 
     return Scaffold(
+      backgroundColor: theme.colorScheme.surface,
       appBar: AppBar(
-        title: const Text('Choose Vehicle'),
+        title: const Text('Select Vehicle'),
       ),
-      // 3. Body handles the states, AppBar stays stable
       body: vehiclesAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (error, stack) => Center(child: Text('Error: $error')),
-        data: (list) {
-          // 4. Handle Empty State
-          if (list.vehicles.isEmpty) {
-            return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Icon(
-                    Icons.directions_car_outlined,
-                    size: 64,
-                    color: Colors.grey,
-                  ),
-                  const SizedBox(height: 16),
-                  const Text("No vehicles found."),
-                  TextButton(
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => VehicleCreateScreen(),
-                        ),
-                      );
-                    },
-                    child: const Text("Add a Vehicle"),
-                  ),
-                ],
+        error: (error, stack) => Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(Icons.error_outline, size: 48, color: Colors.red),
+              const SizedBox(height: 16),
+              Text('Error: $error'),
+              TextButton(
+                onPressed: () => ref.refresh(customerVehicleProvider),
+                child: const Text("Retry"),
               ),
-            );
+            ],
+          ),
+        ),
+        data: (list) {
+          if (list.vehicles.isEmpty) {
+            return _buildEmptyState(context);
           }
 
-          return SafeArea(
-            child: ListView.separated(
-              padding: const EdgeInsets.all(20),
-              itemCount: list.vehicles.length,
-              separatorBuilder: (context, index) => const SizedBox(height: 10),
-              itemBuilder: (context, index) {
-                final v = list.vehicles[index];
+          return ListView.separated(
+            padding: const EdgeInsets.all(20),
+            itemCount: list.vehicles.length,
+            separatorBuilder: (context, index) => const SizedBox(height: 12),
+            itemBuilder: (context, index) {
+              final v = list.vehicles[index];
+              final isSelected = currentBooking.vehicle?.id == v.id;
 
-                // 5. Visual Feedback for Selection
-                final isSelected =
-                    currentBooking.vehicle?.id ==
-                    v.id; // Assuming Vehicle object has 'id'
+              return InkWell(
+                onTap: () {
+                  // 1. Update State
+                  ref.read(bookingStateProvider.notifier).selectVehicle(v);
 
-                return InkWell(
-                  onTap: () {
-                    // Update Provider
-                    ref.read(bookingStateProvider.notifier).selectVehicle(v);
-
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) =>
-                            const CustomerBookingChooseServiceScreen(),
-                      ),
-                    );
-                  },
-                  child: Container(
-                    // Wrap item in a container to show border if selected
-                    decoration: isSelected
-                        ? BoxDecoration(
-                            border: Border.all(
-                              color: Theme.of(context).colorScheme.primary,
-                              width: 2,
-                            ),
-                            borderRadius: BorderRadius.circular(
-                              12,
-                            ), // Match list item radius
-                          )
-                        : null,
-                    child: VehicleListitem(
-                      make: v.make,
-                      model: v.model,
-                      regNum: v.regNum,
-                      photoPath: v.photoPath,
-                      description: v.description,
+                  // 2. Navigate Next
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) =>
+                          const CustomerBookingChooseServiceScreen(),
+                    ),
+                  );
+                },
+                borderRadius: BorderRadius.circular(12),
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: isSelected
+                        ? theme.colorScheme.primaryContainer.withOpacity(0.3)
+                        : theme.colorScheme.surfaceContainer,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: isSelected
+                          ? theme.colorScheme.primary
+                          : Colors.transparent,
+                      width: 2,
                     ),
                   ),
-                );
-              },
+                  child: Stack(
+                    children: [
+                      // The List Item
+                      VehicleListitem(
+                        make: v.make,
+                        model: v.model,
+                        regNum: v.regNum,
+                        photoPath: v.photoPath,
+                        description: v.description,
+                      ),
+
+                      // The Selection Checkmark (Top Right)
+                      if (isSelected)
+                        Positioned(
+                          top: 8,
+                          right: 8,
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: theme.colorScheme.primary,
+                              shape: BoxShape.circle,
+                            ),
+                            padding: const EdgeInsets.all(4),
+                            child: Icon(
+                              Icons.check,
+                              size: 16,
+                              color: theme.colorScheme.onPrimary,
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+              );
+            },
+          );
+        },
+      ),
+      // Always allow adding a new vehicle
+      floatingActionButton: FloatingActionButton.extended(
+        backgroundColor: theme.colorScheme.primary,
+        foregroundColor: theme.colorScheme.onPrimary,
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => const VehicleCreateScreen(),
             ),
           );
         },
+        icon: const Icon(Icons.add),
+        label: const Text("New Vehicle"),
+      ),
+    );
+  }
+
+  Widget _buildEmptyState(BuildContext context) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(24),
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.surfaceContainerHighest,
+              shape: BoxShape.circle,
+            ),
+            child: Icon(
+              Icons.directions_car_outlined,
+              size: 64,
+              color: Theme.of(context).colorScheme.outline,
+            ),
+          ),
+          const SizedBox(height: 24),
+          Text(
+            "No vehicles found",
+            style: Theme.of(context).textTheme.titleLarge?.copyWith(
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 8),
+          const Text(
+            "Add a vehicle to proceed with booking",
+            style: TextStyle(color: Colors.grey),
+          ),
+          // Note: FAB handles the action, so no button needed here,
+          // or you can keep a button if you prefer central action.
+        ],
       ),
     );
   }

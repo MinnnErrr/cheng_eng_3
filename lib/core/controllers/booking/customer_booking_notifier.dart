@@ -41,7 +41,6 @@ class CustomerBookingNotifier extends _$CustomerBookingNotifier {
       date: date,
       time: time,
       remarks: remarks,
-      staffMessage: null,
       status: BookingStatus.pending,
       vehiclePhoto: vehicle.photoPath,
       vehicleRegNum: vehicle.regNum,

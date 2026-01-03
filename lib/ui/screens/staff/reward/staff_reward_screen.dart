@@ -15,6 +15,13 @@ class StaffRewardScreen extends ConsumerStatefulWidget {
 
 class _StaffRewardScreenState extends ConsumerState<StaffRewardScreen> {
   String _search = "";
+  final _searchCtrl = TextEditingController();
+
+  @override
+  void dispose() {
+    _searchCtrl.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -30,52 +37,77 @@ class _StaffRewardScreenState extends ConsumerState<StaffRewardScreen> {
           onRefresh: () => ref.refresh(staffRewardsProvider.future),
           child: rewardState.when(
             data: (rewards) {
-              final searched = searchReward(
-                rewards: rewards,
-                search: _search,
-              );
+              final searched = rewards.where((r) {
+                final q = _search.toLowerCase();
+                return r.code.toLowerCase().contains(q) ||
+                    r.name.toLowerCase().contains(q);
+              }).toList();
 
               return SafeArea(
                 child: Padding(
-                  padding: const EdgeInsets.all(20.0),
+                  padding: const EdgeInsets.fromLTRB(20, 20, 20, 80),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
                       // Search Bar
                       // Removed redundant Row/Expanded
-                      TextField(
-                        onChanged: (v) => setState(() => _search = v),
-                        decoration: InputDecoration(
-                          hintText: "Search name...",
-                          prefixIcon: const Icon(Icons.search),
-                          filled: true,
-                          fillColor: Theme.of(
-                            context,
-                          ).colorScheme.surfaceContainerHighest,
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(10),
-                            borderSide: BorderSide.none,
-                          ),
-                          contentPadding: const EdgeInsets.symmetric(
-                            horizontal: 16,
-                          ),
-                        ),
-                      ),
+                      SearchBar(
+                        controller: _searchCtrl,
+                        hintText: "Search Reward Name or Code",
 
+                        leading: Icon(
+                          Icons.search,
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
+                        onChanged: (val) => setState(() => _search = val),
+                        trailing: _search.isNotEmpty
+                            ? [
+                                IconButton(
+                                  icon: const Icon(Icons.clear),
+                                  onPressed: () {
+                                    _searchCtrl.clear();
+                                    setState(() => _search = "");
+                                  },
+                                ),
+                              ]
+                            : null,
+                      ),
                       const SizedBox(height: 20),
 
                       // Reward List
                       Expanded(
                         child: searched.isEmpty
-                            ? SingleChildScrollView(
-                                physics: const AlwaysScrollableScrollPhysics(),
-                                child: SizedBox(
-                                  height:
-                                      MediaQuery.of(context).size.height * 0.5,
-                                  child: const Center(
-                                    child: Text('No reward found'),
-                                  ),
-                                ),
+                            ? LayoutBuilder(
+                                builder: (context, constraints) {
+                                  return SingleChildScrollView(
+                                    physics:
+                                        const AlwaysScrollableScrollPhysics(),
+                                    child: Container(
+                                      height: constraints.maxHeight,
+                                      alignment: Alignment.center,
+                                      child: Center(
+                                        child: Column(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.center,
+                                          children: [
+                                            Icon(
+                                              Icons.redeem,
+                                              size: 60,
+                                              color: Colors.grey.shade300,
+                                            ),
+                                            SizedBox(height: 16),
+                                            Text(
+                                              'No rewards found',
+                                              style: TextStyle(
+                                                color: Colors.grey,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                  );
+                                },
                               )
                             : ListView.separated(
                                 // Allow dismissing keyboard on scroll
@@ -89,16 +121,14 @@ class _StaffRewardScreenState extends ConsumerState<StaffRewardScreen> {
 
                                   // Better to pass tap action into the widget if possible
                                   // to ensure ripples respect card border radius
-                                  return GestureDetector(
+                                  return RewardListitem(
+                                    reward: r,
+                                    isStaff: true,
                                     onTap: () => Navigator.of(context).push(
                                       MaterialPageRoute(
                                         builder: (context) =>
                                             StaffRewardDetailsScreen(reward: r),
                                       ),
-                                    ),
-                                    child: RewardListitem(
-                                      reward: r,
-                                      isStaff: true,
                                     ),
                                   );
                                 },
@@ -114,13 +144,14 @@ class _StaffRewardScreenState extends ConsumerState<StaffRewardScreen> {
           ),
         ),
       ),
-      floatingActionButton: FloatingActionButton(
+      floatingActionButton: FloatingActionButton.extended(
         onPressed: () => Navigator.of(context).push(
           MaterialPageRoute(
             builder: (context) => const StaffRewardCreateScreen(),
           ),
         ),
-        child: const Icon(Icons.add),
+        icon: const Icon(Icons.add),
+        label: const Text("Add"),
       ),
     );
   }

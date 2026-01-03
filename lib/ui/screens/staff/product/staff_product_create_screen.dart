@@ -324,10 +324,7 @@ class _StaffProductCreateState extends ConsumerState<StaffProductCreateScreen> {
                 const SizedBox(height: 40),
 
                 // --- Submit Button ---
-                SizedBox(
-                  width: double.infinity,
-                  height: 54,
-                  child: FilledButton(
+                FilledButton(
                     onPressed: _isLoading ? null : _submitForm,
 
                     child: _isLoading
@@ -347,7 +344,7 @@ class _StaffProductCreateState extends ConsumerState<StaffProductCreateScreen> {
                             ),
                           ),
                   ),
-                ),
+                
 
                 const SizedBox(height: 40),
               ],

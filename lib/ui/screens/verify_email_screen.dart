@@ -18,6 +18,7 @@ class VerifyEmailScreen extends ConsumerStatefulWidget {
 class _VerifyEmailScreenState extends ConsumerState<VerifyEmailScreen> {
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _pinController = TextEditingController();
+  bool _isResending = false; // Local state for resend button loading
 
   @override
   Widget build(BuildContext context) {
@@ -25,97 +26,162 @@ class _VerifyEmailScreenState extends ConsumerState<VerifyEmailScreen> {
     final userNotifier = ref.read(authProvider.notifier);
     final userState = ref.watch(authProvider);
     final screenSize = MediaQuery.of(context).size;
+    final theme = Theme.of(context);
+
+    // Default styling for Pinput
+    final defaultPinTheme = PinTheme(
+      width: 56,
+      height: 56,
+      textStyle: theme.textTheme.titleLarge?.copyWith(
+        fontWeight: FontWeight.bold,
+        color: theme.colorScheme.onSurface,
+      ),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surfaceContainerHigh,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: theme.colorScheme.outlineVariant),
+      ),
+    );
 
     return Scaffold(
       backgroundColor: Colors.black,
-      body: userState.isLoading
-          ? const Center(
-              child: CircularProgressIndicator(),
-            )
-          : SafeArea(
-              child: Stack(
-                children: [
-                  //logo
-                  SizedBox(
-                    width: double.infinity,
-                    child: Image.asset(
-                      'assets/images/cheng_eng_logo.png',
-                      height: screenSize.height * 0.3,
+      // 1. SingleChildScrollView fixes layout issues on small screens/keyboard open
+      body: SingleChildScrollView(
+        child: SizedBox(
+          height: screenSize.height,
+          child: Column(
+            children: [
+              // --- TOP: Logo Section ---
+              Expanded(
+                flex: 3,
+                child: Container(
+                  alignment: Alignment.center,
+                  child: Image.asset(
+                    'assets/images/cheng_eng_logo.png',
+                    height: screenSize.height * 0.25,
+                  ),
+                ),
+              ),
+
+              // --- BOTTOM: Form Section ---
+              Expanded(
+                flex: 7,
+                child: Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 24,
+                    vertical: 30,
+                  ),
+                  decoration: BoxDecoration(
+                    color: theme.colorScheme.surface,
+                    borderRadius: const BorderRadius.only(
+                      topLeft: Radius.circular(30),
+                      topRight: Radius.circular(30),
                     ),
                   ),
-
-                  //login form
-                  Align(
-                    alignment: Alignment.bottomCenter,
-                    child: Container(
-                      width: screenSize.width,
-                      height: screenSize.height * 0.7,
-                      padding: EdgeInsets.all(20),
-                      decoration: BoxDecoration(
-                        color: Theme.of(context).colorScheme.surface,
-                        borderRadius: BorderRadius.only(
-                          topLeft: Radius.circular(20),
-                          topRight: Radius.circular(20),
+                  child: Form(
+                    key: _formKey,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Text(
+                          'Verify Email',
+                          style: theme.textTheme.headlineMedium!.copyWith(
+                            fontWeight: FontWeight.bold,
+                            color: theme.colorScheme.onSurface,
+                          ),
                         ),
-                      ),
-                      child: Form(
-                        key: _formKey,
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          spacing: 30,
+                        const SizedBox(height: 10),
+                        Text(
+                          'Please enter the 6-digit code sent to\n$email',
+                          style: TextStyle(
+                            color: theme.colorScheme.onSurface,
+                            height: 1.5,
+                          ),
+                        ),
+
+                        const SizedBox(height: 40),
+
+                        // OTP Input
+                        Center(
+                          child: Pinput(
+                            length: 6,
+                            controller: _pinController,
+                            defaultPinTheme: defaultPinTheme,
+                            focusedPinTheme: defaultPinTheme.copyDecorationWith(
+                              border: Border.all(
+                                color: theme.colorScheme.primary,
+                                width: 2,
+                              ),
+                            ),
+                            keyboardType: TextInputType.number,
+                            validator: (value) {
+                              if (value == null || value.length < 6) {
+                                return 'Please enter full code';
+                              }
+                              return null;
+                            },
+                            // Auto-submit when last digit entered (Optional UX improvement)
+                            pinputAutovalidateMode:
+                                PinputAutovalidateMode.onSubmit,
+                            showCursor: true,
+                          ),
+                        ),
+
+                        const SizedBox(height: 30),
+
+                        // Resend Logic
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             Text(
-                              'Verify Email',
-                              style:
-                                  Theme.of(
-                                    context,
-                                  ).textTheme.titleLarge!.copyWith(
-                                    fontWeight: FontWeight.bold,
-                                  ),
+                              "Didn't receive the code?",
+                              style: TextStyle(
+                                color: theme.colorScheme.onSurfaceVariant,
+                              ),
                             ),
-                            Text(
-                              'Please enter the OTP sent to $email for verification.',
-                            ),
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.center,
-                              spacing: 20,
-                              children: [
-                                Align(
-                                  alignment: Alignment.center,
-                                  child: Pinput(
-                                    length: 6,
-                                    controller: _pinController,
-                                    keyboardType: TextInputType.number,
-                                    validator: (value) {
-                                      if (value == null || value.isEmpty) {
-                                        return 'Required';
+                            TextButton(
+                              onPressed: _isResending
+                                  ? null
+                                  : () async {
+                                      setState(() => _isResending = true);
+
+                                      // Call Resend API
+                                      await userNotifier.resendOtp(email);
+
+                                      if (context.mounted) {
+                                        setState(() => _isResending = false);
+                                        showAppSnackBar(
+                                          context: context,
+                                          content: "Verification code resent!",
+                                          isError: false,
+                                        );
                                       }
-                                      return null;
                                     },
-                                  ),
-                                ),
-                                Row(
-                                  children: [
-                                    Text("Didn't receive the code?"),
-                                    TextButton(
-                                      onPressed: () =>
-                                          userNotifier.resendOtp(email),
-                                      child: Text(
-                                        'Resend',
-                                        style: TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                        ),
+                              child: _isResending
+                                  ? const SizedBox(
+                                      width: 12,
+                                      height: 12,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
                                       ),
-                                    ),
-                                  ],
-                                ),
-                              ],
+                                    )
+                                  : const Text('Resend'),
                             ),
-                            Align(
-                              alignment: Alignment.center,
-                              child: ElevatedButton(
-                                onPressed: () async {
-                                  if (!_formKey.currentState!.validate()) return;
+                          ],
+                        ),
+
+                        const SizedBox(height: 20),
+
+                        // Verify Button
+                        FilledButton(
+                          onPressed: userState.isLoading
+                              ? null
+                              : () async {
+                                  if (!_formKey.currentState!.validate())
+                                    return;
+
+                                  FocusScope.of(context).unfocus();
 
                                   final res = await userNotifier.verifyWithOtp(
                                     email,
@@ -123,19 +189,23 @@ class _VerifyEmailScreenState extends ConsumerState<VerifyEmailScreen> {
                                   );
 
                                   if (!context.mounted) return;
+
                                   if (res == null) {
-                                    Navigator.of(context).pushReplacement(
-                                      MaterialPageRoute(
-                                        builder: (context) =>
-                                            InitialProfileScreen(),
-                                      ),
-                                    );
+                                    // Success
                                     showAppSnackBar(
-                                      content: 'Email verified.',
+                                      content: 'Email verified successfully!',
                                       isError: false,
                                       context: context,
                                     );
+
+                                    Navigator.of(context).pushReplacement(
+                                      MaterialPageRoute(
+                                        builder: (context) =>
+                                            const InitialProfileScreen(),
+                                      ),
+                                    );
                                   } else {
+                                    // Error
                                     showAppSnackBar(
                                       content: res,
                                       isError: true,
@@ -143,17 +213,31 @@ class _VerifyEmailScreenState extends ConsumerState<VerifyEmailScreen> {
                                     );
                                   }
                                 },
-                                child: Text('Verify'),
-                              ),
-                            ),
-                          ],
+                          child: userState.isLoading
+                              ? const SizedBox(
+                                  width: 24,
+                                  height: 24,
+                                  child: CircularProgressIndicator(
+                                    color: Colors.white,
+                                    strokeWidth: 2,
+                                  ),
+                                )
+                              : const Text(
+                                  'VERIFY',
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
                         ),
-                      ),
+                      ],
                     ),
                   ),
-                ],
+                ),
               ),
-            ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }

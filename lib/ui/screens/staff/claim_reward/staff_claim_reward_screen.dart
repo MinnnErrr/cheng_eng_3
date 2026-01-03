@@ -11,6 +11,8 @@ class StaffClaimRewardScreen extends StatefulWidget {
 
 class _StaffClaimRewardScreenState extends State<StaffClaimRewardScreen> {
   final TextEditingController _searchController = TextEditingController();
+
+  // _userId can be null if we search manually (we get it from the reward data later)
   String? _userId;
   String? _redeemedId;
 
@@ -28,11 +30,24 @@ class _StaffClaimRewardScreenState extends State<StaffClaimRewardScreen> {
     });
   }
 
+  void _onManualSearch() {
+    FocusScope.of(context).unfocus(); // Hide keyboard
+    final text = _searchController.text.trim();
+
+    if (text.isNotEmpty) {
+      setState(() {
+        _redeemedId = text;
+        _userId = null; // Reset user ID, let the content widget fetch it
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    // Determine if we have valid data to show content
-    final bool showContent = _userId != null && _redeemedId != null;
+
+    // Show content if we have a Reward ID (User ID is optional at this stage)
+    final bool showContent = _redeemedId != null && _redeemedId!.isNotEmpty;
 
     return Scaffold(
       backgroundColor: theme.colorScheme.surface,
@@ -50,33 +65,45 @@ class _StaffClaimRewardScreenState extends State<StaffClaimRewardScreen> {
                 children: [
                   // Text Input
                   Expanded(
-                    child: TextField(
+                    child: SearchBar(
                       controller: _searchController,
-                      readOnly: true, // Keep scan-only logic
-                      decoration: InputDecoration(
-                        hintText: "Reward ID...",
-                        prefixIcon: const Icon(Icons.search),
-                        filled: true,
-                        // Use White/Light Grey background for input
-                        fillColor: theme.colorScheme.surfaceContainerHighest,
-                      ),
+                      hintText: "Enter Reward ID",
+                      textInputAction: TextInputAction.search,
+                      onSubmitted: (_) => _onManualSearch(),
+
+                      // Leading Icon: Search
+                      leading: const Icon(Icons.search),
+
+                      // Trailing Icons: Clear & Scan
+                      trailing: [
+                        // Clear Button (Only show if text exists)
+                        if (_searchController.text.isNotEmpty)
+                          IconButton(
+                            icon: const Icon(Icons.clear),
+                            onPressed: () {
+                              _searchController.clear();
+                              setState(() {
+                                _redeemedId = null;
+                                _userId = null;
+                              });
+                            },
+                          ),
+                      ],
+                      onChanged: (_) => setState(() {}),
                     ),
                   ),
 
                   const SizedBox(width: 12),
 
-                  // Scan Button (Styled: Yellow/Black)
+                  // Scan Button
                   IconButton.filled(
                     style: IconButton.styleFrom(
-                      backgroundColor: theme.colorScheme.primary, // Yellow
-                      foregroundColor: theme.colorScheme.onPrimary, // Black
+                      backgroundColor: theme.colorScheme.primary,
+                      foregroundColor: theme.colorScheme.onPrimary,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
-                      minimumSize: const Size(
-                        56,
-                        56,
-                      ), // Square shape matching input height
+                      minimumSize: const Size(56, 56),
                     ),
                     onPressed: () async {
                       final result = await Navigator.push(
@@ -101,7 +128,7 @@ class _StaffClaimRewardScreenState extends State<StaffClaimRewardScreen> {
               // --- 2. Results or Empty State ---
               if (showContent)
                 RewardClaimContent(
-                  userId: _userId!,
+                  userId: _userId,
                   redeemedId: _redeemedId!,
                 )
               else
@@ -113,7 +140,6 @@ class _StaffClaimRewardScreenState extends State<StaffClaimRewardScreen> {
     );
   }
 
-  // A clean, simple empty state
   Widget _buildEmptyState(ThemeData theme) {
     return Container(
       width: double.infinity,
@@ -124,9 +150,7 @@ class _StaffClaimRewardScreenState extends State<StaffClaimRewardScreen> {
           Container(
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
-              color: theme.colorScheme.surfaceContainerHighest.withValues(
-                alpha: 0.5,
-              ),
+              color: theme.colorScheme.surfaceContainerHighest.withOpacity(0.5),
               shape: BoxShape.circle,
             ),
             child: Icon(
@@ -137,10 +161,11 @@ class _StaffClaimRewardScreenState extends State<StaffClaimRewardScreen> {
           ),
           const SizedBox(height: 20),
           Text(
-            "Please scan the customer's QR code\nto verify and claim the reward.",
+            "Scan a QR code or enter the\nReward ID to verify.",
             textAlign: TextAlign.center,
             style: TextStyle(
               color: theme.colorScheme.onSurfaceVariant,
+              fontSize: 16,
             ),
           ),
         ],

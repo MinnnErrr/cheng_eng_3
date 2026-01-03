@@ -1,7 +1,6 @@
 import 'package:cheng_eng_3/core/enums/sorting_enum.dart';
 import 'package:cheng_eng_3/core/models/product_model.dart';
 import 'package:cheng_eng_3/core/models/redeemed_reward_model.dart';
-import 'package:cheng_eng_3/core/models/reward_model.dart';
 
 List<Product> productSearchSortFilter({
   required List<Product> products,
@@ -53,19 +52,7 @@ List<Product> productSearchSortFilter({
   return list;
 }
 
-List<Reward> searchReward({
-  required List<Reward> rewards,
-  required String search,
-}) {
-  var list = rewards;
 
-  if (search.trim().isNotEmpty) {
-    final s = search.trim().toLowerCase();
-    list = list.where((r) => r.name.toLowerCase().contains(s)).toList();
-  }
-
-  return list;
-}
 
 List<RedeemedReward> searchRedeemedReward({
   required List<RedeemedReward> rewards,

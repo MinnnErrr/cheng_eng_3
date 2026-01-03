@@ -1,3 +1,4 @@
+import 'package:cheng_eng_3/colorscheme/colorscheme.dart';
 import 'package:cheng_eng_3/core/models/booking_model.dart';
 import 'package:cheng_eng_3/ui/extensions/booking_extension.dart';
 import 'package:flutter/material.dart';
@@ -8,28 +9,28 @@ class BookingListitem extends ConsumerWidget {
   const BookingListitem({
     super.key,
     required this.booking,
+    this.onTap, // Add optional callback
   });
 
   final Booking booking;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final dateFormatter = DateFormat('dd MMM yyyy');
+    final theme = Theme.of(context);
 
-    // 1. Generate a comma-separated string of services
-    // Example: "Oil Change, Brake Inspection"
-    // Note: Ensure 'booking.services' is the name of your list field now
+    // Join services
     final serviceNames = booking.services.isEmpty
         ? 'No Service Selected'
         : booking.services.map((s) => s.serviceName).join(', ');
 
     return Card(
-      elevation: 0,
-      color: Theme.of(context).colorScheme.surfaceContainer,
       clipBehavior: Clip.antiAlias,
-      child: Padding(
-        padding: const EdgeInsets.all(12),
-        child: IntrinsicHeight(
+      child: InkWell(
+        onTap: onTap, // Ripple effect happens here
+        child: Padding(
+          padding: const EdgeInsets.all(12),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -38,23 +39,22 @@ class BookingListitem extends ConsumerWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // 1. Service Names (Handles multiple)
+                    // 1. Service Names (Highlight)
                     Text(
                       serviceNames,
-                      maxLines: 2, // Allow wrapping for multiple services
+                      maxLines: 2,
                       overflow: TextOverflow.ellipsis,
-                      style: Theme.of(context).textTheme.titleSmall!.copyWith(
+                      style: theme.textTheme.titleSmall!.copyWith(
                         fontWeight: FontWeight.bold,
-                        color: Theme.of(context).colorScheme.primary,
-                        height: 1.2,
+                        color: textYellow,
                       ),
                     ),
                     const SizedBox(height: 6),
 
                     // 2. Registration Number
                     Text(
-                      booking.vehicleRegNum,
-                      style: Theme.of(context).textTheme.bodyLarge!.copyWith(
+                      booking.vehicleRegNum.toUpperCase(),
+                      style: theme.textTheme.bodyLarge!.copyWith(
                         fontWeight: FontWeight.w900,
                         letterSpacing: 0.5,
                       ),
@@ -63,41 +63,40 @@ class BookingListitem extends ConsumerWidget {
                     // 3. Vehicle Description
                     Text(
                       '${booking.vehicleMake} ${booking.vehicleModel} | ${booking.vehicleColour}',
-                      style: Theme.of(context).textTheme.bodySmall!.copyWith(
-                        color: Colors.grey.shade700,
+                      style: theme.textTheme.bodySmall!.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
                       ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
 
-                    const SizedBox(height: 12),
+                    const SizedBox(height: 15),
 
-                    // 4. Date & Time Row
+                    // 4. Date & Time Badge
                     Container(
                       padding: const EdgeInsets.symmetric(
                         horizontal: 8,
                         vertical: 4,
                       ),
                       decoration: BoxDecoration(
-                        color: Theme.of(context).colorScheme.surface,
+                        color: theme.colorScheme.primaryContainer,
                         borderRadius: BorderRadius.circular(6),
                       ),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Icon(
-                            Icons.calendar_today_outlined,
+                            Icons.calendar_month,
                             size: 14,
-                            color: Colors.grey.shade600,
+                            color: theme.colorScheme.onPrimaryContainer,
                           ),
                           const SizedBox(width: 6),
                           Text(
-                            '${dateFormatter.format(booking.date)} • ${booking.time.format(context)}',
-                            style: Theme.of(context).textTheme.labelMedium!
-                                .copyWith(
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.grey.shade800,
-                                ),
+                            '${dateFormatter.format(booking.date)} | ${booking.time.format(context)}',
+                            style: theme.textTheme.labelMedium!.copyWith(
+                              fontWeight: FontWeight.w600,
+                              color: theme.colorScheme.onPrimaryContainer,
+                            ),
                           ),
                         ],
                       ),
@@ -106,22 +105,23 @@ class BookingListitem extends ConsumerWidget {
                 ),
               ),
 
-              const SizedBox(width: 10),
+              const SizedBox(width: 12),
 
               // --- RIGHT: STATUS CHIP ---
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 6,
+                ),
                 decoration: BoxDecoration(
-                  color: booking.status.color.withValues(alpha: 0.15),
+                  color: booking.status.color.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(8),
-                  border: Border.all(
-                    color: booking.status.color.withValues(alpha: 0.5),
-                    width: 1,
-                  ),
                 ),
                 child: Text(
-                  booking.status.name,
-                  style: Theme.of(context).textTheme.labelSmall!.copyWith(
+                  booking
+                      .status
+                      .label, // Ensure this handles capitalizing (e.g., "Pending")
+                  style: theme.textTheme.labelSmall!.copyWith(
                     fontWeight: FontWeight.bold,
                     color: booking.status.color,
                     letterSpacing: 0.5,

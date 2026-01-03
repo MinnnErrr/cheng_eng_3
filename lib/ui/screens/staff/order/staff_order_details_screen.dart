@@ -32,6 +32,13 @@ class StaffOrderDetailsScreen extends ConsumerWidget {
     final itemNotifier = ref.read(orderItemProvider.notifier);
     final itemState = ref.watch(orderItemProvider);
 
+    final fullAddress = [
+      currentOrder.deliveryAddressLine1,
+      currentOrder.deliveryAddressLine2,
+      '${currentOrder.deliveryPostcode} ${currentOrder.deliveryCity}',
+      '${currentOrder.deliveryState!.label}, ${currentOrder.deliveryCountry}',
+    ].where((s) => s != null && s.trim().isNotEmpty).join(', ');
+
     return Scaffold(
       backgroundColor: theme.colorScheme.surface,
       appBar: AppBar(
@@ -270,17 +277,26 @@ class StaffOrderDetailsScreen extends ConsumerWidget {
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(color: theme.colorScheme.outlineVariant),
                 ),
-                child: OrderDelivery(
-                  firstName: currentOrder.deliveryFirstName!,
-                  lastName: currentOrder.deliveryLastName!,
-                  addressLine1: currentOrder.deliveryAddressLine1!,
-                  addressLine2: currentOrder.deliveryAddressLine2,
-                  city: currentOrder.deliveryCity!,
-                  country: currentOrder.deliveryCountry!,
-                  dialCode: currentOrder.deliveryDialCode!,
-                  phoneNum: currentOrder.deliveryPhoneNum!,
-                  postcode: currentOrder.deliveryPostcode!,
-                  state: currentOrder.deliveryState!,
+                child: Column(
+                  children: [
+                    _buildDetailRow(
+                      context,
+                      'Name',
+                      '${currentOrder.deliveryFirstName} ${currentOrder.deliveryLastName}',
+                    ),
+                    const Divider(height: 24),
+                    _buildDetailRow(
+                      context,
+                      'Phone',
+                      '${currentOrder.deliveryDialCode} ${currentOrder.deliveryPhoneNum}',
+                    ),
+                    const Divider(height: 24),
+                    _buildDetailRow(
+                      context,
+                      'Address',
+                      fullAddress,
+                    ),
+                  ],
                 ),
               ),
             ],
@@ -367,7 +383,7 @@ class StaffOrderDetailsScreen extends ConsumerWidget {
                               borderRadius: BorderRadius.circular(12),
                             ),
                           ),
-                          child: const Text("Cancel"),
+                          child: const Text("CANCEL"),
                         ),
                       ),
                     ),
@@ -402,7 +418,7 @@ class StaffOrderDetailsScreen extends ConsumerWidget {
                                 ),
                               )
                             : Text(
-                                viewState.primaryButtonLabel,
+                                viewState.primaryButtonLabel.toUpperCase(),
                                 style: TextStyle(
                                   fontWeight: FontWeight.bold,
                                 ),
@@ -427,9 +443,15 @@ class StaffOrderDetailsScreen extends ConsumerWidget {
             fontSize: 14,
           ),
         ),
-        SelectableText(
-          value,
-          style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
+        const SizedBox(
+          width: 10,
+        ),
+        Expanded(
+          child: SelectableText(
+            textAlign: TextAlign.right,
+            value,
+            style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
+          ),
         ),
       ],
     );

@@ -33,7 +33,6 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
   final _postcodeCtrl = TextEditingController();
   final _cityCtrl = TextEditingController();
   final _countryCtrl = TextEditingController(text: 'Malaysia');
-  final _remarksCtrl = TextEditingController();
 
   String _countryCode = 'MY';
   String _dialCode = '+60';
@@ -51,7 +50,6 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
     _postcodeCtrl.dispose();
     _cityCtrl.dispose();
     _countryCtrl.dispose();
-    _remarksCtrl.dispose();
     super.dispose();
   }
 
@@ -355,15 +353,6 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-                    const SizedBox(height: 10),
-                    textFormField(
-                      controller: _remarksCtrl,
-                      hint: 'Add a note to your order...',
-                      validationRequired: false,
-                      minLines: 3,
-                      maxLines: 5,
-                    ),
-
                     const SizedBox(height: 30),
 
                     // --- 5. PLACE ORDER BUTTON ---
@@ -389,7 +378,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                                 ),
                               )
                             : Text(
-                                'Place Order • RM ${checkout.total.toStringAsFixed(2)}',
+                                'PLACE ORDER • RM ${checkout.total.toStringAsFixed(2)}',
                                 style: const TextStyle(
                                   fontWeight: FontWeight.bold,
                                 ),

@@ -86,6 +86,13 @@ class _CustomerOrderDetailsScreenState
 
     final items = currentOrder.items;
 
+    final fullAddress = [
+      currentOrder.deliveryAddressLine1,
+      currentOrder.deliveryAddressLine2,
+      '${currentOrder.deliveryPostcode} ${currentOrder.deliveryCity}',
+      '${currentOrder.deliveryState!.label}, ${currentOrder.deliveryCountry}',
+    ].where((s) => s != null && s.trim().isNotEmpty).join(', ');
+
     return Scaffold(
       appBar: AppBar(title: const Text('Order Details')),
       body: SafeArea(
@@ -195,17 +202,35 @@ class _CustomerOrderDetailsScreenState
                   ),
                 ),
                 const SizedBox(height: 12),
-                OrderDelivery(
-                  firstName: currentOrder.deliveryFirstName!,
-                  lastName: currentOrder.deliveryLastName!,
-                  addressLine1: currentOrder.deliveryAddressLine1!,
-                  addressLine2: currentOrder.deliveryAddressLine2,
-                  city: currentOrder.deliveryCity!,
-                  country: currentOrder.deliveryCountry!,
-                  dialCode: currentOrder.deliveryDialCode!,
-                  phoneNum: currentOrder.deliveryPhoneNum!,
-                  postcode: currentOrder.deliveryPostcode!,
-                  state: currentOrder.deliveryState!,
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: theme.colorScheme.surfaceContainer,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: theme.colorScheme.outlineVariant),
+                  ),
+                  child: Column(
+                    children: [
+                      _buildDetailRow(
+                        context,
+                        'Name',
+                        '${currentOrder.deliveryFirstName} ${currentOrder.deliveryLastName}',
+                      ),
+                      const Divider(height: 24),
+                      _buildDetailRow(
+                        context,
+                        'Phone',
+                        '${currentOrder.deliveryDialCode} ${currentOrder.deliveryPhoneNum}',
+                      ),
+                      const Divider(height: 24),
+                      _buildDetailRow(
+                        context,
+                        'Address',
+                        fullAddress,
+                      ),
+                    ],
+                  ),
                 ),
               ],
 
@@ -226,7 +251,7 @@ class _CustomerOrderDetailsScreenState
                           ),
                         )
                       : const Text(
-                          'Pay Now',
+                          'PAY NOW',
                           style: TextStyle(
                             fontWeight: FontWeight.bold,
                           ),
@@ -252,10 +277,15 @@ class _CustomerOrderDetailsScreenState
             color: Theme.of(context).colorScheme.onSurfaceVariant,
           ),
         ),
-        SelectableText(
-          // Use SelectableText so users can copy IDs
-          value,
-          style: const TextStyle(fontWeight: FontWeight.w600),
+        const SizedBox(
+          width: 10,
+        ),
+        Expanded(
+          child: SelectableText(
+            textAlign: TextAlign.right,
+            value,
+            style: const TextStyle(fontWeight: FontWeight.w600),
+          ),
         ),
       ],
     );

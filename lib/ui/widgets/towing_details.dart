@@ -1,9 +1,10 @@
+import 'package:cheng_eng_3/colorscheme/colorscheme.dart';
 import 'package:cheng_eng_3/core/models/towing_model.dart';
 import 'package:cheng_eng_3/core/services/image_service.dart';
 import 'package:cheng_eng_3/ui/widgets/imagebuilder.dart';
-import 'package:cheng_eng_3/ui/widgets/vehicle_listitem.dart';
 import 'package:cheng_eng_3/utils/status_colour.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
@@ -14,228 +15,284 @@ class TowingDetailsWidget extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final screenSize = MediaQuery.sizeOf(context);
     final imageService = ref.read(imageServiceProvider);
     final theme = Theme.of(context);
+    final dateFormatter = DateFormat('dd MMM yyyy, h:mm a');
+    final statusColor = getTowingStatusColor(towing.status, context);
 
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        // --- Vehicle Section ---
-        Text(
-          'Vehicle Details',
-          style: theme.textTheme.titleMedium!.copyWith(
-            fontWeight: FontWeight.bold,
-            color: theme.colorScheme.onSurface,
+        // --- 1. HERO INCIDENT CARD ---
+        Container(
+          decoration: BoxDecoration(
+            color: theme.colorScheme.surfaceContainer,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: theme.colorScheme.outlineVariant),
           ),
-        ),
-        const SizedBox(height: 10),
-        VehicleListitem(
-          make: towing.make,
-          model: towing.model,
-          regNum: towing.regNum,
-          colour: towing.colour,
-          photoPath: towing.vehiclePhoto,
-        ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // A. Header (Vehicle, Contact & Status)
+              Padding(
+                padding: const EdgeInsets.all(20),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            towing.regNum.toUpperCase(),
+                            style: theme.textTheme.headlineSmall!.copyWith(
+                              fontWeight: FontWeight.w800,
+                              letterSpacing: 0.5,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            '${towing.make} ${towing.model} | ${towing.colour}',
+                            style: theme.textTheme.bodyMedium!.copyWith(
+                              color: theme.colorScheme.onSurfaceVariant,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
 
-        const SizedBox(height: 30),
-
-        // --- Towing Details Section ---
-        Text(
-          'Towing Details',
-          style: theme.textTheme.titleMedium!.copyWith(
-            fontWeight: FontWeight.bold,
-            color: theme.colorScheme.onSurface,
-          ),
-        ),
-        const SizedBox(height: 10),
-        _towingDetails(context, towing),
-
-        const SizedBox(height: 30),
-
-        // --- Image Section ---
-        Text(
-          'Surroundings',
-          style: theme.textTheme.titleMedium!.copyWith(
-            fontWeight: FontWeight.bold,
-            color: theme.colorScheme.onSurface,
-          ),
-        ),
-        const SizedBox(height: 10),
-        _image(context, towing, imageService, screenSize),
-      ],
-    );
-  }
-
-  Widget _towingDetails(BuildContext context, Towing towing) {
-    final dateFormatter = DateFormat('dd/MM/yyyy h:mm a');
-    final theme = Theme.of(context);
-
-    return Container(
-      width: double.infinity,
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surfaceContainer,
-        borderRadius: BorderRadius.circular(12),
-        // Add subtle border to match app theme
-        border: Border.all(
-          color: theme.colorScheme.outlineVariant.withValues(alpha: 0.6),
-        ),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          children: [
-            _detailRow(
-              context,
-              'Status',
-              towing.status,
-              getTowingStatusColor(towing.status, context),
-            ),
-            const Divider(height: 20),
-            _detailRow(context, 'Address', towing.address, null),
-            const Divider(height: 20),
-            _detailRow(
-              context,
-              'Coordinates',
-              '${towing.latitude}, ${towing.longitude}',
-              null,
-            ),
-            const Divider(height: 20),
-            _detailRow(
-              context,
-              'Created At',
-              dateFormatter.format(towing.createdAt),
-              null,
-            ),
-            const Divider(height: 20),
-            _detailRow(
-              context,
-              'Updated At',
-              towing.updatedAt != null
-                  ? dateFormatter.format(towing.updatedAt!)
-                  : '-',
-              null,
-            ),
-
-            // Remarks Section (Only show if exists)
-            if (towing.remarks?.isNotEmpty == true) ...[
-              const SizedBox(height: 20),
-              Container(
-                padding: const EdgeInsets.all(12),
-                width: double.infinity,
-                decoration: BoxDecoration(
-                  // 1. Use Primary Container (Light Yellow) for visibility
-                  color: theme.colorScheme.primaryContainer,
-                  borderRadius: BorderRadius.circular(12),
-                  // 2. Add a solid primary border to frame it
-                  border: Border.all(
-                    color: theme.colorScheme.primary,
-                    width: 1.5,
-                  ),
+                          // --- EMERGENCY CONTACT (ADDED) ---
+                          const SizedBox(height: 8),
+                          Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                Icons.phone_in_talk,
+                                size: 14,
+                                color: textYellow,
+                              ),
+                              const SizedBox(width: 6),
+                              SelectableText(
+                                '${towing.dialCode} ${towing.phoneNum}', // Assuming field is phoneNum
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  color: textYellow,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    // Status Badge
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 6,
+                      ),
+                      decoration: BoxDecoration(
+                        color: statusColor.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Text(
+                        towing.status.toUpperCase(),
+                        style: TextStyle(
+                          color: statusColor,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 11,
+                          letterSpacing: 0.5,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
+              ),
+
+              // B. Image
+              SizedBox(
+                height: 220,
+                width: double.infinity,
+                child: towing.photoPath == null
+                    ? Container(
+                        color: theme.colorScheme.surfaceContainerHighest,
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.broken_image_outlined,
+                              size: 40,
+                              color: theme.colorScheme.onSurfaceVariant,
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              "No incident image",
+                              style: TextStyle(
+                                color: theme.colorScheme.onSurfaceVariant,
+                              ),
+                            ),
+                          ],
+                        ),
+                      )
+                    : imageBuilder(
+                        url: imageService.retrieveImageUrl(towing.photoPath!),
+                        containerWidth: double.infinity,
+                        containerHeight: 220,
+                        noImageContent: const SizedBox(),
+                        context: context,
+                        borderRadius: 0,
+                      ),
+              ),
+
+              // C. Location Info
+              Padding(
+                padding: const EdgeInsets.all(20),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    _buildSectionHeader(context, "Location"),
+                    const SizedBox(height: 12),
                     Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Icon(
-                          Icons.note_alt_outlined,
-                          size: 16,
-                          color: theme.colorScheme.onPrimaryContainer,
+                          Icons.location_on,
+                          color: Colors.red,
+                          size: 20,
                         ),
-                        const SizedBox(width: 8),
-                        Text(
-                          'Remarks',
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            color: theme.colorScheme.onPrimaryContainer,
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                towing.address,
+                                style: const TextStyle(
+                                  fontSize: 15,
+                                  height: 1.4,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                "${towing.latitude}, ${towing.longitude}",
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: theme.colorScheme.onSurfaceVariant,
+                                  fontFamily: 'monospace',
+                                ),
+                              ),
+                            ],
                           ),
                         ),
+                        IconButton(
+                          onPressed: () => _copyToClipboard(
+                            context,
+                            "${towing.latitude}, ${towing.longitude}",
+                          ),
+                          icon: const Icon(Icons.content_copy, size: 18),
+                          padding: EdgeInsets.zero,
+                          constraints: const BoxConstraints(),
+                          style: IconButton.styleFrom(
+                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                            foregroundColor: theme.colorScheme.onSurfaceVariant,
+                          ),
+                          tooltip: "Copy Address",
+                        ),
                       ],
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      towing.remarks!,
-                      style: TextStyle(color: theme.colorScheme.onSurface),
                     ),
                   ],
                 ),
               ),
             ],
-          ],
-        ),
-      ),
-    );
-  }
-
-  // Refactored helper for clean rows
-  Widget _detailRow(
-    BuildContext context,
-    String title,
-    String value,
-    Color? valueColor,
-  ) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        SizedBox(
-          width: 100,
-          child: Text(
-            title,
-            style: TextStyle(
-              fontWeight: FontWeight.w500,
-              color: Theme.of(context).colorScheme.onSurfaceVariant,
-            ),
           ),
         ),
-        Expanded(
-          child: Text(
-            value,
-            textAlign: TextAlign.end,
-            style: TextStyle(fontWeight: FontWeight.bold, color: valueColor),
+
+        const SizedBox(height: 24),
+
+        // --- 2. DETAILS CARD ---
+        Container(
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            color: theme.colorScheme.surfaceContainer,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: theme.colorScheme.outlineVariant),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              if (towing.remarks != null && towing.remarks!.isNotEmpty) ...[
+                _buildSectionHeader(context, "Remarks"),
+                const SizedBox(height: 8),
+                Text(
+                  towing.remarks!,
+                  style: TextStyle(
+                    color: theme.colorScheme.onSurface,
+                    height: 1.5,
+                    fontSize: 15,
+                  ),
+                ),
+                const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 20),
+                  child: Divider(),
+                ),
+              ],
+
+              _buildMetaRow(
+                context,
+                "Requested On",
+                dateFormatter.format(towing.createdAt),
+              ),
+              const SizedBox(height: 12),
+              _buildMetaRow(
+                context,
+                "Last Updated",
+                towing.updatedAt != null
+                    ? dateFormatter.format(towing.updatedAt!)
+                    : '-',
+              ),
+            ],
           ),
         ),
       ],
     );
   }
 
-  Widget _image(
-    BuildContext context,
-    Towing towing,
-    ImageService imageService,
-    Size screenSize,
-  ) {
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(12),
-      child: imageBuilder(
-        url: towing.photoPath != null
-            ? imageService.retrieveImageUrl(towing.photoPath!)
-            : null,
-        containerWidth: double.infinity,
-        containerHeight: screenSize.height * 0.25,
-        noImageContent: Container(
-          width: double.infinity,
-          color: Theme.of(context).colorScheme.surfaceContainerHighest,
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(
-                Icons.image_not_supported_outlined,
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
-              ),
-              const SizedBox(height: 8),
-              Text(
-                'No image provided',
-                style: TextStyle(
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
-                ),
-              ),
-            ],
-          ),
-        ),
-        context: context,
+  Widget _buildSectionHeader(BuildContext context, String title) {
+    return Text(
+      title.toUpperCase(),
+      style: TextStyle(
+        fontSize: 12,
+        fontWeight: FontWeight.bold,
+        color: Theme.of(context).colorScheme.onSurfaceVariant,
+        letterSpacing: 1.0,
       ),
     );
+  }
+
+  Widget _buildMetaRow(BuildContext context, String label, String value) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(
+          label,
+          style: TextStyle(
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
+            fontSize: 14,
+          ),
+        ),
+        Text(
+          value,
+          style: TextStyle(
+            color: Theme.of(context).colorScheme.onSurface,
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      ],
+    );
+  }
+
+  void _copyToClipboard(BuildContext context, String text) {
+    Clipboard.setData(ClipboardData(text: text));
   }
 }

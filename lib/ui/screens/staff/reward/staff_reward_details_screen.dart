@@ -260,11 +260,12 @@ class _StaffRewardDetailsScreenState
                                         color: textYellow,
                                         fontWeight: FontWeight.bold,
                                         fontSize: 14,
+                                        fontFamily: 'Monospace',
                                       ),
                                     ),
                                     Text(
                                       displayedReward.name,
-                                      style: theme.textTheme.headlineSmall!
+                                      style: theme.textTheme.titleLarge!
                                           .copyWith(
                                             fontWeight: FontWeight.bold,
                                           ),

@@ -84,7 +84,7 @@ class _StaffProductScreenState extends ConsumerState<StaffProductScreen> {
 
           return SafeArea(
             child: Padding(
-              padding: const EdgeInsets.all(20.0),
+              padding: const EdgeInsets.fromLTRB(20, 20, 20, 80),
               child: Column(
                 children: [
                   // --- A. STATISTICS DASHBOARD ---
@@ -92,7 +92,7 @@ class _StaffProductScreenState extends ConsumerState<StaffProductScreen> {
                     children: [
                       Expanded(
                         child: _StatCard(
-                          label: "Low/No Stock",
+                          label: "No Stock",
                           value: outOfStock,
                           color: theme.colorScheme.error,
                         ),
@@ -123,53 +123,63 @@ class _StaffProductScreenState extends ConsumerState<StaffProductScreen> {
                     child: Row(
                       children: [
                         Expanded(
-                          child: TextField(
+                          child: SearchBar(
+                            hintText: "Search products...",
                             onChanged: (v) => setState(() => _search = v),
-                            decoration: InputDecoration(
-                              hintText: "Search products...",
-                              prefixIcon: const Icon(Icons.search),
-                              filled: true,
-                              fillColor: theme.colorScheme.surfaceContainerHigh,
-                              contentPadding: const EdgeInsets.symmetric(
-                                horizontal: 16,
-                                vertical: 12,
-                              ),
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(12),
-                                borderSide: BorderSide.none,
-                              ),
-                            ),
+
+                            // 1. Icons
+                            leading: const Icon(Icons.search),
+                            // Optional: Add a clear button in the trailing list if text exists
+                            trailing: _search.isNotEmpty
+                                ? [
+                                    IconButton(
+                                      icon: const Icon(Icons.clear),
+                                      onPressed: () {
+                                        // If you have a controller, clear it here too
+                                        setState(() => _search = "");
+                                      },
+                                    ),
+                                  ]
+                                : null,
                           ),
                         ),
                         const SizedBox(width: 12),
                         // Filter Button
-                        IconButton.filled(
-                          style: IconButton.styleFrom(
-                            backgroundColor:
-                                theme.colorScheme.secondaryContainer,
-                            foregroundColor:
-                                theme.colorScheme.onSecondaryContainer,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
+                        SizedBox(
+                          width: 50,
+                          height: 50,
+                          child: IconButton.filled(
+                            style: IconButton.styleFrom(
+                              backgroundColor:
+                                  theme.colorScheme.secondaryContainer,
+                              foregroundColor:
+                                  theme.colorScheme.onSecondaryContainer,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
                             ),
+                            onPressed: _openFilterSheet,
+                            icon: const Icon(Icons.tune),
                           ),
-                          onPressed: _openFilterSheet,
-                          icon: const Icon(Icons.tune),
                         ),
                         const SizedBox(width: 8),
                         // Sort Button
-                        IconButton.filled(
-                          style: IconButton.styleFrom(
-                            backgroundColor:
-                                theme.colorScheme.secondaryContainer,
-                            foregroundColor:
-                                theme.colorScheme.onSecondaryContainer,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
+                        SizedBox(
+                          width: 50,
+                          height: 50,
+                          child: IconButton.filled(
+                            style: IconButton.styleFrom(
+                              backgroundColor:
+                                  theme.colorScheme.secondaryContainer,
+                              foregroundColor:
+                                  theme.colorScheme.onSecondaryContainer,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
                             ),
+                            onPressed: _openSortSheet,
+                            icon: const Icon(Icons.sort),
                           ),
-                          onPressed: _openSortSheet,
-                          icon: const Icon(Icons.sort),
                         ),
                       ],
                     ),
@@ -218,15 +228,14 @@ class _StaffProductScreenState extends ConsumerState<StaffProductScreen> {
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, _) => Center(child: Text('Error: $e')),
       ),
-      floatingActionButton: FloatingActionButton(
-        backgroundColor: theme.colorScheme.primary, // Yellow
-        foregroundColor: theme.colorScheme.onPrimary, // Black
+      floatingActionButton: FloatingActionButton.extended(
         onPressed: () => Navigator.of(context).push(
           MaterialPageRoute(
             builder: (context) => const StaffProductCreateScreen(),
           ),
         ),
-        child: const Icon(Icons.add),
+        icon: const Icon(Icons.add),
+        label: const Text("Add"), 
       ),
     );
   }

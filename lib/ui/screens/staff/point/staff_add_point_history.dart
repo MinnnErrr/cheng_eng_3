@@ -66,28 +66,20 @@ class _StaffAddPointHistoryScreenState
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // --- 1. SEARCH BAR ---
-              TextField(
+              SearchBar(
                 controller: _searchCtrl,
+                hintText: "Search Customer Email",
                 textInputAction: TextInputAction.search,
                 onSubmitted: (_) => _performSearch(),
-                decoration: InputDecoration(
-                  hintText: "Search customer email...",
-                  prefixIcon: const Icon(Icons.search),
-                  suffixIcon: IconButton(
+
+                // 1. Icons
+                leading: const Icon(Icons.search),
+                trailing: [
+                  IconButton(
                     onPressed: _performSearch,
                     icon: const Icon(Icons.arrow_forward),
                   ),
-                  filled: true,
-                  fillColor: theme.colorScheme.surfaceContainerHigh,
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide.none,
-                  ),
-                  contentPadding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 14,
-                  ),
-                ),
+                ],
               ),
 
               const SizedBox(height: 30),
@@ -275,10 +267,7 @@ class _StaffAddPointHistoryScreenState
           const SizedBox(height: 30),
 
           // --- D. SUBMIT BUTTON ---
-          SizedBox(
-            width: double.infinity,
-            height: 54, // Matching Checkout Button Height
-            child: FilledButton(
+           FilledButton(
               onPressed: _isLoading ? null : () => _submitForm(profile.userId),
               child: _isLoading
                   ? const SizedBox(
@@ -296,7 +285,7 @@ class _StaffAddPointHistoryScreenState
                       style: const TextStyle(fontWeight: FontWeight.bold),
                     ),
             ),
-          ),
+          
         ],
       ),
     );

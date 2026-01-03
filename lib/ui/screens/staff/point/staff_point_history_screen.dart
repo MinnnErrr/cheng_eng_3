@@ -31,7 +31,7 @@ class StaffPointsHistoryScreen extends ConsumerWidget {
                       child: Text('No points history recorded'),
                     )
                   : ListView.separated(
-                      padding: const EdgeInsets.all(20),
+                      padding: const EdgeInsets.fromLTRB(20, 20, 20, 80),
                       itemCount: records.length,
                       itemBuilder: (context, index) {
                         final record = records[index];
@@ -52,13 +52,14 @@ class StaffPointsHistoryScreen extends ConsumerWidget {
           child: CircularProgressIndicator(),
         ),
       ),
-      floatingActionButton: FloatingActionButton(
+      floatingActionButton: FloatingActionButton.extended(
         onPressed: () => Navigator.of(context).push(
           MaterialPageRoute(
             builder: (context) => const StaffAddPointHistoryScreen(),
           ),
         ),
-        child: const Icon(Icons.add),
+        icon: const Icon(Icons.swap_vert),
+        label: const Text("Transaction"),
       ),
     );
   }

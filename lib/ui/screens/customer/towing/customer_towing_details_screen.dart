@@ -77,9 +77,12 @@ class _CustomerTowingDetailsScreenState
                             ),
                           )
                         : const Icon(Icons.cancel_outlined),
-                    label: _isCancelling
-                        ? const Text("Cancelling...")
-                        : const Text("Cancel Request"),
+                    label: const Text(
+                      "CANCEL REQUEST",
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
                   ),
                 )
               else

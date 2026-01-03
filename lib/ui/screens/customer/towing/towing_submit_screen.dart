@@ -267,7 +267,7 @@ class _TowingSubmitScreenState extends ConsumerState<TowingSubmitScreen> {
                             child: CircularProgressIndicator(strokeWidth: 2),
                           )
                         : const Text(
-                            'Submit Request',
+                            'SUBMIT REQUEST',
                             style: TextStyle(
                               fontWeight: FontWeight.bold,
                             ),

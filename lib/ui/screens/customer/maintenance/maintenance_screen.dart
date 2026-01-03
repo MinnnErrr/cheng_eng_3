@@ -48,6 +48,7 @@ class MaintenanceScreen extends ConsumerWidget {
           separatorBuilder: (context, index) => const SizedBox(height: 12),
           itemBuilder: (context, index) {
             final maintenance = list.maintenances[index];
+            
             return MaintenanceListItem(
               maintenance: maintenance,
               tapAction: () => Navigator.of(context).push(

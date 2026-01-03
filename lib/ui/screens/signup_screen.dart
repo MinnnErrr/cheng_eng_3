@@ -4,6 +4,7 @@ import 'package:cheng_eng_3/ui/screens/verify_email_screen.dart';
 import 'package:cheng_eng_3/ui/widgets/snackbar.dart';
 import 'package:cheng_eng_3/ui/widgets/textformfield.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart'; // For Autofill
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class SignupScreen extends ConsumerStatefulWidget {
@@ -32,125 +33,188 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
     final userNotifier = ref.read(authProvider.notifier);
     final userState = ref.watch(authProvider);
     final screenSize = MediaQuery.of(context).size;
+    final theme = Theme.of(context);
 
     return Scaffold(
       backgroundColor: Colors.black,
-      body: 
-      userState.isLoading ?
-      const Center(child: CircularProgressIndicator(),):
-      SafeArea(
-        child: SingleChildScrollView(
+      // 1. SingleChildScrollView wrapping a constrained Column fixes keyboard issues
+      body: SingleChildScrollView(
+        child: SizedBox(
+          height: screenSize.height, // Force full screen height
           child: Column(
             children: [
-              //logo
-              SizedBox(
-                width: double.infinity,
-                child: Image.asset(
-                  'assets/images/cheng_eng_logo.png',
-                  height: screenSize.height * 0.3,
+              // --- TOP: Logo Section (30%) ---
+              Expanded(
+                flex: 3,
+                child: Container(
+                  alignment: Alignment.center,
+                  child: Image.asset(
+                    'assets/images/cheng_eng_logo.png',
+                    height: screenSize.height * 0.25,
+                  ),
                 ),
               ),
 
-              //login form
-              Align(
-                alignment: AlignmentGeometry.bottomCenter,
+              // --- BOTTOM: Form Section (70%) ---
+              Expanded(
+                flex: 7,
                 child: Container(
-                  padding: EdgeInsets.all(20),
-                  width: screenSize.width,
-                  height: screenSize.height * 0.7,
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 24,
+                    vertical: 30,
+                  ),
                   decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.surface,
-                    borderRadius: BorderRadius.only(
-                      topLeft: Radius.circular(20),
-                      topRight: Radius.circular(20),
+                    color: theme.colorScheme.surface,
+                    borderRadius: const BorderRadius.only(
+                      topLeft: Radius.circular(30),
+                      topRight: Radius.circular(30),
                     ),
                   ),
                   child: Form(
                     key: _formKey,
                     child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      spacing: 30,
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        Align(
-                          alignment: AlignmentGeometry.centerLeft,
-                          child: Text(
-                            'Sign Up',
-                            style:
-                                Theme.of(
-                                  context,
-                                ).textTheme.titleLarge!.copyWith(
-                                  fontWeight: FontWeight.bold,
-                                ),
+                        Text(
+                          'Sign Up',
+                          style: theme.textTheme.headlineMedium!.copyWith(
+                            fontWeight: FontWeight.bold,
+                            color: theme.colorScheme.onSurface,
                           ),
                         ),
-                        textFormField(
+                        const SizedBox(height: 30),
+
+                        // Email
+                        TextFormField(
                           controller: _emailController,
-                          label: 'Email',
+                          decoration: InputDecoration(
+                            label: const Text('Email'),
+                            prefixIcon: const Icon(Icons.email_outlined),
+                          ),
+
+                          keyboardType: TextInputType.emailAddress,
+                          textInputAction: TextInputAction.next,
+                          autofillHints: const [AutofillHints.email],
                         ),
-                        textFormField(
-                          obscure: _obscurePassword,
+
+                        const SizedBox(height: 20),
+
+                        // Password
+                        TextFormField(
                           controller: _passwordController,
-                          label: 'Password',
-                          suffix: IconButton(
-                            onPressed: () {
-                              setState(() {
-                                _obscurePassword = !_obscurePassword;
-                              });
-                            },
-                            icon: Icon(
-                              _obscurePassword
-                                  ? Icons.visibility_off
-                                  : Icons.visibility,
+                          decoration: InputDecoration(
+                            label: const Text('Password'),
+                            prefixIcon: const Icon(Icons.lock_outline),
+                            suffixIcon: GestureDetector(
+                              onTap: () {
+                                setState(() {
+                                  _obscurePassword = !_obscurePassword;
+                                });
+                              },
+                              child: Icon(
+                                _obscurePassword
+                                    ? Icons.visibility_off
+                                    : Icons.visibility,
+                              ),
                             ),
                           ),
+
+                          obscureText: _obscurePassword,
+
+                          textInputAction: TextInputAction.done,
+                          autofillHints: const [AutofillHints.newPassword],
+
+                          // 2. Fixed: Use suffixIcon for proper alignment
                         ),
-                        ElevatedButton(
-                          onPressed: () async {
-                            if (!_formKey.currentState!.validate()) return;
 
-                            final res = await userNotifier.signUp(
-                              _emailController.text.trim(),
-                              _passwordController.text.trim(),
-                            );
+                        const SizedBox(height: 40),
 
-                            if (!context.mounted) return;
+                        // Sign Up Button (With Loading State inside)
+                        SizedBox(
+                          height: 50,
+                          child: FilledButton(
+                            onPressed: userState.isLoading
+                                ? null
+                                : () async {
+                                    if (!_formKey.currentState!.validate())
+                                      return;
 
-                            if (res == null) {
-                              showAppSnackBar(
-                                content:
-                                    'Account created. Please verify you email.',
-                                isError: false,
-                                context: context,
-                              );
+                                    // Close keyboard
+                                    FocusScope.of(context).unfocus();
 
-                              Navigator.of(context).pushReplacement(
-                                MaterialPageRoute(
-                                  builder: (context) => VerifyEmailScreen(
-                                    email: _emailController.text.trim(),
+                                    final res = await userNotifier.signUp(
+                                      _emailController.text.trim(),
+                                      _passwordController.text.trim(),
+                                    );
+
+                                    if (!context.mounted) return;
+
+                                    if (res == null) {
+                                      // Success
+                                      showAppSnackBar(
+                                        content:
+                                            'Account created. Please verify your email.',
+                                        isError: false,
+                                        context: context,
+                                      );
+
+                                      Navigator.of(context).pushReplacement(
+                                        MaterialPageRoute(
+                                          builder: (context) =>
+                                              VerifyEmailScreen(
+                                                email: _emailController.text
+                                                    .trim(),
+                                              ),
+                                        ),
+                                      );
+                                    } else {
+                                      // Error
+                                      showAppSnackBar(
+                                        content: res,
+                                        isError: true,
+                                        context: context,
+                                      );
+                                    }
+                                  },
+                            child: userState.isLoading
+                                ? const SizedBox(
+                                    width: 24,
+                                    height: 24,
+                                    child: CircularProgressIndicator(
+                                      color: Colors.white,
+                                      strokeWidth: 2,
+                                    ),
+                                  )
+                                : const Text(
+                                    'SIGN UP',
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                    ),
                                   ),
-                                ),
-                              );
-                            } else {
-                              showAppSnackBar(
-                                content: res,
-                                isError: true,
-                                context: context,
-                              );
-                            }
-                          },
-                          child: Text('Sign Up'),
+                          ),
                         ),
+
+                        const Spacer(),
+
+                        // Login Link
                         Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Text("Have an account"),
-                            TextButton(
-                              onPressed: () => Navigator.of(context).push(
-                                MaterialPageRoute(
-                                  builder: (context) => LoginScreen(),
-                                ),
+                            Text(
+                              "Have an account?",
+                              style: TextStyle(
+                                color: theme.colorScheme.onSurfaceVariant,
                               ),
-                              child: Text('Log In Now'),
+                            ),
+                            TextButton(
+                              onPressed: () =>
+                                  Navigator.of(context).pushReplacement(
+                                    MaterialPageRoute(
+                                      builder: (context) => const LoginScreen(),
+                                    ),
+                                  ),
+                              child: const Text('Log In Now'),
                             ),
                           ],
                         ),

@@ -112,12 +112,14 @@ class RewardListitem extends ConsumerWidget {
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          'Code: #${reward.code}',
+                          '#${reward.code}',
                           style: theme.textTheme.bodySmall?.copyWith(
                             color: theme.colorScheme.onSurfaceVariant,
+                            fontFamily:
+                                'monospace', // Makes code look technical
                           ),
                         ),
-                        const SizedBox(height: 8),
+                        const SizedBox(height: 10),
                         Text(
                           '${reward.points} pts',
                           style: theme.textTheme.titleMedium?.copyWith(
@@ -146,11 +148,6 @@ class RewardListitem extends ConsumerWidget {
                                   ? Colors.green.withOpacity(0.1)
                                   : theme.colorScheme.errorContainer,
                               borderRadius: BorderRadius.circular(6),
-                              border: Border.all(
-                                color: reward.status
-                                    ? Colors.green
-                                    : theme.colorScheme.error,
-                              ),
                             ),
                             child: Text(
                               reward.status ? 'Active' : 'Inactive',

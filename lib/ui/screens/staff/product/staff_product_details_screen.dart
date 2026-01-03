@@ -280,8 +280,8 @@ class _StaffProductDetailsScreenState
                               // Header Info
                               Text(
                                 '${displayedProduct.brand} ${displayedProduct.name} ${displayedProduct.model ?? ''}',
-                                style: theme.textTheme.headlineSmall!.copyWith(
-                                  fontWeight: FontWeight.w800,
+                                style: theme.textTheme.titleLarge!.copyWith(
+                                  fontWeight: FontWeight.bold,
                                   height: 1.2,
                                 ),
                               ),

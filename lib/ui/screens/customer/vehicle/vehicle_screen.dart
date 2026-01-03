@@ -33,7 +33,7 @@ class VehicleScreen extends ConsumerWidget {
                   )
                 : SafeArea(
                     child: ListView.separated(
-                      padding: const EdgeInsets.all(20),
+                      padding: const EdgeInsets.fromLTRB(20, 20, 20, 80),
                       // FIX: Ensure physics allows scrolling even if list is short
                       physics: const AlwaysScrollableScrollPhysics(),
                       itemCount: vehicles.length,
@@ -85,13 +85,14 @@ class VehicleScreen extends ConsumerWidget {
         ),
         loading: () => const Center(child: CircularProgressIndicator()),
       ),
-      floatingActionButton: FloatingActionButton(
+      floatingActionButton: FloatingActionButton.extended(
         onPressed: () => Navigator.of(context).push(
           MaterialPageRoute(
             builder: (context) => const VehicleCreateScreen(),
           ),
         ),
-        child: const Icon(Icons.add),
+        icon: const Icon(Icons.add),
+        label: const Text('Add'),
       ),
     );
   }

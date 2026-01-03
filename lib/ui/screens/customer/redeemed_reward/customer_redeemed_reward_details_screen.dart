@@ -423,6 +423,7 @@ class _CustomerRedeemedRewardDetailsScreenState
                   version: QrVersions.auto,
                   size: 200,
                   backgroundColor: Colors.white,
+                  errorCorrectionLevel: QrErrorCorrectLevel.M,
                 ),
               ),
 

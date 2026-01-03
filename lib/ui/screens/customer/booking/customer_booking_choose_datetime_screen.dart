@@ -2,7 +2,6 @@ import 'package:cheng_eng_3/core/controllers/booking/booking_by_date_provider.da
 import 'package:cheng_eng_3/core/controllers/booking/booking_state_notifier.dart';
 import 'package:cheng_eng_3/ui/screens/customer/booking/customer_booking_submit_screen.dart';
 import 'package:cheng_eng_3/ui/widgets/datepicker.dart';
-import 'package:cheng_eng_3/ui/widgets/textformfield.dart';
 import 'package:cheng_eng_3/utils/booking_time_slot.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -18,8 +17,9 @@ class CustomerBookingChooseDatetimeScreen extends ConsumerStatefulWidget {
 
 class _CustomerBookingChooseDatetimeScreenState
     extends ConsumerState<CustomerBookingChooseDatetimeScreen> {
-  final _dateCtrl = TextEditingController();
-  final _dateFormatter = DateFormat('dd/MM/yyyy');
+  final _dateFormatter = DateFormat(
+    'dd MMM yyyy, EEEE',
+  ); // Example: 12 Oct 2023, Thursday
   final slots = generateTimeSlots();
 
   DateTime? _selectedDate;
@@ -28,174 +28,271 @@ class _CustomerBookingChooseDatetimeScreenState
   @override
   void initState() {
     super.initState();
-    // FIX 1: RESTORE STATE
-    // Check if we already have data in the provider (e.g. user pressed Back)
+    // 1. Restore State
     final currentBooking = ref.read(bookingStateProvider);
     if (currentBooking.date != null) {
       _selectedDate = currentBooking.date;
-      _dateCtrl.text = _dateFormatter.format(_selectedDate!);
     }
     if (currentBooking.time != null) {
       _selectedTime = currentBooking.time;
-      // Assuming timeSlot is stored as "HH:mm" String in provider, parse it back
-      // If you stored it as TimeOfDay, just assign it directly.
-      // _selectedTime = ...
+    }
+  }
+
+  Future<void> _pickDate() async {
+    final date = await datePicker(DateTime.now(), context);
+    if (date != null) {
+      setState(() {
+        _selectedDate = date;
+        _selectedTime = null; // Reset time if date changes
+      });
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    // FIX 2: FETCH AVAILABILITY
-    // Only fetch if a date is selected
+    final theme = Theme.of(context);
+
+    // 2. Fetch Availability
     final availabilityAsync = _selectedDate == null
-        ? const AsyncValue.data({}) // Empty map if no date
+        ? const AsyncValue.data({})
         : ref.watch(bookingPerSlotProvider(_selectedDate!));
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Choose a Date and Time')),
+      backgroundColor: theme.colorScheme.surface,
+      appBar: AppBar(
+        title: const Text('Select Date & Time'),
+      ),
       body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // --- DATE PICKER ---
-              textFormField(
-                validationRequired: false,
-                controller: _dateCtrl,
-                label: 'Date',
-                readOnly: true,
-                suffix: IconButton(
-                  onPressed: () async {
-                    final date = await datePicker(DateTime.now(), context);
-                    if (date != null) {
-                      setState(() {
-                        _selectedDate = date;
-                        _selectedTime = null; // Reset time if date changes
-                        _dateCtrl.text = _dateFormatter.format(date);
-                      });
-                    }
-                  },
-                  icon: const Icon(Icons.calendar_month),
-                ),
+        child: Column(
+          children: [
+            // --- DATE SELECTION ---
+            Container(
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: theme.colorScheme.surface,
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.05),
+                    blurRadius: 10,
+                    offset: const Offset(0, 5),
+                  ),
+                ],
               ),
-
-              const SizedBox(height: 30),
-              const Text(
-                'Choose a time slot',
-                style: TextStyle(fontWeight: FontWeight.bold),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    "Date",
+                    style: theme.textTheme.titleSmall?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  InkWell(
+                    onTap: _pickDate,
+                    borderRadius: BorderRadius.circular(12),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 14,
+                      ),
+                      decoration: BoxDecoration(
+                        color: theme.colorScheme.surfaceContainer,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: theme.colorScheme.outlineVariant,
+                        ),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.calendar_today,
+                            color: theme.colorScheme.primary,
+                          ),
+                          const SizedBox(width: 12),
+                          Text(
+                            _selectedDate == null
+                                ? "Select a date"
+                                : _dateFormatter.format(_selectedDate!),
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w500,
+                              color: _selectedDate == null
+                                  ? theme.colorScheme.onSurfaceVariant
+                                  : theme.colorScheme.onSurface,
+                            ),
+                          ),
+                          const Spacer(),
+                          Icon(
+                            Icons.arrow_drop_down,
+                            color: theme.colorScheme.onSurfaceVariant,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
               ),
-              const SizedBox(height: 10),
+            ),
 
-              // --- TIME SLOT GRID ---
-              Expanded(
-                child: _selectedDate == null
-                    ? const Center(child: Text("Please select a date first"))
-                    : availabilityAsync.when(
-                        loading: () =>
-                            const Center(child: CircularProgressIndicator()),
-                        error: (err, stack) =>
-                            Center(child: Text('Error: $err')),
-                        data: (slotCounts) {
-                          return GridView.builder(
-                            // Builder is more efficient
-                            gridDelegate:
-                                const SliverGridDelegateWithFixedCrossAxisCount(
-                                  crossAxisCount:
-                                      3, // FIX 3: 3 Columns looks better
-                                  crossAxisSpacing: 10,
-                                  mainAxisSpacing: 10,
-                                  childAspectRatio:
-                                      2.0, // Make them wider rectangles
-                                ),
-                            itemCount: slots.length,
-                            itemBuilder: (context, index) {
-                              final time = slots[index];
-                              final isSelected = _selectedTime == time;
+            // --- TIME SLOT GRID ---
+            Expanded(
+              child: _selectedDate == null
+                  ? Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.event_busy,
+                            size: 48,
+                            color: theme.colorScheme.outline.withOpacity(0.5),
+                          ),
+                          const SizedBox(height: 16),
+                          Text(
+                            "Please select a date to view slots",
+                            style: TextStyle(
+                              color: theme.colorScheme.onSurfaceVariant,
+                            ),
+                          ),
+                        ],
+                      ),
+                    )
+                  : availabilityAsync.when(
+                      loading: () =>
+                          const Center(child: CircularProgressIndicator()),
+                      error: (err, stack) => Center(child: Text('Error: $err')),
+                      data: (slotCounts) {
+                        return ListView(
+                          padding: const EdgeInsets.all(20),
+                          children: [
+                            Text(
+                              "Available Slots",
+                              style: theme.textTheme.titleSmall?.copyWith(
+                                fontWeight: FontWeight.bold,
+                                color: theme.colorScheme.onSurfaceVariant,
+                              ),
+                            ),
+                            const SizedBox(height: 16),
+                            Wrap(
+                              spacing: 12,
+                              runSpacing: 12,
+                              children: slots.map((time) {
+                                final isSelected = _selectedTime == time;
+                                final currentBookings = slotCounts[time] ?? 0;
+                                final isFull =
+                                    currentBookings >= 5; // Max Capacity
 
-                              // LOGIC: Check if fully booked
-                              // Change '>= 1' to whatever your max capacity is per slot
-                              final currentBookings = slotCounts[time] ?? 0;
-                              final isFull = currentBookings >= 5;
-
-                              return InkWell(
-                                onTap: isFull
-                                    ? null // Disable tap if full
-                                    : () =>
-                                          setState(() => _selectedTime = time),
-                                child: Container(
-                                  decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.circular(8),
-                                    color: isFull
-                                        ? Colors
-                                              .grey
-                                              .shade300 // Grey out if full
-                                        : (isSelected
-                                              ? Theme.of(
-                                                  context,
-                                                ).colorScheme.primary
-                                              : Colors.white),
-                                    border: Border.all(
-                                      color: isFull
-                                          ? Colors.transparent
-                                          : Theme.of(
-                                              context,
-                                            ).colorScheme.primary,
+                                return InkWell(
+                                  onTap: isFull
+                                      ? null
+                                      : () => setState(
+                                          () => _selectedTime = time,
+                                        ),
+                                  borderRadius: BorderRadius.circular(20),
+                                  child: Container(
+                                    width:
+                                        (MediaQuery.of(context).size.width -
+                                            64) /
+                                        3, // 3 cols approx
+                                    padding: const EdgeInsets.symmetric(
+                                      vertical: 12,
                                     ),
-                                  ),
-                                  child: Center(
-                                    child: Text(
-                                      '${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}',
-                                      style: TextStyle(
-                                        fontWeight: isSelected
-                                            ? FontWeight.bold
-                                            : FontWeight.normal,
-                                        color: isFull
-                                            ? Colors.grey.shade500
-                                            : (isSelected
-                                                  ? Colors.white
-                                                  : Theme.of(
-                                                      context,
-                                                    ).colorScheme.primary),
+                                    decoration: BoxDecoration(
+                                      color: isFull
+                                          ? theme
+                                                .colorScheme
+                                                .surfaceContainerHigh
+                                          : isSelected
+                                          ? theme.colorScheme.primary
+                                          : theme.colorScheme.surfaceContainer,
+                                      borderRadius: BorderRadius.circular(12),
+                                      border: Border.all(
+                                        color: isSelected
+                                            ? theme.colorScheme.primary
+                                            : theme.colorScheme.outlineVariant,
                                       ),
                                     ),
+                                    child: Column(
+                                      children: [
+                                        Text(
+                                          '${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}',
+                                          style: TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            color: isFull
+                                                ? theme
+                                                      .colorScheme
+                                                      .onSurfaceVariant
+                                                : isSelected
+                                                ? theme.colorScheme.onPrimary
+                                                : theme.colorScheme.onSurface,
+                                          ),
+                                        ),
+                                        if (isFull)
+                                          Text(
+                                            "FULL",
+                                            style: TextStyle(
+                                              fontSize: 10,
+                                              color: theme.colorScheme.error,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                      ],
+                                    ),
                                   ),
-                                ),
-                              );
-                            },
-                          );
-                        },
-                      ),
-              ),
-            ],
-          ),
+                                );
+                              }).toList(),
+                            ),
+                          ],
+                        );
+                      },
+                    ),
+            ),
+          ],
         ),
       ),
-      bottomNavigationBar: Padding(
+
+      // --- BOTTOM BAR ---
+      bottomNavigationBar: Container(
         padding: const EdgeInsets.all(20),
-        child: ElevatedButton(
-          onPressed: (_selectedDate == null || _selectedTime == null)
-              ? null
-              : () {
-                  // Save to Riverpod
-                  ref
-                      .read(bookingStateProvider.notifier)
-                      .selectDate(
-                        _selectedDate!,
-                      ); // Assuming you updated your notifier signature
+        decoration: BoxDecoration(
+          color: theme.colorScheme.surface,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.05),
+              blurRadius: 10,
+              offset: const Offset(0, -5),
+            ),
+          ],
+        ),
+        child: SafeArea(
+          child: FilledButton(
+            onPressed: (_selectedDate == null || _selectedTime == null)
+                ? null
+                : () {
+                    // Update State
+                    ref
+                        .read(bookingStateProvider.notifier)
+                        .selectDate(_selectedDate!);
+                    ref
+                        .read(bookingStateProvider.notifier)
+                        .selectTime(_selectedTime!);
 
-                  ref
-                      .read(bookingStateProvider.notifier)
-                      .selectTime(_selectedTime!);
+                    // Navigate
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) =>
+                            const CustomerBookingSubmitScreen(),
+                      ),
+                    );
+                  },
 
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const CustomerBookingSubmitScreen(),
-                    ),
-                  );
-                },
-          child: const Text("Next"),
+            child: const Text(
+              "REVIEW BOOKING",
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
+          ),
         ),
       ),
     );

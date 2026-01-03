@@ -333,29 +333,25 @@ class _StaffProductUpdateState extends ConsumerState<StaffProductUpdateScreen> {
 
                 const SizedBox(height: 40),
 
-                SizedBox(
-                  width: double.infinity,
-                  height: 54,
-                  child: FilledButton(
-                    onPressed: _isLoading ? null : _submitUpdate,
+                FilledButton(
+                  onPressed: _isLoading ? null : _submitUpdate,
 
-                    child: _isLoading
-                        ? const SizedBox(
-                            width: 24,
-                            height: 24,
-                            child: CircularProgressIndicator(
-                              color: Colors.black,
-                              strokeWidth: 2,
-                            ),
-                          )
-                        : Text(
-                            'UPDATE PRODUCT',
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              color: theme.colorScheme.onPrimary,
-                            ),
+                  child: _isLoading
+                      ? const SizedBox(
+                          width: 24,
+                          height: 24,
+                          child: CircularProgressIndicator(
+                            color: Colors.black,
+                            strokeWidth: 2,
                           ),
-                  ),
+                        )
+                      : Text(
+                          'UPDATE PRODUCT',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: theme.colorScheme.onPrimary,
+                          ),
+                        ),
                 ),
 
                 const SizedBox(height: 40),

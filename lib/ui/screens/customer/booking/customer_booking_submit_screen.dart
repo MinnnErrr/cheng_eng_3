@@ -21,18 +21,20 @@ class CustomerBookingSubmitScreen extends ConsumerStatefulWidget {
 class _CustomerBookingSubmitScreenState
     extends ConsumerState<CustomerBookingSubmitScreen> {
   final _remarksCtrl = TextEditingController();
+  bool _isLoading = false; // 1. Added Loading State
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     final bookingState = ref.watch(bookingStateProvider);
-    final dateFormatter = DateFormat('dd/MM/yyyy');
+    final dateFormatter = DateFormat('dd MMM yyyy'); // Nice format: 12 Oct 2023
 
     final user = ref.watch(authProvider).value;
     if (user == null) {
       return const Scaffold(body: Center(child: Text('No user found')));
     }
 
-    // 1. PREPARE SERVICE LIST STRING
+    // Prepare Data
     final servicesList = bookingState.services ?? [];
     final servicesString = servicesList.isEmpty
         ? 'None'
@@ -41,8 +43,9 @@ class _CustomerBookingSubmitScreenState
     final vehicle = bookingState.vehicle;
 
     return Scaffold(
+      backgroundColor: theme.colorScheme.surface,
       appBar: AppBar(
-        title: const Text('Submit Booking'),
+        title: const Text('Review Booking'),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20),
@@ -50,13 +53,8 @@ class _CustomerBookingSubmitScreenState
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // --- SECTION 1: VEHICLE ---
-            Text(
-              'Vehicle Details',
-              style: Theme.of(
-                context,
-              ).textTheme.bodyLarge!.copyWith(fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 10),
+            _SectionHeader(title: "Vehicle"),
+            const SizedBox(height: 12),
             vehicle != null
                 ? VehicleListitem(
                     model: vehicle.model,
@@ -67,16 +65,24 @@ class _CustomerBookingSubmitScreenState
                     photoPath: vehicle.photoPath,
                   )
                 : Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.all(15),
                     decoration: BoxDecoration(
-                      color: Theme.of(context).colorScheme.errorContainer,
-                      borderRadius: BorderRadius.circular(15),
+                      color: theme.colorScheme.surfaceContainer,
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(
+                        color: theme.colorScheme.outlineVariant,
+                      ),
                     ),
-                    child: Text(
-                      'No vehicle selected',
-                      style: TextStyle(
-                        color: Theme.of(context).colorScheme.onErrorContainer,
+                    child: Padding(
+                      padding: const EdgeInsets.all(20),
+                      child: Row(
+                        children: [
+                          Icon(Icons.error, color: theme.colorScheme.error),
+                          const SizedBox(width: 10),
+                          Text(
+                            'No vehicle selected',
+                            style: TextStyle(color: theme.colorScheme.error),
+                          ),
+                        ],
                       ),
                     ),
                   ),
@@ -84,142 +90,203 @@ class _CustomerBookingSubmitScreenState
             const SizedBox(height: 30),
 
             // --- SECTION 2: BOOKING INFO ---
-            Text(
-              'Booking Details',
-              style: Theme.of(
-                context,
-              ).textTheme.bodyLarge!.copyWith(fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 10),
+            _SectionHeader(title: "Appointment Details"),
+            const SizedBox(height: 12),
             Container(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.surfaceContainerLowest,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Colors.grey.shade300),
+                color: theme.colorScheme.surfaceContainer,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: theme.colorScheme.outlineVariant),
               ),
               child: Column(
                 children: [
-                  // FIX 2: Pass the generated string here
                   _buildSummaryRow(
-                    'Services',
-                    servicesString,
-                  ),
-                  const Divider(),
-                  _buildSummaryRow(
-                    'Date',
+                    context,
+                    "Date",
                     bookingState.date != null
                         ? dateFormatter.format(bookingState.date!)
-                        : 'None',
+                        : "-",
+                    icon: Icons.calendar_today,
                   ),
-                  const Divider(),
+                  const Padding(
+                    padding: EdgeInsets.symmetric(vertical: 8),
+                    child: Divider(),
+                  ),
                   _buildSummaryRow(
-                    'Time',
+                    context,
+                    "Time",
                     bookingState.time != null
                         ? bookingState.time!.format(context)
-                        : 'None',
+                        : "-",
+                    icon: Icons.access_time,
+                  ),
+                  const Padding(
+                    padding: EdgeInsets.symmetric(vertical: 8),
+                    child: Divider(),
+                  ),
+                  _buildSummaryRow(
+                    context,
+                    "Services",
+                    servicesString,
+                    icon: Icons.build_circle_outlined,
                   ),
                 ],
               ),
             ),
 
-            const SizedBox(height: 20),
+            const SizedBox(height: 30),
 
             // --- SECTION 3: REMARKS ---
+            _SectionHeader(title: "Additional Notes"),
+            const SizedBox(height: 12),
             textFormField(
               controller: _remarksCtrl,
               label: 'Remarks (Optional)',
+              hint: "Any specific issues or requests...",
               minLines: 3,
-              maxLines: null,
+              maxLines: 5,
               validationRequired: false,
             ),
 
-            const SizedBox(height: 30),
+            const SizedBox(height: 40),
 
             // --- SUBMIT BUTTON ---
             SizedBox(
               width: double.infinity,
-              height: 50,
-              child: ElevatedButton(
-                onPressed: () async {
-                  // Guard Clause
-                  if (bookingState.vehicle == null ||
-                      bookingState.services == null ||
-                      bookingState.services!.isEmpty ||
-                      bookingState.date == null ||
-                      bookingState.time == null) {
-                    showAppSnackBar(
-                      context: context,
-                      content: 'Please complete all booking details.',
-                      isError: true,
-                    );
-                    return;
-                  }
+              height: 54,
+              child: FilledButton(
+                onPressed: _isLoading ? null : () => _submitBooking(user.id),
 
-                  final notifier = ref.read(
-                    customerBookingProvider(user.id).notifier,
-                  );
-
-                  final message = await notifier.addBooking(
-                    services: bookingState.services!,
-                    date: bookingState.date!,
-                    time: bookingState.time!,
-                    remarks: _remarksCtrl.text.trim().isNotEmpty
-                        ? _remarksCtrl.text.trim()
-                        : null,
-                    vehicle: bookingState.vehicle!,
-                  );
-
-                  if (!context.mounted) return;
-
-                  showAppSnackBar(
-                    context: context,
-                    content: message.message,
-                    isError: !message.isSuccess,
-                  );
-
-                  if (message.isSuccess) {
-                    ref.read(bookingStateProvider.notifier).reset();
-
-                    // 1. Clear the history stack down to the Home Screen
-                    Navigator.of(context).popUntil((route) => route.isFirst);
-
-                    // 2. Open the Booking Screen on top of Home
-                    Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (context) => const CustomerBookingScreen(),
+                child: _isLoading
+                    ? const SizedBox(
+                        width: 24,
+                        height: 24,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: Colors.black, // Contrast on Yellow
+                        ),
+                      )
+                    : const Text(
+                        "CONFIRM BOOKING",
+                        style: TextStyle(fontWeight: FontWeight.bold),
                       ),
-                    );
-                  }
-                },
-                child: const Text('Confirm Booking'),
               ),
             ),
+            const SizedBox(height: 20),
           ],
         ),
       ),
     );
   }
 
-  // FIX 3: Updated Helper Widget to handle Long Text (Wrapping)
-  Widget _buildSummaryRow(String label, String value) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8.0),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        crossAxisAlignment: CrossAxisAlignment.start, // Align to top
-        children: [
-          Text(label, style: const TextStyle(color: Colors.grey)),
-          const SizedBox(width: 15), // Spacing between label and value
-          Expanded(
-            // Allows text to wrap if list is long
-            child: Text(
-              value,
-              textAlign: TextAlign.end, // Align value to the right
-              style: const TextStyle(fontWeight: FontWeight.bold),
+  Future<void> _submitBooking(String userId) async {
+    final bookingState = ref.read(bookingStateProvider);
+
+    // Guard Clause
+    if (bookingState.vehicle == null ||
+        bookingState.services == null ||
+        bookingState.services!.isEmpty ||
+        bookingState.date == null ||
+        bookingState.time == null) {
+      showAppSnackBar(
+        context: context,
+        content: 'Missing details. Please restart booking.',
+        isError: true,
+      );
+      return;
+    }
+
+    setState(() => _isLoading = true);
+
+    // 2. Safe access to provider (Consider using watch in build if this crashes)
+    final notifier = ref.read(customerBookingProvider(userId).notifier);
+
+    final message = await notifier.addBooking(
+      services: bookingState.services!,
+      date: bookingState.date!,
+      time: bookingState.time!,
+      remarks: _remarksCtrl.text.trim().isNotEmpty
+          ? _remarksCtrl.text.trim()
+          : null,
+      vehicle: bookingState.vehicle!,
+    );
+
+    if (!mounted) return;
+
+    setState(() => _isLoading = false);
+
+    showAppSnackBar(
+      context: context,
+      content: message.message,
+      isError: !message.isSuccess,
+    );
+
+    if (message.isSuccess) {
+      // 3. Reset & Navigate
+      ref.read(bookingStateProvider.notifier).reset();
+
+      // Clear stack back to Home, then open My Bookings
+      Navigator.of(context).popUntil((route) => route.isFirst);
+
+      Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (context) => const CustomerBookingScreen(),
+        ),
+      );
+    }
+  }
+
+  Widget _buildSummaryRow(
+    BuildContext context,
+    String label,
+    String value, {
+    required IconData icon,
+  }) {
+    final theme = Theme.of(context);
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Icon(icon, size: 20, color: theme.colorScheme.onSurfaceVariant),
+        const SizedBox(width: 12),
+        SizedBox(
+          width: 80,
+          child: Text(
+            label,
+            style: TextStyle(
+              color: theme.colorScheme.onSurfaceVariant,
+              fontWeight: FontWeight.w500,
             ),
           ),
-        ],
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Text(
+            value,
+            textAlign: TextAlign.left,
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              color: theme.colorScheme.onSurface,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+// Simple Header Component
+class _SectionHeader extends StatelessWidget {
+  final String title;
+  const _SectionHeader({required this.title});
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(
+      title,
+      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+        fontWeight: FontWeight.bold,
+        color: Theme.of(context).colorScheme.onSurface,
       ),
     );
   }

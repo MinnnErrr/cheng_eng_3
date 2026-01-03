@@ -51,7 +51,7 @@ class TowingScreen extends ConsumerWidget {
                   )
                 : SafeArea(
                     child: ListView.separated(
-                      padding: const EdgeInsets.all(20),
+                      padding: const EdgeInsets.fromLTRB(20, 20, 20, 80),
                       physics: const AlwaysScrollableScrollPhysics(),
                       itemCount: towings.length,
                       separatorBuilder: (context, index) =>
@@ -88,16 +88,14 @@ class TowingScreen extends ConsumerWidget {
         ),
         loading: () => const Center(child: CircularProgressIndicator()),
       ),
-      floatingActionButton: FloatingActionButton(
-        // Yellow FAB
-        backgroundColor: Theme.of(context).colorScheme.primary,
-        foregroundColor: Theme.of(context).colorScheme.onPrimary,
+      floatingActionButton: FloatingActionButton.extended(
         onPressed: () => Navigator.of(context).push(
           MaterialPageRoute(
             builder: (context) => const TowingMapScreen(),
           ),
         ),
-        child: const Icon(Icons.add),
+        icon: const Icon(Icons.add),
+        label: const Text('Request'),
       ),
     );
   }

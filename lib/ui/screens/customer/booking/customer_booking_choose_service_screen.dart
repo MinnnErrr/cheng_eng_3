@@ -17,34 +17,38 @@ class _CustomerBookingChooseServiceScreenState
     extends ConsumerState<CustomerBookingChooseServiceScreen> {
   @override
   Widget build(BuildContext context) {
-    // 1. Watch the state
+    final theme = Theme.of(context);
     final bookingState = ref.watch(bookingStateProvider);
     final selectedServices = bookingState.services ?? [];
 
     return Scaffold(
+      backgroundColor: theme.colorScheme.surface,
       appBar: AppBar(
-        title: const Text('Choose Services'),
+        title: const Text('Select Services'),
       ),
       body: SafeArea(
         child: Column(
           children: [
+            // --- HEADER ---
             Padding(
-              padding: const EdgeInsets.symmetric(vertical: 10),
+              padding: const EdgeInsets.symmetric(vertical: 16),
               child: Text(
-                "Select one or more services",
-                style: Theme.of(
-                  context,
-                ).textTheme.bodyMedium?.copyWith(color: Colors.grey),
+                "Choose one or more services for your vehicle",
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
               ),
             ),
+
+            // --- GRID ---
             Expanded(
               child: GridView.builder(
-                padding: const EdgeInsets.all(20),
+                padding: const EdgeInsets.symmetric(horizontal: 20),
                 gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                   crossAxisCount: 2,
-                  crossAxisSpacing: 20,
-                  mainAxisSpacing: 20,
-                  childAspectRatio: 1,
+                  crossAxisSpacing: 16,
+                  mainAxisSpacing: 16,
+                  childAspectRatio: 1.0, // Square cards
                 ),
                 itemCount: BookingServiceType.values.length,
                 itemBuilder: (context, index) {
@@ -57,89 +61,72 @@ class _CustomerBookingChooseServiceScreenState
                           .read(bookingStateProvider.notifier)
                           .selectService(type);
                     },
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(16),
                     child: AnimatedContainer(
                       duration: const Duration(milliseconds: 200),
                       decoration: BoxDecoration(
-                        color: isSelected
-                            ? Theme.of(context).colorScheme.primaryContainer
-                            : Theme.of(context).colorScheme.surfaceContainer,
-                        borderRadius: BorderRadius.circular(12),
+                        color: theme.colorScheme.surfaceContainer,
+                        borderRadius: BorderRadius.circular(16),
                         border: Border.all(
                           color: isSelected
-                              ? Theme.of(context).colorScheme.primary
-                              : Theme.of(context).colorScheme.outlineVariant,
+                              ? theme.colorScheme.primary
+                              : theme.colorScheme.outlineVariant,
                           width: isSelected ? 2 : 1,
                         ),
                       ),
-                      // ClipRRect ensures the image doesn't spill out of the rounded corners
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(10),
-                        child: Stack(
-                          children: [
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment
-                                  .stretch, // 1. Stretch width
-                              children: [
-                                // 2. Image takes up most of the space (e.g., 75%)
-                                Expanded(
-                                  flex: 3,
+                      child: Stack(
+                        children: [
+                          // Content
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              Expanded(
+                                flex: 3,
+                                child: ClipRRect(
+                                  borderRadius: const BorderRadius.vertical(
+                                    top: Radius.circular(14),
+                                  ),
                                   child: Image.asset(
-                                    type.picture,
-                                    fit: BoxFit
-                                        .cover, // 3. Cover fills the space without distortion
-                                    // Remove width: 80 and height: 80
-                                  ),
-                                ),
-                                // 4. Text takes up the bottom area (e.g., 25%)
-                                Expanded(
-                                  flex: 1,
-                                  child: Container(
-                                    color: isSelected
-                                        ? Colors.white.withValues(alpha: 0.5)
-                                        : Colors
-                                              .transparent, // Optional: background for text
-                                    alignment: Alignment.center,
-                                    child: Text(
-                                      type.name,
-                                      style: TextStyle(
-                                        fontWeight: isSelected
-                                            ? FontWeight.bold
-                                            : FontWeight.normal,
-                                        color: isSelected
-                                            ? Theme.of(
-                                                context,
-                                              ).colorScheme.primary
-                                            : Colors.black,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-
-                            // Checkmark Overlay
-                            if (isSelected)
-                              Positioned(
-                                top: 8,
-                                right: 8,
-                                child: Container(
-                                  padding: const EdgeInsets.all(4),
-                                  decoration: BoxDecoration(
-                                    color: Theme.of(
-                                      context,
-                                    ).colorScheme.primary,
-                                    shape: BoxShape.circle,
-                                  ),
-                                  child: const Icon(
-                                    Icons.check,
-                                    size: 16,
-                                    color: Colors.white,
+                                    type.picture, // Ensure extension exists
+                                    fit: BoxFit.cover,
                                   ),
                                 ),
                               ),
-                          ],
-                        ),
+                              Expanded(
+                                flex: 1,
+                                child: Center(
+                                  child: Text(
+                                    type.name, // Ensure extension exists
+                                    textAlign: TextAlign.center,
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      color: theme.colorScheme.onSurface,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+
+                          // Checkmark Icon
+                          if (isSelected)
+                            Positioned(
+                              top: 8,
+                              right: 8,
+                              child: Container(
+                                padding: const EdgeInsets.all(4),
+                                decoration: BoxDecoration(
+                                  color: theme.colorScheme.primary,
+                                  shape: BoxShape.circle,
+                                ),
+                                child: Icon(
+                                  Icons.check,
+                                  size: 16,
+                                  color: theme.colorScheme.onPrimary,
+                                ),
+                              ),
+                            ),
+                        ],
                       ),
                     ),
                   );
@@ -149,29 +136,40 @@ class _CustomerBookingChooseServiceScreenState
           ],
         ),
       ),
-      // 4. VALIDATION BUTTON
-      bottomNavigationBar: Padding(
+
+      // --- BOTTOM BAR ---
+      bottomNavigationBar: Container(
         padding: const EdgeInsets.all(20),
-        child: ElevatedButton(
-          // 5. THE LOGIC: If list is empty, return null (Disables button)
-          onPressed: selectedServices.isEmpty
-              ? null
-              : () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) =>
-                          const CustomerBookingChooseDatetimeScreen(),
-                    ),
-                  );
-                },
-          style: ElevatedButton.styleFrom(
-            minimumSize: const Size(double.infinity, 50),
-          ),
-          child: Text(
-            selectedServices.isEmpty
-                ? "Select a Service"
-                : "Next (${selectedServices.length})",
+        decoration: BoxDecoration(
+          color: theme.colorScheme.surface,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.05),
+              blurRadius: 10,
+              offset: const Offset(0, -5),
+            ),
+          ],
+        ),
+        child: SafeArea(
+          child: FilledButton(
+            onPressed: selectedServices.isEmpty
+                ? null
+                : () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) =>
+                            const CustomerBookingChooseDatetimeScreen(),
+                      ),
+                    );
+                  },
+
+            child: Text(
+              selectedServices.isEmpty
+                  ? "Select at least one service"
+                  : "NEXT (${selectedServices.length} Selected)",
+              style: const TextStyle(fontWeight: FontWeight.bold),
+            ),
           ),
         ),
       ),

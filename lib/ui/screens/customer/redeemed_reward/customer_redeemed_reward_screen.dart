@@ -124,9 +124,14 @@ class _CustomerRedeemedRewardScreenState
                             itemBuilder: (_, i) {
                               final r = searched[i];
 
+                              final isExpired =
+                                  !r.isClaimed &&
+                                  r.expiryDate != null &&
+                                  r.expiryDate!.isBefore(DateTime.now());
+
                               return RedeemedRewardListitem(
                                 redeemedReward: r,
-                                onTap: () => Navigator.of(context).push(
+                                onTap: isExpired ? null : () => Navigator.of(context).push(
                                   MaterialPageRoute(
                                     builder: (context) =>
                                         CustomerRedeemedRewardDetailsScreen(

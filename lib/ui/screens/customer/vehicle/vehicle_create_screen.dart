@@ -208,7 +208,7 @@ class _VehicleCreateScreenState extends ConsumerState<VehicleCreateScreen> {
                         ),
                       )
                     : const Text(
-                        'Create Vehicle',
+                        'ADD RECORD',
                         style: TextStyle(
                           fontWeight: FontWeight.bold,
                         ),

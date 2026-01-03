@@ -1,3 +1,4 @@
+import 'package:cheng_eng_3/colorscheme/colorscheme.dart';
 import 'package:cheng_eng_3/core/controllers/auth/auth_notifier.dart';
 import 'package:cheng_eng_3/core/controllers/point/total_points_provider.dart';
 import 'package:cheng_eng_3/core/controllers/realtime_provider.dart';
@@ -89,13 +90,13 @@ class _CustomerRewardDetailsScreenState
                           vertical: 5,
                         ),
                         decoration: BoxDecoration(
-                          color: theme.colorScheme.tertiaryContainer,
+                          color: theme.colorScheme.primaryContainer,
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: Text(
                           'Valid until: ${_dateFormatter.format(currentReward.availableUntil!)}',
                           style: theme.textTheme.labelSmall?.copyWith(
-                            color: theme.colorScheme.onTertiaryContainer,
+                            color: theme.colorScheme.onPrimaryContainer,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
@@ -103,15 +104,31 @@ class _CustomerRewardDetailsScreenState
 
                     Text(
                       currentReward.name,
-                      style: theme.textTheme.headlineSmall?.copyWith(
+                      style: theme.textTheme.titleLarge?.copyWith(
                         fontWeight: FontWeight.bold,
                       ),
                     ),
                     const SizedBox(height: 5),
-                    Text(
-                      'Code: #${currentReward.code}',
-                      style: theme.textTheme.bodyMedium?.copyWith(
-                        color: theme.colorScheme.onSurfaceVariant,
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 4,
+                      ),
+                      decoration: BoxDecoration(
+                        color: theme.colorScheme.surfaceContainerHigh,
+                        borderRadius: BorderRadius.circular(6),
+                        border: Border.all(
+                          color: theme.colorScheme.outlineVariant,
+                        ),
+                      ),
+                      child: Text(
+                        '#${currentReward.code}', // The ID
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          fontFamily: 'monospace', // <--- MONOSPACE FONT
+                          fontWeight: FontWeight.bold,
+                          letterSpacing: 1.0,
+                          color: theme.colorScheme.onSurfaceVariant,
+                        ),
                       ),
                     ),
 
@@ -119,56 +136,84 @@ class _CustomerRewardDetailsScreenState
 
                     // --- 3. POINTS & STOCK ROW ---
                     Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
-                        Icon(
-                          Icons.stars,
-                          color: theme.colorScheme.primary,
-                          size: 28,
+                        // Points (Left)
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              "Points Required",
+                              style: theme.textTheme.labelMedium?.copyWith(
+                                color: theme.colorScheme.onSurface,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Row(
+                              crossAxisAlignment: CrossAxisAlignment.baseline,
+                              // 2. Specify which baseline to use (Alphabetic is standard for text)
+                              textBaseline: TextBaseline.alphabetic,
+                              children: [
+                                Text(
+                                  '${currentReward.points}',
+                                  style: theme.textTheme.headlineSmall
+                                      ?.copyWith(
+                                        // Large & Standardized
+                                        fontWeight: FontWeight.bold,
+                                        color: textYellow,
+                                      ),
+                                ),
+                                const SizedBox(width: 4  ),
+                                Text(
+                                  'PTS',
+                                  style: theme.textTheme.titleSmall?.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                    color: textYellow,
+                                    letterSpacing: 0.5,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
                         ),
-                        const SizedBox(width: 10),
-                        Text(
-                          '${currentReward.points} Points',
-                          style: theme.textTheme.titleLarge?.copyWith(
-                            fontWeight: FontWeight.bold,
-                            color: theme.colorScheme.onSurface,
-                          ),
-                        ),
-                        const Spacer(),
+
+                        // Stock Pill (Right)
                         Container(
+                          margin: const EdgeInsets.only(bottom: 6),
                           padding: const EdgeInsets.symmetric(
                             horizontal: 12,
                             vertical: 6,
                           ),
                           decoration: BoxDecoration(
                             color: currentReward.quantity > 0
-                                ? Colors.green.withValues(alpha: 0.1)
-                                : Colors.red.withValues(alpha: 0.1),
+                                ? Colors.green.withOpacity(0.1)
+                                : Colors.red.withOpacity(0.1),
                             borderRadius: BorderRadius.circular(20),
-                            border: Border.all(
-                              color: currentReward.quantity > 0
-                                  ? Colors.green
-                                  : Colors.red,
-                            ),
                           ),
-                          child: Text(
-                            currentReward.quantity > 0
-                                ? '${currentReward.quantity} in stock'
-                                : 'Out of Stock',
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              color: currentReward.quantity > 0
-                                  ? Colors.green
-                                  : Colors.red,
-                              fontSize: 12,
-                            ),
+                          child: Row(
+                            children: [
+                              Text(
+                                currentReward.quantity > 0
+                                    ? '${currentReward.quantity} In Stock'
+                                    : 'Out of Stock',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 12,
+                                  color: currentReward.quantity > 0
+                                      ? Colors.green
+                                      : Colors.red,
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                       ],
                     ),
 
-                    const SizedBox(height: 20),
+                    const SizedBox(height: 15),
                     const Divider(),
-                    const SizedBox(height: 20),
+                    const SizedBox(height: 15),
 
                     // --- 4. DESCRIPTION ---
                     Text(
@@ -264,13 +309,13 @@ class _CustomerRewardDetailsScreenState
                           Icon(
                             Icons.account_balance_wallet_outlined,
                             size: 16,
-                            color: Colors.grey,
+                            color: theme.colorScheme.onSurfaceVariant,
                           ),
                           const SizedBox(width: 4),
                           Text(
                             "My Balance",
                             style: theme.textTheme.labelMedium?.copyWith(
-                              color: Colors.grey,
+                              color: theme.colorScheme.onSurfaceVariant,
                             ),
                           ),
                         ],
@@ -315,10 +360,10 @@ class _CustomerRewardDetailsScreenState
                             )
                           : Text(
                               !hasStock
-                                  ? 'Out of Stock'
+                                  ? 'OUT OF STOCK'
                                   : !canAfford
-                                  ? 'Not enough points'
-                                  : 'Redeem Now',
+                                  ? 'NOT ENOUGH POINTS'
+                                  : 'REDEEM NOW',
                               textAlign: TextAlign.center,
                               style: const TextStyle(
                                 fontWeight: FontWeight.bold,

@@ -27,7 +27,7 @@ class _CustomerChatScreenState extends ConsumerState<CustomerChatScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (_scrollCtrl.hasClients) {
         _scrollCtrl.animateTo(
-          _scrollCtrl.position.maxScrollExtent, // ✅ Scroll to BOTTOM
+          _scrollCtrl.position.maxScrollExtent,
           duration: const Duration(milliseconds: 300),
           curve: Curves.easeOut,
         );
@@ -37,8 +37,10 @@ class _CustomerChatScreenState extends ConsumerState<CustomerChatScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     final messages = ref.watch(chatProvider);
 
+    // Auto-scroll on new message
     ref.listen(chatProvider, (prev, next) {
       if (next.length > (prev?.length ?? 0)) {
         _scrollToBottom();
@@ -46,35 +48,40 @@ class _CustomerChatScreenState extends ConsumerState<CustomerChatScreen> {
     });
 
     return Scaffold(
+      backgroundColor: theme.colorScheme.surface,
       appBar: AppBar(
-        title: const Text('AI ChatBot'),
+        title: const Text('Support Assistant'),
       ),
-      body: Column(
-        children: [
-          Expanded(
-            child: ListView.builder(
-              itemCount: messages.length,
-              controller: _scrollCtrl,
-              itemBuilder: (context, index) {
-                final msg = messages[index];
-                return ChatBubble(message: msg);
-              },
+      body: GestureDetector(
+        onTap: () => FocusScope.of(context).unfocus(), // Dismiss keyboard
+        child: Column(
+          children: [
+            Expanded(
+              child: ListView.builder(
+                padding: const EdgeInsets.only(top: 10, bottom: 10),
+                itemCount: messages.length,
+                controller: _scrollCtrl,
+                itemBuilder: (context, index) {
+                  final msg = messages[index];
+                  return ChatBubble(message: msg);
+                },
+              ),
             ),
-          ),
-          _buildInput(),
-        ],
+            _buildInput(theme),
+          ],
+        ),
       ),
     );
   }
 
-  Widget _buildInput() {
+  Widget _buildInput(ThemeData theme) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: theme.colorScheme.surface,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
+            color: Colors.black.withOpacity(0.05),
             blurRadius: 10,
             offset: const Offset(0, -5),
           ),
@@ -86,24 +93,41 @@ class _CustomerChatScreenState extends ConsumerState<CustomerChatScreen> {
             Expanded(
               child: TextField(
                 controller: _textCtrl,
+                textCapitalization: TextCapitalization.sentences,
                 decoration: InputDecoration(
-                  hintText: "Ask about maintenance...",
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(25),
-                    borderSide: BorderSide.none,
+                  hintText: "Type your question...",
+                  hintStyle: TextStyle(
+                    color: theme.colorScheme.onSurfaceVariant,
                   ),
                   filled: true,
-                  fillColor: Colors.grey[200],
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 20),
+                  // Use standardized input color
+                  fillColor: theme.colorScheme.surfaceContainerHigh,
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 20,
+                    vertical: 14,
+                  ),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(30),
+                    borderSide: BorderSide.none,
+                  ),
                 ),
                 onSubmitted: (_) => _sendMessage(),
               ),
             ),
-            const SizedBox(width: 8),
-            FloatingActionButton(
-              mini: true,
+            const SizedBox(width: 12),
+
+            // Send Button
+            IconButton.filled(
+              style: IconButton.styleFrom(
+                backgroundColor: theme.colorScheme.primary, // Yellow
+                foregroundColor: theme.colorScheme.onPrimary, // Black
+                shape: const CircleBorder(),
+                padding: const EdgeInsets.all(12),
+              ),
               onPressed: _sendMessage,
-              child: const Icon(Icons.send),
+              icon: const Icon(
+                Icons.arrow_upward_rounded,
+              ), // Modern "Send" icon
             ),
           ],
         ),

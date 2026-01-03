@@ -31,10 +31,11 @@ class _CustomerRewardScreenState extends ConsumerState<CustomerRewardScreen> {
       appBar: AppBar(title: const Text('Rewards')),
       body: rewardState.when(
         data: (rewards) {
-          final searched = searchReward(
-            rewards: rewards,
-            search: _search,
-          );
+          final searched = rewards.where((r) {
+            final q = _search.toLowerCase();
+            return r.code.toLowerCase().contains(q) ||
+                r.name.toLowerCase().contains(q);
+          }).toList();
 
           return Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20.0),
@@ -44,44 +45,27 @@ class _CustomerRewardScreenState extends ConsumerState<CustomerRewardScreen> {
                 const SizedBox(height: 10),
 
                 // --- SEARCH BAR ---
-                TextField(
+                SearchBar(
                   controller: _searchCtrl,
-                  onChanged: (v) => setState(() => _search = v),
-                  decoration: InputDecoration(
-                    filled: true,
-                    fillColor: Theme.of(
-                      context,
-                    ).colorScheme.surfaceContainerHighest,
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide:
-                          BorderSide.none, // Removes the underline/outline
-                    ),
-                    hintText: "Search rewards...",
-                    hintStyle: TextStyle(
-                      color: Theme.of(context).colorScheme.onSurfaceVariant,
-                    ),
-                    prefixIcon: Icon(
-                      Icons.search,
-                      color: Theme.of(context).colorScheme.onSurfaceVariant,
-                    ),
-                    contentPadding: const EdgeInsets.symmetric(
-                      vertical: 14,
-                      horizontal: 16,
-                    ),
+                  hintText: "Search Reward Name or Code",
 
-                    suffixIcon: _search.isNotEmpty
-                        ? IconButton(
+                  leading: Icon(
+                    Icons.search,
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
+                  onChanged: (val) => setState(() => _search = val),
+                  trailing: _search.isNotEmpty
+                      ? [
+                          IconButton(
                             icon: const Icon(Icons.clear),
                             onPressed: () {
                               _searchCtrl.clear();
                               setState(() => _search = "");
                             },
-                          )
-                        : null,
-                  ),
+                          ),
+                        ]
+                      : null,
                 ),
-
                 const SizedBox(height: 20),
 
                 // --- REWARD LIST ---
@@ -90,30 +74,36 @@ class _CustomerRewardScreenState extends ConsumerState<CustomerRewardScreen> {
                     onRefresh: () async =>
                         ref.refresh(customerRewardsProvider.future),
                     child: searched.isEmpty
-                        ? ListView(
-                            physics: const AlwaysScrollableScrollPhysics(),
-                            children: [
-                              SizedBox(
-                                height:
-                                    MediaQuery.of(context).size.height * 0.3,
-                              ),
-                              Center(
-                                child: Column(
-                                  children: [
-                                    Icon(
-                                      Icons.redeem,
-                                      size: 60,
-                                      color: Colors.grey.shade300,
+                        ? LayoutBuilder(
+                            builder: (context, constraints) {
+                              return SingleChildScrollView(
+                                physics: const AlwaysScrollableScrollPhysics(),
+                                child: Container(
+                                  height: constraints.maxHeight,
+                                  alignment: Alignment.center,
+                                  child: Center(
+                                    child: Column(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children: [
+                                        Icon(
+                                          Icons.redeem,
+                                          size: 60,
+                                          color: Colors.grey.shade300,
+                                        ),
+                                        SizedBox(height: 16),
+                                        Text(
+                                          'No rewards found',
+                                          style: TextStyle(
+                                            color: Colors.grey,
+                                          ),
+                                        ),
+                                      ],
                                     ),
-                                    const SizedBox(height: 10),
-                                    const Text(
-                                      'No rewards found',
-                                      style: TextStyle(color: Colors.grey),
-                                    ),
-                                  ],
+                                  ),
                                 ),
-                              ),
-                            ],
+                              );
+                            },
                           )
                         : ListView.separated(
                             padding: const EdgeInsets.only(bottom: 20),
@@ -126,7 +116,7 @@ class _CustomerRewardScreenState extends ConsumerState<CustomerRewardScreen> {
                               return RewardListitem(
                                 reward: r,
                                 isStaff: false,
-                                onTap: () => Navigator.of(context).push(
+                                onTap:  () => Navigator.of(context).push(
                                   MaterialPageRoute(
                                     builder: (context) =>
                                         CustomerRewardDetailsScreen(reward: r),

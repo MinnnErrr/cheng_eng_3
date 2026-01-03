@@ -5,6 +5,7 @@ import 'package:cheng_eng_3/ui/screens/signup_screen.dart';
 import 'package:cheng_eng_3/ui/widgets/snackbar.dart';
 import 'package:cheng_eng_3/ui/widgets/textformfield.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart'; // Added for Autofill
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
@@ -32,164 +33,197 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     final userState = ref.watch(authProvider);
     final userNotifier = ref.read(authProvider.notifier);
     final screenSize = MediaQuery.of(context).size;
+    final theme = Theme.of(context);
 
     return Scaffold(
       backgroundColor: Colors.black,
-      body: userState.isLoading
-          ? const Center(
-              child: CircularProgressIndicator(),
-            )
-          : SafeArea(
-              child: Stack(
-                children: [
-                  //logo
-                  SizedBox(
-                    width: double.infinity,
-                    child: Image.asset(
-                      'assets/images/cheng_eng_logo.png',
-                      height: screenSize.height * 0.3,
+      // 1. SingleChildScrollView fixes keyboard overflow issues
+      body: SingleChildScrollView(
+        child: SizedBox(
+          height: screenSize.height, // Forces full screen height
+          child: Column(
+            children: [
+              // --- TOP: Logo Section (30%) ---
+              Expanded(
+                flex: 3,
+                child: Container(
+                  width: double.infinity,
+                  alignment: Alignment.center,
+                  child: Image.asset(
+                    'assets/images/cheng_eng_logo.png',
+                    width: screenSize.width * 0.6, // Constrain width
+                  ),
+                ),
+              ),
+
+              // --- BOTTOM: Form Section (70%) ---
+              Expanded(
+                flex: 7,
+                child: Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 24,
+                    vertical: 30,
+                  ),
+                  decoration: BoxDecoration(
+                    color: theme.colorScheme.surface,
+                    borderRadius: const BorderRadius.only(
+                      topLeft: Radius.circular(30),
+                      topRight: Radius.circular(30),
                     ),
                   ),
-
-                  //login form
-                  Align(
-                    alignment: Alignment.bottomCenter,
-                    child: Container(
-                      width: screenSize.width,
-                      height: screenSize.height * 0.7,
-                      padding: EdgeInsets.all(20),
-                      decoration: BoxDecoration(
-                        color: Theme.of(context).colorScheme.surface,
-                        borderRadius: BorderRadius.only(
-                          topLeft: Radius.circular(20),
-                          topRight: Radius.circular(20),
+                  child: Form(
+                    key: _formKey,
+                    child: Column(
+                      crossAxisAlignment:
+                          CrossAxisAlignment.stretch, // Full width children
+                      children: [
+                        Text(
+                          'Log In',
+                          style: theme.textTheme.headlineMedium!.copyWith(
+                            fontWeight: FontWeight.bold,
+                            color: theme.colorScheme.onSurface,
+                          ),
                         ),
-                      ),
-                      child: Form(
-                        key: _formKey,
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          spacing: 30,
-                          children: [
-                            Align(
-                              alignment: AlignmentGeometry.centerLeft,
-                              child: Text(
-                                'Log In',
-                                style:
-                                    Theme.of(
-                                      context,
-                                    ).textTheme.titleLarge!.copyWith(
-                                      fontWeight: FontWeight.bold,
-                                    ),
+                        const SizedBox(height: 30),
+
+                        // Email
+                        TextFormField(
+                          controller: _emailController,
+                          decoration: InputDecoration(
+                            label: const Text('Email'),
+                            prefixIcon: const Icon(Icons.email_outlined),
+                          ),
+
+                          keyboardType: TextInputType.emailAddress,
+                          textInputAction: TextInputAction.next,
+                          autofillHints: const [AutofillHints.email],
+                        ),
+
+                        const SizedBox(height: 20),
+
+                        // Password
+                        TextFormField(
+                          controller: _passwordController,
+                          decoration: InputDecoration(
+                            label: const Text('Password'),
+                            prefixIcon: const Icon(Icons.lock_outline),
+                            suffixIcon: GestureDetector(
+                              onTap: () {
+                                setState(() {
+                                  _obscurePassword = !_obscurePassword;
+                                });
+                              },
+                              child: Icon(
+                                _obscurePassword
+                                    ? Icons.visibility_off
+                                    : Icons.visibility,
                               ),
                             ),
-                            textFormField(
-                              controller: _emailController,
-                              label: 'Email',
-                              prefixIcon: Icon(Icons.email),
+                          ),
+                          obscureText: _obscurePassword,
+                          textInputAction: TextInputAction.done,
+                          autofillHints: const [AutofillHints.password],
+                        ),
+
+                        // Forgot Password
+                        Align(
+                          alignment: Alignment.centerRight,
+                          child: TextButton(
+                            onPressed: () => Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (context) =>
+                                    const RequestEmailScreen(),
+                              ),
                             ),
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.end,
-                              spacing: 10,
-                              children: [
-                                textFormField(
-                                  controller: _passwordController,
-                                  label: 'Password',
-                                  prefixIcon: Icon(Icons.lock),
-                                  obscure: _obscurePassword,
-                                  suffix: GestureDetector(
-                                    onTap: () {
-                                      setState(() {
-                                        _obscurePassword = !_obscurePassword;
-                                      });
-                                    },
-                                    child: Icon(
-                                      _obscurePassword
-                                          ? Icons.visibility_off
-                                          : Icons.visibility,
-                                    ),
-                                  ),
-                                ),
-                                TextButton(
-                                  onPressed: () => Navigator.of(context).push(
-                                    MaterialPageRoute(
-                                      builder: (context) =>
-                                          RequestEmailScreen(),
-                                    ),
-                                  ),
-                                  child: Text('Forget password?'),
-                                ),
-                              ],
-                            ),
-                            FilledButton(
-                              onPressed: () async {
-                                if (!_formKey.currentState!.validate()) return;
+                            child: const Text('Forgot password?'),
+                          ),
+                        ),
 
-                                setState(() {});
+                        const SizedBox(height: 10),
 
-                                final res = await userNotifier.signIn(
-                                  _emailController.text.trim(),
-                                  _passwordController.text.trim(),
-                                );
+                        // Login Button (With Loading State inside)
+                        FilledButton(
+                          onPressed: userState.isLoading
+                              ? null // Disable button while loading
+                              : () async {
+                                  if (!_formKey.currentState!.validate())
+                                    return;
 
-                                if (!context.mounted) return;
+                                  // Close keyboard
+                                  FocusScope.of(context).unfocus();
 
-                                //error
-                                if (res != null) {
-                                  showAppSnackBar(
-                                    content: res,
-                                    isError: true,
-                                    context: context,
+                                  final res = await userNotifier.signIn(
+                                    _emailController.text.trim(),
+                                    _passwordController.text.trim(),
                                   );
-                                  return;
 
-                                  // if (res.contains('Email not verified')) {
-                                  //   await userNotifier.resendOtp(
-                                  //     _emailController.text.trim(),
-                                  //   );
+                                  if (!context.mounted) return;
 
-                                  //   if (!context.mounted) return;
-                                  //   Navigator.of(context).pushReplacement(
-                                  //     MaterialPageRoute(
-                                  //       builder: (context) => VerifyEmailScreen(
-                                  //         email: _emailController.text.trim(),
-                                  //       ),
-                                  //     ),
-                                  //   );
-                                  // }
-                                }
+                                  if (res != null) {
+                                    showAppSnackBar(
+                                      content: res,
+                                      isError: true,
+                                      context: context,
+                                    );
+                                    return;
+                                  }
 
-                                Navigator.of(context).pushAndRemoveUntil(
-                                  MaterialPageRoute(
-                                    builder: (_) => const Main(),
-                                  ),
-                                  (route) => false,
-                                );
-                              },
-                              child: Text('Log In'),
-                            ),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Text("Don't have an account?"),
-                                TextButton(
-                                  onPressed: () => Navigator.of(context).push(
+                                  Navigator.of(context).pushAndRemoveUntil(
                                     MaterialPageRoute(
-                                      builder: (context) => SignupScreen(),
+                                      builder: (_) => const Main(),
                                     ),
+                                    (route) => false,
+                                  );
+                                },
+                          child: userState.isLoading
+                              ? const SizedBox(
+                                  width: 24,
+                                  height: 24,
+                                  child: CircularProgressIndicator(
+                                    color: Colors.white,
+                                    strokeWidth: 2,
                                   ),
-                                  child: Text('Register Now'),
+                                )
+                              : const Text(
+                                  'LOG IN',
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                  ),
                                 ),
-                              ],
+                        ),
+
+                        const Spacer(),
+
+                        // Register Link
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(
+                              "Don't have an account?",
+                              style: TextStyle(
+                                color: theme.colorScheme.onSurfaceVariant,
+                              ),
+                            ),
+                            TextButton(
+                              onPressed: () => Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder: (context) => const SignupScreen(),
+                                ),
+                              ),
+                              child: const Text('Register Now'),
                             ),
                           ],
                         ),
-                      ),
+                      ],
                     ),
                   ),
-                ],
+                ),
               ),
-            ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }

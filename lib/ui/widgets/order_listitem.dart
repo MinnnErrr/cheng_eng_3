@@ -66,7 +66,7 @@ class OrderListitem extends ConsumerWidget {
                       vertical: 4,
                     ),
                     decoration: BoxDecoration(
-                      color: order.status.color,
+                      color: order.status.color.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(6),
                     ),
                     child: Text(
@@ -74,7 +74,7 @@ class OrderListitem extends ConsumerWidget {
                       style: TextStyle(
                         fontSize: 11,
                         fontWeight: FontWeight.bold,
-                        color: Colors.white, // Darker text for contrast
+                        color: order.status.color, // Darker text for contrast
                       ),
                     ),
                   ),
@@ -131,7 +131,7 @@ class OrderListitem extends ConsumerWidget {
                           Text(
                             '+ $otherItemCount more items',
                             style: theme.textTheme.bodySmall?.copyWith(
-                              color: textYellow,
+                              color: theme.colorScheme.onSurfaceVariant,
                             ),
                           ),
                       ],
@@ -162,7 +162,7 @@ class OrderListitem extends ConsumerWidget {
                       Text(
                         order.deliveryMethod.label,
                         style: theme.textTheme.bodySmall?.copyWith(
-                          color: theme.colorScheme.onSurfaceVariant,
+                          color: theme.colorScheme.onSurface,
                           fontWeight: FontWeight.w500,
                         ),
                       ),

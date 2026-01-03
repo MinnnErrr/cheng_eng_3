@@ -193,7 +193,7 @@ class _CartBottomBar extends StatelessWidget {
                           ),
                         )
                       : const Text(
-                          "Checkout",
+                          "CHECKOUT",
                           style: TextStyle(fontWeight: FontWeight.bold),
                         ),
                 ),

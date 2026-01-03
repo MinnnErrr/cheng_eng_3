@@ -153,38 +153,30 @@ class _CustomerProductScreenState extends ConsumerState<CustomerProductScreen> {
       child: Row(
         children: [
           Expanded(
-            child: TextField(
+            child: SearchBar(
               controller: _searchCtrl,
+              hintText: "Search products...",
               onChanged: (v) => setState(() => _search = v),
-              decoration: InputDecoration(
-                hintText: "Search products...",
-                prefixIcon: const Icon(Icons.search),
-                filled: true,
-                // ✅ Improved Styling
-                fillColor: theme.colorScheme.surfaceContainerHighest,
-                contentPadding: const EdgeInsets.symmetric(horizontal: 10),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide.none,
-                ),
-                suffixIcon: _search.isNotEmpty
-                    ? IconButton(
-                        icon: const Icon(Icons.clear),
-                        onPressed: () {
-                          _searchCtrl.clear();
-                          setState(() => _search = "");
-                        },
-                      )
-                    : null,
-              ),
+              leading: const Icon(Icons.search),
+              trailing: [
+                // Only show clear button if text exists
+                if (_search.isNotEmpty)
+                  IconButton(
+                    icon: const Icon(Icons.clear),
+                    onPressed: () {
+                      _searchCtrl.clear();
+                      setState(() => _search = "");
+                    },
+                  ),
+              ],
             ),
           ),
           const SizedBox(width: 10),
 
           // ✅ Filter Button (Matched Style)
           SizedBox(
-            height: 48, // Matches standard TextField height
-            width: 48,
+            height: 50, // Matches standard TextField height
+            width: 50,
             child: IconButton(
               style: IconButton.styleFrom(
                 backgroundColor: theme.colorScheme.surfaceContainerHigh,
@@ -203,8 +195,8 @@ class _CustomerProductScreenState extends ConsumerState<CustomerProductScreen> {
 
           // ✅ Sort Button (Matched Style)
           SizedBox(
-            height: 48,
-            width: 48,
+            height: 50,
+            width: 50,
             child: IconButton(
               style: IconButton.styleFrom(
                 backgroundColor: theme.colorScheme.surfaceContainerHigh,

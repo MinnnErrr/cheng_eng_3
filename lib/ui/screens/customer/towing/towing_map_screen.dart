@@ -27,7 +27,7 @@ class _TowingMapScreenState extends ConsumerState<TowingMapScreen> {
   bool _gettingLocation = false;
   bool _isSearchingAddress = false;
 
-  bool _isMapReady = false;
+  bool _showMapLayer = false;
 
   final Set<Marker> _markers = {};
 
@@ -36,13 +36,6 @@ class _TowingMapScreenState extends ConsumerState<TowingMapScreen> {
     super.initState();
     HuaweiMapInitializer.initializeMap();
     _checkLocationRequirements();
-    Future.delayed(const Duration(milliseconds: 300), () {
-      if (mounted) {
-        setState(() {
-          _isMapReady = true;
-        });
-      }
-    });
   }
 
   @override
@@ -61,11 +54,15 @@ class _TowingMapScreenState extends ConsumerState<TowingMapScreen> {
     bool serviceEnabled = await location.serviceEnabled();
     if (!serviceEnabled) {
       serviceEnabled = await location.requestService();
-      if (!serviceEnabled) return;
+      if (!serviceEnabled) {
+        _finalizeMapInitialization(false);
+        return;
+      }
     }
     var status = await Permission.locationWhenInUse.status;
     if (status.isPermanentlyDenied) {
       if (mounted) _showSettingsDialog();
+      _finalizeMapInitialization(false);
       return;
     }
     if (!status.isGranted) {
@@ -73,17 +70,56 @@ class _TowingMapScreenState extends ConsumerState<TowingMapScreen> {
         Permission.location,
         Permission.locationWhenInUse,
       ].request();
-      if (statuses[Permission.locationWhenInUse] != PermissionStatus.granted)
+      if (statuses[Permission.locationWhenInUse] != PermissionStatus.granted) {
+        _finalizeMapInitialization(false);
         return;
+      }
     }
-    if (mounted) {
-      setState(() => _hasLocationPermission = true);
-      _getUserLocation();
-    }
+    _finalizeMapInitialization(true);
+  }
+
+  void _finalizeMapInitialization(bool permissionGranted) {
+    setState(() {
+      _hasLocationPermission = permissionGranted;
+    });
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        setState(() {
+          _showMapLayer = true;
+        });
+        
+        // If we have permission, fetch location now
+        if (permissionGranted) {
+          _getUserLocation();
+        }
+      }
+    });
   }
 
   void _showSettingsDialog() {
-    /* ... Same as your code ... */
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text("Location Permission"),
+        content: const Text(
+          "Location permission is needed to find your position on the map.",
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text("Cancel"),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(ctx);
+              openAppSettings();
+            },
+            child: const Text("Settings"),
+          ),
+        ],
+      ),
+    );
   }
 
   Future<void> _getUserLocation() async {
@@ -223,7 +259,7 @@ class _TowingMapScreenState extends ConsumerState<TowingMapScreen> {
         children: [
           // 1. FULL SCREEN MAP
           Positioned.fill(
-            child: _isMapReady
+            child: _showMapLayer
                 ? HuaweiMap(
                     initialCameraPosition: CameraPosition(
                       target: (_selectedLat != null && _selectedLng != null)
@@ -292,7 +328,6 @@ class _TowingMapScreenState extends ConsumerState<TowingMapScreen> {
             ),
           ),
 
-          // 3. BOTTOM SHEET (Actions)
           Positioned(
             bottom: 0,
             left: 0,
@@ -330,7 +365,9 @@ class _TowingMapScreenState extends ConsumerState<TowingMapScreen> {
                                 : _addressCtrl.text,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(fontWeight: FontWeight.bold),
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
                         ),
                       ],
@@ -388,7 +425,7 @@ class _TowingMapScreenState extends ConsumerState<TowingMapScreen> {
                             );
                           },
                           child: const Text(
-                            "Confirm Location",
+                            "CONFIRM LOCATION",
                             style: TextStyle(
                               fontWeight: FontWeight.bold,
                             ),

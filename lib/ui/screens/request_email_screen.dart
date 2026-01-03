@@ -1,6 +1,5 @@
 import 'package:cheng_eng_3/core/controllers/auth/auth_notifier.dart';
 import 'package:cheng_eng_3/ui/widgets/snackbar.dart';
-import 'package:cheng_eng_3/ui/widgets/textformfield.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -9,10 +8,10 @@ class RequestEmailScreen extends ConsumerStatefulWidget {
 
   @override
   ConsumerState<ConsumerStatefulWidget> createState() =>
-      _ResetPasswordScreenState();
+      _RequestEmailScreenState();
 }
 
-class _ResetPasswordScreenState extends ConsumerState<RequestEmailScreen> {
+class _RequestEmailScreenState extends ConsumerState<RequestEmailScreen> {
   final _formKey = GlobalKey<FormState>();
   final _emailCtrl = TextEditingController();
 
@@ -27,89 +26,174 @@ class _ResetPasswordScreenState extends ConsumerState<RequestEmailScreen> {
     final userNotifier = ref.read(authProvider.notifier);
     final userState = ref.watch(authProvider);
     final screenSize = MediaQuery.of(context).size;
+    final theme = Theme.of(context);
 
     return Scaffold(
       backgroundColor: Colors.black,
-      body: userState.isLoading
-          ? const Center(
-              child: CircularProgressIndicator(),
-            )
-          : SafeArea(
-              child: Stack(
-                children: [
-                  //logo
-                  SizedBox(
-                    width: double.infinity,
-                    child: Image.asset(
+      // 1. Safe Layout for Keyboard
+      body: SingleChildScrollView(
+        child: SizedBox(
+          height: screenSize.height,
+          child: Column(
+            children: [
+              // --- TOP: Logo Section ---
+              Expanded(
+                flex: 3,
+                child: Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    // Back Button (Top Left)
+                    Positioned(
+                      top: 10,
+                      left: 10,
+                      child: SafeArea(
+                        child: IconButton(
+                          icon: const Icon(
+                            Icons.arrow_back,
+                            color: Colors.white,
+                          ),
+                          onPressed: () => Navigator.pop(context),
+                        ),
+                      ),
+                    ),
+                    Image.asset(
                       'assets/images/cheng_eng_logo.png',
-                      height: screenSize.height * 0.3,
+                      height: screenSize.height * 0.25,
                     ),
-                  ),
-
-                  //login form
-                  Align(
-                    alignment: Alignment.bottomCenter,
-                    child: Container(
-                      width: screenSize.width,
-                      height: screenSize.height * 0.7,
-                      padding: EdgeInsets.all(20),
-                      decoration: BoxDecoration(
-                        color: Theme.of(context).colorScheme.surface,
-                        borderRadius: BorderRadius.only(
-                          topLeft: Radius.circular(20),
-                          topRight: Radius.circular(20),
-                        ),
-                      ),
-                      child: Form(
-                        key: _formKey,
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          spacing: 30,
-                          children: [
-                            Text(
-                              'Enter your email to reset password',
-                              style:
-                                  Theme.of(
-                                    context,
-                                  ).textTheme.titleLarge!.copyWith(
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                            ),
-
-                            textFormField(
-                              controller: _emailCtrl,
-                              label: 'Email',
-                            ),
-
-                            FilledButton(
-                              onPressed: () async {
-                                if (!_formKey.currentState!.validate()) return;
-
-                                final message = await userNotifier
-                                    .sendPasswordResetEmail(_emailCtrl.text.trim());
-
-                                if (!context.mounted) return;
-                                showAppSnackBar(
-                                  context: context,
-                                  content: message.message,
-                                  isError: !message.isSuccess,
-                                );
-                              },
-                              child: Text('Send Link'),
-                            ),
-
-                            OutlinedButton(
-                              onPressed: () => Navigator.pop(context),
-                              child: Text('Cancel'),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ),
+
+              // --- BOTTOM: Form Section ---
+              Expanded(
+                flex: 7,
+                child: Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 24,
+                    vertical: 30,
+                  ),
+                  decoration: BoxDecoration(
+                    color: theme.colorScheme.surface,
+                    borderRadius: const BorderRadius.only(
+                      topLeft: Radius.circular(30),
+                      topRight: Radius.circular(30),
+                    ),
+                  ),
+                  child: Form(
+                    key: _formKey,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Text(
+                          'Reset Password',
+                          style: theme.textTheme.headlineMedium!.copyWith(
+                            fontWeight: FontWeight.bold,
+                            color: theme.colorScheme.onSurface,
+                          ),
+                        ),
+                        const SizedBox(height: 10),
+                        Text(
+                          'Enter your email address and we will send you a link to reset your password.',
+                          style: TextStyle(
+                            color: theme.colorScheme.onSurface,
+                            height: 1.5,
+                          ),
+                        ),
+
+                        const SizedBox(height: 30),
+
+                        // Email Input
+                        TextFormField(
+                          controller: _emailCtrl,
+                          decoration: InputDecoration(
+                            label: Text('Email Address'),
+                            prefixIcon: const Icon(Icons.email_outlined),
+                          ),
+                          keyboardType: TextInputType.emailAddress,
+                          autofillHints: const [AutofillHints.email],
+                        ),
+
+                        const SizedBox(height: 30),
+
+                        // Send Button
+                        FilledButton(
+                          onPressed: userState.isLoading
+                              ? null
+                              : () async {
+                                  if (!_formKey.currentState!.validate())
+                                    return;
+
+                                  // Hide keyboard
+                                  FocusScope.of(context).unfocus();
+
+                                  final message = await userNotifier
+                                      .sendPasswordResetEmail(
+                                        _emailCtrl.text.trim(),
+                                      );
+
+                                  if (!context.mounted) return;
+
+                                  showAppSnackBar(
+                                    context: context,
+                                    content: message.message,
+                                    isError: !message.isSuccess,
+                                  );
+
+                                  // Optional: Pop if success
+                                  if (message.isSuccess) {
+                                    Navigator.pop(context);
+                                  }
+                                },
+                          child: userState.isLoading
+                              ? const SizedBox(
+                                  width: 24,
+                                  height: 24,
+                                  child: CircularProgressIndicator(
+                                    color: Colors.white,
+                                    strokeWidth: 2,
+                                  ),
+                                )
+                              : const Text(
+                                  'SEND LINK',
+                                  style: TextStyle(fontWeight: FontWeight.bold),
+                                ),
+                        ),
+
+                        const SizedBox(height: 16),
+
+                        // Cancel Button
+                        SizedBox(
+                          height: 50,
+                          child: OutlinedButton(
+                            onPressed: () => Navigator.pop(context),
+                            style: OutlinedButton.styleFrom(
+                              foregroundColor: Theme.of(
+                                context,
+                              ).colorScheme.onSurface,
+                              side: BorderSide(
+                                color: Theme.of(
+                                  context,
+                                ).colorScheme.outline,
+                              ),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(
+                                  12,
+                                ),
+                              ),
+                            ),
+                            child: const Text('CANCEL'),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }

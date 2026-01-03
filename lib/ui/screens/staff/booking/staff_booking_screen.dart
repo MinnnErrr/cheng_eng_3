@@ -1,86 +1,147 @@
 import 'package:cheng_eng_3/core/controllers/booking/staff_booking_notifier.dart';
-import 'package:cheng_eng_3/core/controllers/realtime_provider.dart'; // Import this
+import 'package:cheng_eng_3/core/controllers/realtime_provider.dart';
 import 'package:cheng_eng_3/ui/screens/staff/booking/staff_booking_details_screen.dart';
 import 'package:cheng_eng_3/ui/widgets/booking_listitem.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class StaffBookingScreen extends ConsumerWidget {
+class StaffBookingScreen extends ConsumerStatefulWidget {
   const StaffBookingScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<StaffBookingScreen> createState() => _StaffBookingScreenState();
+}
+
+class _StaffBookingScreenState extends ConsumerState<StaffBookingScreen> {
+  final TextEditingController _searchCtrl = TextEditingController();
+  String _searchQuery = "";
+
+  @override
+  void dispose() {
+    _searchCtrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     // 1. WATCH REALTIME
-    // This ensures the list refreshes automatically when the database changes
     ref.watch(bookingRealTimeProvider);
-    
+
     final bookingList = ref.watch(staffBookingProvider);
 
     return Scaffold(
       appBar: AppBar(
         title: const Text('Booking Management'),
       ),
-      body: RefreshIndicator(
-        onRefresh: () async {
-          return ref.refresh(staffBookingProvider.future);
-        },
-        child: bookingList.when(
-          data: (bookings) {
-            if (bookings.isEmpty) {
-              // Using LayoutBuilder ensures the "No record" text is truly centered
-              // while still allowing the Pull-to-Refresh to work.
-              return LayoutBuilder(
-                builder: (context, constraints) => SingleChildScrollView(
-                  physics: const AlwaysScrollableScrollPhysics(),
-                  child: Container(
-                    height: constraints.maxHeight,
-                    alignment: Alignment.center,
-                    child: const Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(Icons.calendar_today_outlined, size: 60, color: Colors.grey),
-                        SizedBox(height: 16),
-                        Text('No booking record found', style: TextStyle(color: Colors.grey)),
-                      ],
-                    ),
+      body: Padding(
+        padding: const EdgeInsets.all(20.0),
+        child: Column(
+          children: [
+            // --- 1. SEARCH BAR (Now in Body) ---
+            SearchBar(
+              controller: _searchCtrl,
+              hintText: "Search Plate No. (e.g., ABC1234)",
+
+              leading: Icon(
+                Icons.search,
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
+              onChanged: (val) => setState(() => _searchQuery = val),
+              trailing: _searchQuery.isNotEmpty
+                  ? [
+                      IconButton(
+                        icon: const Icon(Icons.clear),
+                        onPressed: () {
+                          _searchCtrl.clear();
+                          setState(() => _searchQuery = "");
+                        },
+                      ),
+                    ]
+                  : null,
+            ),
+
+            const SizedBox(height: 20),
+
+            // --- 2. LIST CONTENT ---
+            Expanded(
+              child: RefreshIndicator(
+                onRefresh: () async {
+                  return ref.refresh(staffBookingProvider.future);
+                },
+                child: bookingList.when(
+                  data: (bookings) {
+                    // Client-side filtering
+                    final filteredBookings = bookings.where((b) {
+                      final q = _searchQuery.toLowerCase();
+                      return b.vehicleRegNum.toLowerCase().contains(q) ||
+                          b.vehicleModel.toLowerCase().contains(q);
+                    }).toList();
+
+                    // Empty State (No records or No search results)
+                    if (filteredBookings.isEmpty) {
+                      return LayoutBuilder(
+                        builder: (context, constraints) =>
+                            SingleChildScrollView(
+                              physics: const AlwaysScrollableScrollPhysics(),
+                              child: Container(
+                                height: constraints.maxHeight,
+                                alignment: Alignment.center,
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Icon(
+                                      Icons.calendar_today_outlined,
+                                      size: 60,
+                                      color: Colors.grey.shade300,
+                                    ),
+                                    const SizedBox(height: 16),
+                                    Text(
+                                      _searchQuery.isEmpty
+                                          ? 'No booking record found'
+                                          : 'No match for "$_searchQuery"',
+                                      style: const TextStyle(
+                                        color: Colors.grey,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                      );
+                    }
+
+                    // List State
+                    return ListView.separated(
+                      itemCount: filteredBookings.length,
+                      separatorBuilder: (context, index) =>
+                          const SizedBox(height: 12),
+                      itemBuilder: (context, index) {
+                        final booking = filteredBookings[index];
+
+                        // Pass onTap to the widget so the InkWell inside the Card works
+                        return BookingListitem(
+                          booking: booking,
+                          onTap: () => Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (_) => StaffBookingDetailsScreen(
+                                booking: booking,
+                              ),
+                            ),
+                          ),
+                        );
+                      },
+                    );
+                  },
+                  error: (error, stackTrace) => Center(
+                    child: Text('Error: ${error.toString()}'),
+                  ),
+                  loading: () => const Center(
+                    child: CircularProgressIndicator(),
                   ),
                 ),
-              );
-            }
-
-            return SafeArea(
-              child: ListView.separated(
-                padding: const EdgeInsets.all(20),
-                itemCount: bookings.length,
-                separatorBuilder: (context, index) => const SizedBox(height: 10),
-                itemBuilder: (context, index) {
-                  final booking = bookings[index];
-                  
-                  // 2. VISUAL FIX: 
-                  // If BookingListitem is a Card, we shouldn't wrap it in InkWell here.
-                  // Instead, wrapping it in a GestureDetector is safer for navigation,
-                  // OR modify BookingListitem to accept an onTap.
-                  // For now, GestureDetector works perfectly for navigation.
-                  return GestureDetector(
-                    onTap: () => Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (_) => StaffBookingDetailsScreen(
-                          booking: booking,
-                        ),
-                      ),
-                    ),
-                    child: BookingListitem(booking: booking),
-                  );
-                },
               ),
-            );
-          },
-          error: (error, stackTrace) => Center(
-            child: Text('Error: ${error.toString()}'),
-          ),
-          loading: () => const Center(
-            child: CircularProgressIndicator(),
-          ),
+            ),
+          ],
         ),
       ),
     );

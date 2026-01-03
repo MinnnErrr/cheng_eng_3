@@ -222,7 +222,7 @@ class _VehicleUpdateScreenState extends ConsumerState<VehicleUpdateScreen> {
                         ),
                       )
                     : const Text(
-                        'Update Vehicle',
+                        'UPDATE RECORD',
                         style: TextStyle(
                           fontWeight: FontWeight.bold,
                         ),

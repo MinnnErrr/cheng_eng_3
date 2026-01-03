@@ -51,7 +51,6 @@ sealed class Booking with _$Booking {
     required TimeOfDay time,
     
     required String? remarks,
-    required String? staffMessage,
     required BookingStatus status,
     required String? vehiclePhoto,
     required String vehicleRegNum,

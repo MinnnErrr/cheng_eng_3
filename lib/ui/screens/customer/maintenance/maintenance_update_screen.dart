@@ -225,14 +225,14 @@ class _MaintenanceUpdateScreenState
                                     : _desc.text.trim(),
                                 currentServDate: _currentDate,
                                 currentServDistance:
-                                    double.tryParse(
-                                      _currentDist.text.trim(),
-                                    ) ??
-                                    0.0,
+                                    _currentDist.text.trim().isNotEmpty
+                                    ? double.tryParse(_currentDist.text.trim())
+                                    : null,
                                 nextServDate: _nextDate,
                                 nextServDistance:
-                                    double.tryParse(_nextDist.text.trim()) ??
-                                    0.0,
+                                    _nextDist.text.trim().isNotEmpty
+                                    ? double.tryParse(_nextDist.text.trim())
+                                    : null,
                                 remarks: _remarks.text.trim().isEmpty
                                     ? null
                                     : _remarks.text.trim(),
@@ -269,7 +269,7 @@ class _MaintenanceUpdateScreenState
                           child: CircularProgressIndicator(strokeWidth: 2),
                         )
                       : const Text(
-                          'Update Record',
+                          'UPDATE RECORD',
                           style: TextStyle(
                             fontWeight: FontWeight.bold,
                           ),

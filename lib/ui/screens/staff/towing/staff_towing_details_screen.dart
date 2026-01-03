@@ -15,7 +15,7 @@ typedef TowingEntry = DropdownMenuEntry<String>;
 enum TowingStatus {
   decline('Decline', 'Declined'),
   accept('Accept', 'Accepted'),
-  complete('Complete', 'Complete');
+  complete('Complete', 'Completed');
 
   const TowingStatus(this.label, this.value);
   final String label;
@@ -26,7 +26,6 @@ enum TowingStatus {
       (TowingStatus status) => TowingEntry(
         label: status.label,
         value: status.value,
-        // Optional: Add icons for a better look
         leadingIcon: Icon(
           status == TowingStatus.decline
               ? Icons.close
@@ -56,121 +55,134 @@ class _StaffTowingDetailsScreenState
 
   @override
   Widget build(BuildContext context) {
-    // Subscribe to real-time updates
     ref.watch(towingRealtimeProvider);
 
-    // Watch the towing provider for updates
     final towingAsync = ref.watch(towingByIdProvider(widget.towing.id));
     final Towing currentTowing = towingAsync.value ?? widget.towing;
     final towingNotifier = ref.read(staffTowingsProvider.notifier);
+
     final bool isCancelled = currentTowing.status.toLowerCase() == 'cancelled';
+    final bool isCompleted = currentTowing.status.toLowerCase() == 'completed';
+    final bool canUpdate = !isCancelled && !isCompleted;
+
+    // Check if user has selected a DIFFERENT status
+    final bool isChanged =
+        _selectedStatus != null && _selectedStatus != currentTowing.status;
+
     final theme = Theme.of(context);
 
     return Scaffold(
+      backgroundColor: theme.colorScheme.surface,
       appBar: AppBar(
         title: const Text('Towing Details'),
-        systemOverlayStyle: SystemUiOverlayStyle.dark,
-
-        // Sticky Status Bar
-        bottom: isCancelled
-            ? null
-            : PreferredSize(
-                preferredSize: const Size.fromHeight(90),
-                child: Container(
-                  padding: const EdgeInsets.fromLTRB(20, 10, 20, 20),
-                  decoration: BoxDecoration(
-                    color: theme.scaffoldBackgroundColor,
-                    border: Border(
-                      bottom: BorderSide(
-                        color: theme.colorScheme.outlineVariant.withValues(
-                          alpha: 0.5,
+      ),
+      body: Column(
+        children: [
+          // --- 1. FIXED STATUS SECTION (Separated) ---
+          if (canUpdate)
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+              decoration: BoxDecoration(
+                color: theme.colorScheme.surface,
+              ),
+              child: Row(
+                children: [
+                  // A. STATUS SELECTOR BOX (Expanded)
+                  Expanded(
+                    child: Container(
+                      height: 50, // Fixed height for alignment
+                      padding: const EdgeInsets.symmetric(horizontal: 12),
+                      decoration: BoxDecoration(
+                        color: theme.colorScheme.surfaceContainerLow,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: theme.colorScheme.outlineVariant,
                         ),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.edit_note,
+                            color: theme.colorScheme.onSurface,
+                            size: 20,
+                          ),
+                          const SizedBox(width: 8),
+                          // Dropdown
+                          Expanded(
+                            child: DropdownMenu<String>(
+                              width: double.infinity,
+                              initialSelection: currentTowing.status,
+                              dropdownMenuEntries: TowingStatus.entries,
+                              textStyle: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 14,
+                              ),
+                              // Invisible border inside the container
+                              inputDecorationTheme: const InputDecorationTheme(
+                                filled: false,
+                                border: InputBorder.none,
+                                contentPadding: EdgeInsets.zero,
+                                constraints: BoxConstraints(maxHeight: 48),
+                              ),
+                              onSelected: (value) =>
+                                  setState(() => _selectedStatus = value),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ),
-                  child: Row(
-                    children: [
-                      // --- DROPDOWN ---
-                      Expanded(
-                        child: DropdownMenu<String>(
-                          width: double.infinity, // Fills the Expanded
-                          initialSelection: currentTowing.status,
-                          dropdownMenuEntries: TowingStatus.entries,
-                          label: const Text('Update Status'),
-                          textStyle: const TextStyle(
-                            fontWeight: FontWeight.bold,
-                          ),
-                          inputDecorationTheme: InputDecorationTheme(
-                            filled: true,
-                            fillColor: theme.colorScheme.surfaceContainer,
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12),
-                              borderSide: BorderSide(
-                                color: theme.colorScheme.outlineVariant,
-                              ),
-                            ),
-                            contentPadding: const EdgeInsets.symmetric(
-                              horizontal: 16,
-                              vertical: 14,
-                            ),
-                          ),
-                          onSelected: (value) {
-                            setState(() {
-                              _selectedStatus = value;
-                            });
-                          },
-                        ),
-                      ),
 
-                      const SizedBox(width: 12),
+                  const SizedBox(width: 12),
 
-                      // --- CONFIRM BUTTON ---
-                      // Styled to match the Yellow/Black theme
-                      IconButton.filled(
-                        style: IconButton.styleFrom(
-                          backgroundColor: theme.colorScheme.primary, // Yellow
-                          foregroundColor: theme.colorScheme.onPrimary, // Black
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          minimumSize: const Size(
-                            56,
-                            56,
-                          ), // Matches Dropdown height
-                          elevation: 0,
-                        ),
-                        onPressed:
-                            _selectedStatus != null &&
-                                _selectedStatus != currentTowing.status
-                            ? () => _updateStatus(
-                                context,
-                                towingNotifier,
-                                currentTowing.id,
-                              )
-                            : null, // Disabled state handles grey out auto
-                        icon: const Icon(Icons.check, size: 28),
+                  // B. CONFIRM BUTTON (Separate)
+                  IconButton.filled(
+                    style: IconButton.styleFrom(
+                      backgroundColor: theme.colorScheme.primary,
+                      foregroundColor: theme.colorScheme.onPrimary,
+                      // Grey out when disabled
+                      disabledBackgroundColor:
+                          theme.colorScheme.surfaceContainerHighest,
+                      disabledForegroundColor: theme
+                          .colorScheme
+                          .onSurfaceVariant
+                          .withOpacity(0.4),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
                       ),
-                    ],
+                      fixedSize: const Size(50, 50), // Matches input height
+                    ),
+                    onPressed: isChanged
+                        ? () => _updateStatus(
+                            context,
+                            towingNotifier,
+                            currentTowing.id,
+                          )
+                        : null, // Disabled if no change
+                    icon: const Icon(Icons.check, size: 24),
+                    tooltip: "Confirm Update",
                   ),
-                ),
+                ],
               ),
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          children: [
-            // Details Card
-            TowingDetailsWidget(towing: currentTowing),
+            ),
 
-            // Bottom Padding for scrolling
-            const SizedBox(height: 40),
-          ],
-        ),
+          // --- 2. SCROLLABLE DETAILS ---
+          Expanded(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.fromLTRB(20, 20, 20, 40),
+              child: Column(
+                children: [
+                  TowingDetailsWidget(towing: currentTowing),
+                  const SizedBox(height: 40),
+                ],
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
 
-  // --- LOGIC HELPER ---
   Future<void> _updateStatus(
     BuildContext context,
     StaffTowingsNotifier notifier,

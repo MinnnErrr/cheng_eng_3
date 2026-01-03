@@ -1,7 +1,7 @@
 import 'package:cheng_eng_3/core/controllers/auth/auth_notifier.dart';
+import 'package:cheng_eng_3/core/controllers/point/nearest_expiry_point_provider.dart';
 import 'package:cheng_eng_3/core/controllers/point/total_points_provider.dart';
 import 'package:cheng_eng_3/core/controllers/profile/profile_notifier.dart';
-import 'package:cheng_eng_3/core/controllers/reset_provider.dart';
 import 'package:cheng_eng_3/core/models/profile_model.dart';
 import 'package:cheng_eng_3/ui/screens/customer/points_history/customer_points_history_screen.dart';
 import 'package:cheng_eng_3/ui/screens/login_screen.dart';
@@ -16,242 +16,354 @@ class ProfileScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final userState = ref.watch(authProvider);
-
     final user = userState.value;
 
-    // Handle loading or null user
     if (user == null) {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
     final totalPoints = ref.watch(totalPointsProvider(user.id));
-    final profile = ref.watch(profileProvider);
+    final expiryPoints = ref.watch(nearestExpiryProvider(user.id));
+    final profileAsync = ref.watch(profileProvider);
     final authNotifier = ref.read(authProvider.notifier);
+
+    final String? expiryText = expiryPoints.when(
+      data: (info) => info != null
+          ? '${info.points} pts expiring on ${DateFormat('dd/MM/yyyy').format(info.date)}'
+          : null,
+      loading: () => 'Loading...',
+      error: (_, __) => null,
+    );
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('My Profile'),
+        title: const Text('My Profile'),
       ),
-      body: profile.when(
+      body: profileAsync.when(
         data: (profile) {
-          return profile == null
-              ? Column(
-                  spacing: 20,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      'No profile found',
-                      style:
-                          Theme.of(
-                            context,
-                          ).textTheme.bodyLarge!.copyWith(
-                            fontWeight: FontWeight.bold,
-                          ),
-                    ),
-                    TextButton(
-                      onPressed: () {
+          if (profile == null) return _buildNoProfileView(context);
+
+          return SingleChildScrollView(
+            padding: const EdgeInsets.all(20), // Reduced padding
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                // --- Points Card (Customer Only) ---
+                if (profile.role.toLowerCase() == 'customer') ...[
+                  totalPoints.when(
+                    data: (total) => _PointsCard(
+                      totalPoints: total,
+                      expiryText: expiryText,
+                      onHistoryTap: () {
                         Navigator.of(context).push(
                           MaterialPageRoute(
-                            builder: (_) => const ProfileUpdateScreen(),
+                            builder: (context) =>
+                                const CustomerPointsHistoryScreen(),
                           ),
                         );
                       },
-                      child: Text('Create Profile'),
+                    ),
+                    loading: () => const SizedBox(
+                      height: 80,
+                      child: Center(child: CircularProgressIndicator()),
+                    ),
+                    error: (_, __) => const SizedBox(),
+                  ),
+                  const SizedBox(height: 30),
+                ],
+
+                // --- Header & Edit ---
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'Personal Information',
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    SizedBox(
+                      height: 32, // Smaller button area
+                      child: TextButton.icon(
+                        onPressed: () {
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (_) => const ProfileUpdateScreen(),
+                            ),
+                          );
+                        },
+                        style: TextButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(horizontal: 8),
+                          visualDensity: VisualDensity.compact,
+                        ),
+                        icon: const Icon(Icons.edit_outlined, size: 16),
+                        label: const Text(
+                          'Edit',
+                          style: TextStyle(fontSize: 13),
+                        ),
+                      ),
                     ),
                   ],
-                )
-              : SafeArea(
-                  child: Padding(
-                    padding: EdgeInsets.all(20),
-                    child: Column(
-                      spacing: 30,
+                ),
+                const SizedBox(height: 8),
 
-                      children: [
-                        //point field
-                        if (profile.role.toLowerCase() == 'customer')
-                          Container(
-                            width: double.infinity,
-                            color: Theme.of(
-                              context,
-                            ).colorScheme.surfaceContainer,
-                            child: totalPoints.when(
-                              data: (total) {
-                                return _pointsFiled(total, context);
-                              },
-                              error: (error, stackTrace) => Text("Error"),
-                              loading: () => const Center(
-                                child: CircularProgressIndicator(),
-                              ),
-                            ),
-                          ),
+                // --- Profile Details ---
+                _buildProfileInfoCard(context, profile),
 
-                        //profile field
-                        _profileField(profile, context),
+                const SizedBox(height: 32),
 
-                        ElevatedButton(
-                          onPressed: () async {
-                            // final resetAll = ref.read(appStateResetProvider);
-
-                            if (!context.mounted) return;
-                            await authNotifier.signOut();
-                            // resetAll();
-
-                            if (!context.mounted) return;
-                            Navigator.of(context).pushAndRemoveUntil(
-                              MaterialPageRoute(builder: (_) => LoginScreen()),
-                              (route) => false,
-                            );
-                          },
-                          child: Text('Sign Out'),
-                        ),
-                      ],
+                // --- Sign Out Button ---
+                SizedBox(
+                  height: 48, // Standard height, not too bulky
+                  child: OutlinedButton.icon(
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: Theme.of(context).colorScheme.error,
+                      side: BorderSide(
+                        color: Theme.of(context).colorScheme.error,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
                     ),
+                    onPressed: () async =>
+                        _handleSignOut(context, authNotifier),
+                    icon: const Icon(Icons.logout, size: 20),
+                    label: const Text('SIGN OUT'),
                   ),
-                );
+                ),
+              ],
+            ),
+          );
         },
-        error: (error, stackTrace) => Center(
-          child: Text(error.toString()),
-        ),
-        loading: () => const Center(
-          child: CircularProgressIndicator(),
-        ),
+        error: (error, _) => Center(child: Text('Error: $error')),
+        loading: () => const Center(child: CircularProgressIndicator()),
       ),
     );
   }
 
-  Widget _pointsFiled(int totalPoints, BuildContext context) {
-    return Container(
-      width: double.infinity,
-      color: Theme.of(context).colorScheme.primary,
-      padding: EdgeInsets.all(20),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.end,
+  Future<void> _handleSignOut(
+    BuildContext context,
+    AuthNotifier authNotifier,
+  ) async {
+    await authNotifier.signOut();
+    if (!context.mounted) return;
+    Navigator.of(context).pushAndRemoveUntil(
+      MaterialPageRoute(builder: (_) => const LoginScreen()),
+      (route) => false,
+    );
+  }
+
+  Widget _buildNoProfileView(BuildContext context) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Column(
-            spacing: 10,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'You have',
-                style: TextStyle(
-                  color: Theme.of(context).colorScheme.onPrimary,
-                ),
-              ),
-              Text(
-                '$totalPoints pts',
-                style: Theme.of(context).textTheme.titleLarge!.copyWith(
-                  color: Theme.of(context).colorScheme.onPrimary,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ],
+          Text(
+            'No profile found',
+            style: Theme.of(context).textTheme.titleMedium,
           ),
-          Spacer(),
-          TextButton.icon(
-            style: TextButton.styleFrom(
-              foregroundColor: Theme.of(context).colorScheme.onPrimary,
-              iconAlignment: IconAlignment.end,
-            ),
-            onPressed: () => Navigator.of(context).push(
-              MaterialPageRoute(
-                builder: (context) => CustomerPointsHistoryScreen(),
-              ),
-            ),
-            label: Text('Points History'),
-            icon: Icon(Icons.arrow_forward),
+          const SizedBox(height: 12),
+          FilledButton(
+            onPressed: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(builder: (_) => const ProfileUpdateScreen()),
+              );
+            },
+            child: const Text('Create Profile'),
           ),
         ],
       ),
     );
   }
 
-  Widget _profileField(Profile profile, BuildContext context) {
-    final dateFormatter = DateFormat('dd/MM/yyyy');
+  Widget _buildProfileInfoCard(BuildContext context, Profile profile) {
+    final dateFormatter = DateFormat('dd MMM yyyy');
 
-    return Column(
-      spacing: 20,
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(
-              'Profile Details',
-              style:
-                  Theme.of(
-                    context,
-                  ).textTheme.bodyLarge!.copyWith(
-                    fontWeight: FontWeight.bold,
+    return Container(
+      decoration: BoxDecoration(
+        color: Theme.of(
+          context,
+        ).colorScheme.surfaceContainer,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: Theme.of(
+            context,
+          ).colorScheme.outlineVariant,
+        ),
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      child: Column(
+        children: [
+          _ProfileRow(label: 'Name', value: profile.name),
+          const Divider(height: 1),
+          _ProfileRow(label: 'Email', value: profile.email),
+          const Divider(height: 1),
+          _ProfileRow(
+            label: 'Phone',
+            value: '${profile.dialCode} ${profile.phoneNum}',
+          ),
+          const Divider(height: 1),
+          _ProfileRow(label: 'Gender', value: profile.gender),
+          const Divider(height: 1),
+          _ProfileRow(
+            label: 'Birthday',
+            value: profile.birthday != null
+                ? dateFormatter.format(profile.birthday!)
+                : '-',
+            isLast: true,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// --- Compact Helper Widgets ---
+
+class _PointsCard extends StatelessWidget {
+  final int totalPoints;
+  final String? expiryText;
+  final VoidCallback onHistoryTap;
+
+  const _PointsCard({
+    required this.totalPoints,
+    required this.expiryText,
+    required this.onHistoryTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+      decoration: BoxDecoration(
+        color: colorScheme.primary,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: colorScheme.primary.withValues(alpha: 0.25),
+            blurRadius: 8,
+            offset: const Offset(0, 3),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'Available Points',
+                style: TextStyle(
+                  color: colorScheme.onPrimary.withValues(alpha: 0.9),
+                  fontWeight: FontWeight.w500,
+                  fontSize: 13, // Smaller label
+                ),
+              ),
+              InkWell(
+                onTap: onHistoryTap,
+                borderRadius: BorderRadius.circular(12),
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(8, 4, 0, 4),
+                  child: Row(
+                    children: [
+                      Text(
+                        'History',
+                        style: TextStyle(
+                          color: colorScheme.onPrimary,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(width: 4),
+                      Icon(
+                        Icons.arrow_forward_ios,
+                        size: 14,
+                        color: colorScheme.onPrimary,
+                      ),
+                    ],
                   ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 4),
+          // Reduced font size for points
+          Text(
+            '$totalPoints pts',
+            style: theme.textTheme.headlineMedium!.copyWith(
+              color: colorScheme.onPrimary,
+              fontWeight: FontWeight.bold,
+              height: 1.1,
             ),
-            IconButton(
-              onPressed: () {
-                Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (_) => const ProfileUpdateScreen(),
-                  ),
-                );
-              },
-              icon: Icon(Icons.edit),
-            ),
-          ],
-        ),
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Email',
-              style: TextStyle(fontWeight: FontWeight.bold),
-            ),
-            Text(profile.email),
-          ],
-        ),
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Name',
-              style: TextStyle(fontWeight: FontWeight.bold),
-            ),
-            Text(profile.name),
-          ],
-        ),
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Phone Number',
-              style: TextStyle(fontWeight: FontWeight.bold),
-            ),
-            Text('${profile.dialCode}${profile.phoneNum}'),
-          ],
-        ),
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Gender',
-              style: TextStyle(fontWeight: FontWeight.bold),
-            ),
-            Text(profile.gender),
-          ],
-        ),
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Date of Birth',
-              style: TextStyle(fontWeight: FontWeight.bold),
-            ),
-            Text(
-              profile.birthday != null
-                  ? dateFormatter.format(profile.birthday!)
-                  : '-',
+          ),
+          if (expiryText != null) ...[
+            const SizedBox(height: 8),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              decoration: BoxDecoration(
+                color: Colors.black.withValues(alpha: 0.15),
+                borderRadius: BorderRadius.circular(6),
+              ),
+              child: Text(
+                expiryText!,
+                style: TextStyle(
+                  color: colorScheme.onPrimary,
+                  fontSize: 11,
+                  fontWeight: FontWeight.bold,
+                ), // Smaller text
+              ),
             ),
           ],
-        ),
-      ],
+        ],
+      ),
+    );
+  }
+}
+
+class _ProfileRow extends StatelessWidget {
+  final String label;
+  final String value;
+  final bool isLast;
+
+  const _ProfileRow({
+    required this.label,
+    required this.value,
+    this.isLast = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      // Tighter padding for list items
+      padding: EdgeInsets.only(top: 12, bottom: 12),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            label,
+            style: TextStyle(
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Text(
+              value,
+              style: const TextStyle(
+                fontWeight: FontWeight.w600,
+                fontSize: 14, // Standard body size
+              ),
+              textAlign: TextAlign.end,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

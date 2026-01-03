@@ -1,3 +1,4 @@
+import 'package:cheng_eng_3/colorscheme/colorscheme.dart';
 import 'package:cheng_eng_3/core/controllers/cart/cart_notifier.dart';
 import 'package:cheng_eng_3/core/controllers/product/product_by_id_provider.dart';
 import 'package:cheng_eng_3/core/controllers/realtime_provider.dart';
@@ -72,77 +73,72 @@ class _CustomerProductDetailsScreenState
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     // --- 2. HEADER INFO ---
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              // Badge
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 8,
-                                  vertical: 4,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: getProductAvailabilityColor(
-                                    product.availability,
-                                    product.quantity,
-                                    context,
-                                  ).withValues(alpha: 0.2),
-                                  borderRadius: BorderRadius.circular(6),
-                                ),
-                                child: Text(
-                                  getProductAvailabilityName(
-                                    product.availability,
-                                    product.quantity,
-                                    context,
-                                  ),
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.bold,
-                                    color: getProductAvailabilityColor(
-                                      product.availability,
-                                      product.quantity,
-                                      context,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(height: 8),
-                              Text(
-                                '${product.brand} ${product.name} ${product.model ?? ''}',
-                                style: theme.textTheme.titleLarge?.copyWith(
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              if (product.colour != null)
-                                Text(
-                                  product.colour!,
-                                  style: theme.textTheme.bodyMedium?.copyWith(
-                                    color: theme.colorScheme.onSurfaceVariant,
-                                  ),
-                                ),
-                            ],
+                    // Availability Badge
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 4,
+                      ),
+                      decoration: BoxDecoration(
+                        color: getProductAvailabilityColor(
+                          product.availability,
+                          product.quantity,
+                          context,
+                        ).withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: Text(
+                        getProductAvailabilityName(
+                          product.availability,
+                          product.quantity,
+                          context,
+                        ),
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                          color: getProductAvailabilityColor(
+                            product.availability,
+                            product.quantity,
+                            context,
                           ),
                         ),
-                        // Price
-                        Text(
-                          'RM ${product.price.toStringAsFixed(2)}',
-                          style: theme.textTheme.titleLarge?.copyWith(
-                            fontWeight: FontWeight.w900,
-                            color: Color(0xFF9E7C00),
-                          ),
-                        ),
-                      ],
+                      ),
                     ),
 
-                    const SizedBox(height: 30),
+                    const SizedBox(height: 12),
+
+                    // Title (Name + Model)
+                    Text(
+                      '${product.brand} ${product.name} ${product.model ?? ''}',
+                      style: theme.textTheme.titleLarge?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        height: 1.2,
+                        color: theme.colorScheme.onSurface,
+                      ),
+                    ),
+
+                    const SizedBox(height: 4),
+                    Text(
+                      'hi',
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: theme.colorScheme.onSurface,
+                      ),
+                    ),
+
+                    const SizedBox(height: 20),
+
+                    // Price (Moved Below Title)
+                    Text(
+                      'RM ${product.price.toStringAsFixed(2)}',
+                      style: theme.textTheme.headlineSmall?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: textYellow
+                      ),
+                    ),
 
                     // --- 3. INSTALLATION OPTION (Improved UI) ---
                     if (product.installation == true) ...[
+                      const SizedBox(height: 30),
                       Container(
                         padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(
@@ -212,8 +208,12 @@ class _CustomerProductDetailsScreenState
                           ],
                         ),
                       ),
-                      const SizedBox(height: 30),
                     ],
+
+                    const Padding(
+                      padding: EdgeInsets.symmetric(vertical: 24),
+                      child: Divider(height: 1),
+                    ),
 
                     // --- 4. DESCRIPTION ---
                     Text(
@@ -283,7 +283,7 @@ class _CustomerProductDetailsScreenState
                   style: FilledButton.styleFrom(
                     minimumSize: const Size(double.infinity, 50),
                   ),
-                  child: const Text('Sold Out'),
+                  child: const Text('SOLD OUT'),
                 ),
               )
             : Row(
@@ -292,7 +292,7 @@ class _CustomerProductDetailsScreenState
                   Container(
                     height: 50,
                     decoration: BoxDecoration(
-                      color: theme.colorScheme.surfaceContainerHighest,
+                      color: theme.colorScheme.surfaceContainerHigh,
                       borderRadius: BorderRadius.circular(25), // Pill shape
                     ),
                     child: Row(
@@ -364,7 +364,7 @@ class _CustomerProductDetailsScreenState
                                 ),
                               )
                             : const Text(
-                                "Add to Cart",
+                                "ADD TO CART",
                                 style: TextStyle(fontWeight: FontWeight.bold),
                               ),
                       ),
