@@ -74,11 +74,11 @@ class MaintenanceService {
     return Maintenance.fromJson(data);
   }
 
-  Future<Maintenance> updateStatus(String status, String maintenanceId) async {
+  Future<Maintenance> updateStatus(bool isComplete, String maintenanceId) async {
     final data = await supabase
         .from('maintenances')
         .update({
-          'status': status,
+          'isComplete': isComplete,
           'updatedAt': DateTime.now().toIso8601String(),
         })
         .eq('id', maintenanceId)

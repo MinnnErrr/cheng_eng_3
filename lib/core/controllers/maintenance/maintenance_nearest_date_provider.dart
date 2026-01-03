@@ -15,7 +15,7 @@ final maintenanceByNearestDateProvider =
   final upcoming = maintenanceList.maintenances
       .where((m) =>
           !m.nextServDate.isBefore(now) &&
-          m.status.toLowerCase() == 'incomplete')
+          m.isComplete == false)
       .toList();
 
   if (upcoming.isEmpty) return MaintenanceList(maintenances: []);

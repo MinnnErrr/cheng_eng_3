@@ -34,7 +34,7 @@ class _MaintenanceCarouselState extends State<MaintenanceCarousel> {
       children: [
         // 2. The PageView (Swipeable Cards)
         SizedBox(
-          height: 160, // Fixed height for the card area
+          height: 145, // Fixed height for the card area
           child: PageView.builder(
             itemCount: widget.maintenanceList.length,
             controller: PageController(

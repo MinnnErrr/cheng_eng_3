@@ -20,10 +20,10 @@ sealed class Maintenance with _$Maintenance {
     String? description,
     String? remarks,
     required DateTime currentServDate,
-    required double currentServDistance,
+    required double? currentServDistance,
     required DateTime nextServDate,
-    required double nextServDistance,
-    required String status,
+    required double? nextServDistance,
+    required bool isComplete,
     DateTime? deletedAt,
     required String vehicleId,
     DateTime? updatedAt

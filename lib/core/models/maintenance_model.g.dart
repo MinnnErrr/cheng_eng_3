@@ -22,10 +22,10 @@ _Maintenance _$MaintenanceFromJson(Map<String, dynamic> json) => _Maintenance(
   description: json['description'] as String?,
   remarks: json['remarks'] as String?,
   currentServDate: DateTime.parse(json['currentServDate'] as String),
-  currentServDistance: (json['currentServDistance'] as num).toDouble(),
+  currentServDistance: (json['currentServDistance'] as num?)?.toDouble(),
   nextServDate: DateTime.parse(json['nextServDate'] as String),
-  nextServDistance: (json['nextServDistance'] as num).toDouble(),
-  status: json['status'] as String,
+  nextServDistance: (json['nextServDistance'] as num?)?.toDouble(),
+  isComplete: json['isComplete'] as bool,
   deletedAt: json['deletedAt'] == null
       ? null
       : DateTime.parse(json['deletedAt'] as String),
@@ -45,7 +45,7 @@ Map<String, dynamic> _$MaintenanceToJson(_Maintenance instance) =>
       'currentServDistance': instance.currentServDistance,
       'nextServDate': instance.nextServDate.toIso8601String(),
       'nextServDistance': instance.nextServDistance,
-      'status': instance.status,
+      'isComplete': instance.isComplete,
       'deletedAt': instance.deletedAt?.toIso8601String(),
       'vehicleId': instance.vehicleId,
       'updatedAt': instance.updatedAt?.toIso8601String(),

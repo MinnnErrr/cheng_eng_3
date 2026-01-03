@@ -29,9 +29,9 @@ class MaintenanceNotifier extends _$MaintenanceNotifier {
     String? description,
     String? remarks,
     required DateTime currentServDate,
-    required double currentServDistance,
+    required double? currentServDistance,
     required DateTime nextServDate,
-    required double nextServDistance,
+    required double? nextServDistance,
     required String vehicleId,
   }) async {
     final previous = state.value ?? MaintenanceList(maintenances: []);
@@ -47,7 +47,7 @@ class MaintenanceNotifier extends _$MaintenanceNotifier {
       currentServDistance: currentServDistance,
       nextServDate: nextServDate,
       nextServDistance: nextServDistance,
-      status: 'Incomplete',
+      isComplete: false,
       vehicleId: vehicleId,
     );
 
@@ -85,9 +85,9 @@ class MaintenanceNotifier extends _$MaintenanceNotifier {
     String? description,
     String? remarks,
     required DateTime currentServDate,
-    required double currentServDistance,
+    required double? currentServDistance,
     required DateTime nextServDate,
-    required double nextServDistance,
+    required double? nextServDistance,
   }) async {
     final previous = state.value ?? MaintenanceList(maintenances: []);
     final currentMaintenance = previous.maintenances.firstWhere(
@@ -110,7 +110,7 @@ class MaintenanceNotifier extends _$MaintenanceNotifier {
 
       final updated = await _maintenanceService.update(maintenance);
 
-      if (updated.status.toLowerCase() != 'completed') {
+      if (updated.isComplete == false) {
         final vehicle = await ref.read(
           customerVehicleByIdProvider(maintenance.vehicleId).future,
         );
@@ -139,7 +139,7 @@ class MaintenanceNotifier extends _$MaintenanceNotifier {
 
   Future<bool> updateStatus({
     required String id,
-    required String status,
+    required bool isComplete,
   }) async {
     final previous = state.value ?? MaintenanceList(maintenances: []);
     final currentMaintenance = previous.maintenances.firstWhere(
@@ -150,11 +150,11 @@ class MaintenanceNotifier extends _$MaintenanceNotifier {
     try {
       state = const AsyncLoading();
 
-      final updated = await _maintenanceService.updateStatus(status, id);
+      final updated = await _maintenanceService.updateStatus(isComplete, id);
 
-      if (status.toLowerCase() == 'completed') {
+      if (isComplete == true) {
         await _notificationService.cancelReminder(id);
-      }else if (status.toLowerCase() == 'incomplete') {
+      } else {
         // Optimization: Only fetch vehicle info if we actually need to schedule
         final vehicle = await ref.read(
           customerVehicleByIdProvider(currentMaintenance.vehicleId).future,

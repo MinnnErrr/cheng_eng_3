@@ -78,11 +78,6 @@ class VehicleDetailsScreen extends ConsumerWidget {
                     ),
                     label: const Text('Add Record'),
                     icon: const Icon(Icons.add, size: 18),
-                    style: FilledButton.styleFrom(
-                      backgroundColor: theme.colorScheme.primary,
-                      foregroundColor: theme.colorScheme.onPrimary,
-                      // Removed visualDensity to prevent "hasSize" errors
-                    ),
                   ),
                 ],
               ),

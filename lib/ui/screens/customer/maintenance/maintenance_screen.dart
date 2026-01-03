@@ -40,26 +40,27 @@ class MaintenanceScreen extends ConsumerWidget {
           );
         }
 
-        return ListView.separated(
+        return Padding(
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          itemCount: list.maintenances.length,
-          separatorBuilder: (context, index) => const SizedBox(height: 12),
-          itemBuilder: (context, index) {
-            final maintenance = list.maintenances[index];
-            
-            return MaintenanceListItem(
-              maintenance: maintenance,
-              tapAction: () => Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (context) => MaintenanceDetailsScreen(
-                    maintenance: maintenance,
+          child: Column(
+            children: [
+              for (int i = 0; i < list.maintenances.length; i++) ...[
+                // Add separator logic manually
+                if (i > 0) const SizedBox(height: 12),
+
+                MaintenanceListItem(
+                  maintenance: list.maintenances[i],
+                  tapAction: () => Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (context) => MaintenanceDetailsScreen(
+                        maintenance: list.maintenances[i],
+                      ),
+                    ),
                   ),
                 ),
-              ),
-            );
-          },
+              ],
+            ],
+          ),
         );
       },
       // ✅ FIX: Fixed heights prevent "RenderBox not laid out" errors

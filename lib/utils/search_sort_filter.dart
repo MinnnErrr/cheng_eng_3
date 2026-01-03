@@ -53,7 +53,6 @@ List<Product> productSearchSortFilter({
 }
 
 
-
 List<RedeemedReward> searchRedeemedReward({
   required List<RedeemedReward> rewards,
   required String search,

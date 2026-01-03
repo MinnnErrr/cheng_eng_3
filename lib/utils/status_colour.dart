@@ -1,15 +1,6 @@
 import 'package:cheng_eng_3/core/models/product_model.dart';
 import 'package:flutter/material.dart';
 
-Color getMaintenanceStatusColor(String status, BuildContext context) {
-  switch (status.toLowerCase()) {
-    case 'complete':
-      return Colors.green;
-    case 'incomplete':
-    default:
-      return Theme.of(context).colorScheme.error;
-  }
-}
 
 Color getTowingStatusColor(String status, BuildContext context) {
   switch (status.toLowerCase()) {
@@ -22,7 +13,7 @@ Color getTowingStatusColor(String status, BuildContext context) {
     case 'cancelled':
     case 'declined':
     default:
-      return Theme.of(context).colorScheme.error;
+      return Colors.red;
   }
 }
 
@@ -33,7 +24,7 @@ Color getProductAvailabilityColor(
 ) {
   switch (availability) {
     case ProductAvailability.ready:
-      return quantity! > 0 ? Colors.green : Theme.of(context).colorScheme.error;
+      return quantity! > 0 ? Colors.green : Colors.red;
     case ProductAvailability.preorder:
       return Colors.orange;
   }
@@ -46,7 +37,7 @@ String getProductAvailabilityName(
 ) {
   switch (availability) {
     case ProductAvailability.ready:
-      return quantity! > 0 ? 'In Stock': 'Sold Out';
+      return quantity! > 0 ? 'In Stock' : 'Sold Out';
     case ProductAvailability.preorder:
       return 'Preorder';
   }

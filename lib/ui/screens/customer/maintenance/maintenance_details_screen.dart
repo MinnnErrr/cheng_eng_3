@@ -31,6 +31,25 @@ class _MaintenanceDetailsScreenState
       maintenanceByIdProvider(widget.maintenance.id),
     );
     final maintenance = maintenanceAsync.value ?? widget.maintenance;
+
+    final bool isOverdue =
+        !maintenance.isComplete &&
+        maintenance.nextServDate.isBefore(DateTime.now());
+
+    String statusLabel;
+    Color statusColor;
+
+    if (maintenance.isComplete) {
+      statusLabel = 'Completed';
+      statusColor = Colors.green;
+    } else if (isOverdue) {
+      statusLabel = 'Overdue';
+      statusColor = Colors.red;
+    } else {
+      statusLabel = 'Upcoming';
+      statusColor = Colors.orange;
+    }
+
     final maintenanceNotifier = ref.read(maintenanceProvider.notifier);
     final theme = Theme.of(context);
 
@@ -106,16 +125,13 @@ class _MaintenanceDetailsScreenState
                               vertical: 5,
                             ),
                             decoration: BoxDecoration(
-                              color: getMaintenanceStatusColor(
-                                maintenance.status,
-                                context,
-                              ),
+                              color: statusColor.withValues(alpha: 0.1),
                               borderRadius: BorderRadius.circular(8),
                             ),
                             child: Text(
-                              maintenance.status,
-                              style: const TextStyle(
-                                color: Colors.white,
+                              statusLabel,
+                              style: TextStyle(
+                                color: statusColor,
                                 fontWeight: FontWeight.bold,
                                 fontSize: 12,
                               ),
@@ -142,15 +158,12 @@ class _MaintenanceDetailsScreenState
                     : () async {
                         setState(() => _isUpdatingStatus = true);
 
-                        final isComplete =
-                            maintenance.status.toLowerCase() == 'complete';
-                        final newStatus = isComplete
-                            ? 'Incomplete'
-                            : 'Complete';
+                        final isComplete = maintenance.isComplete;
+                        final newStatus = isComplete ? false : true;
 
                         final success = await maintenanceNotifier.updateStatus(
                           id: maintenance.id,
-                          status: newStatus,
+                          isComplete: newStatus,
                         );
 
                         if (context.mounted) {
@@ -172,9 +185,9 @@ class _MaintenanceDetailsScreenState
                         child: CircularProgressIndicator(strokeWidth: 2),
                       )
                     : Text(
-                        maintenance.status.toLowerCase() == 'incomplete'
-                            ? 'Mark as Complete'
-                            : 'Mark as Incomplete',
+                        maintenance.isComplete == false
+                            ? 'MARK AS COMPLETE'
+                            : 'MARK AS INCOMPLETE',
                         style: const TextStyle(fontWeight: FontWeight.bold),
                       ),
               ),
@@ -183,7 +196,7 @@ class _MaintenanceDetailsScreenState
               SizedBox(
                 width: double.infinity,
                 height: 50,
-                child: OutlinedButton.icon(
+                child: OutlinedButton(
                   style: OutlinedButton.styleFrom(
                     foregroundColor: Colors.red,
 
@@ -199,9 +212,8 @@ class _MaintenanceDetailsScreenState
                     maintenanceNotifier,
                     maintenance.id,
                   ),
-                  icon: const Icon(Icons.delete_outline),
-                  label: const Text(
-                    'Delete Record',
+                  child: const Text(
+                    'DELETE RECORD',
                   ),
                 ),
               ),
@@ -224,13 +236,13 @@ class _MaintenanceDetailsScreenState
         _detailRow(
           context,
           'Last Service',
-          '${dateFormatter.format(maintenance.currentServDate)}\n(${maintenance.currentServDistance} km)',
+          '${dateFormatter.format(maintenance.currentServDate)}${maintenance.currentServDistance != null ? '\n${maintenance.currentServDistance} km' : ''}',
         ),
         const SizedBox(height: 15),
         _detailRow(
           context,
           'Next Service',
-          '${dateFormatter.format(maintenance.nextServDate)}\n(${maintenance.nextServDistance} km)',
+          '${dateFormatter.format(maintenance.nextServDate)}${maintenance.nextServDistance != null ? '\n${maintenance.nextServDistance} km' : ''}',
         ),
         const SizedBox(height: 15),
         _detailRow(
