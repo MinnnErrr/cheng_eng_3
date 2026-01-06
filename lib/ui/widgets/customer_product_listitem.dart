@@ -1,7 +1,7 @@
 import 'package:cheng_eng_3/core/models/product_model.dart';
 import 'package:cheng_eng_3/core/services/image_service.dart';
+import 'package:cheng_eng_3/ui/extensions/product_extension.dart';
 import 'package:cheng_eng_3/ui/widgets/imagebuilder.dart';
-import 'package:cheng_eng_3/utils/status_colour.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -105,15 +105,12 @@ class CustomerProductListitem extends ConsumerWidget {
                     vertical: 4,
                   ),
                   decoration: BoxDecoration(
-                    color: getProductAvailabilityColor(
-                      product.availability,
-                      product.quantity,
-                      context,
-                    ),
+                    color: 
+                      product.availability.color,
                     borderRadius: BorderRadius.circular(8),
                   ),
-                  child: const Text(
-                    'Preorder',
+                  child: Text(
+                    product.availability.label,
                     style: TextStyle(
                       color: Colors.white,
                       fontWeight: FontWeight.bold,

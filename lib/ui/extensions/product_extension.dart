@@ -1,5 +1,3 @@
-
-
 import 'package:cheng_eng_3/core/models/product_model.dart';
 import 'package:flutter/material.dart';
 
@@ -18,10 +16,7 @@ extension ProductAvailabilityExtension on ProductAvailability {
       case ProductAvailability.ready:
         return Colors.green; // Ready stock → green
       case ProductAvailability.preorder:
-        return Colors.orange; // Preorder → orange
+        return Colors.blue; // Preorder → orange
     }
   }
 }
-
-
-

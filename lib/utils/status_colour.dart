@@ -1,4 +1,5 @@
 import 'package:cheng_eng_3/core/models/product_model.dart';
+import 'package:cheng_eng_3/ui/extensions/product_extension.dart';
 import 'package:flutter/material.dart';
 
 Color getProductAvailabilityColor(
@@ -8,9 +9,16 @@ Color getProductAvailabilityColor(
 ) {
   switch (availability) {
     case ProductAvailability.ready:
-      return quantity! > 0 ? Colors.green : Colors.red;
+      if (quantity! > 0) {
+        if (quantity <= 10) {
+          return Colors.orange;
+        }
+        return availability.color;
+      } else {
+        return Colors.red;
+      }
     case ProductAvailability.preorder:
-      return Colors.orange;
+      return availability.color;
   }
 }
 
@@ -21,9 +29,16 @@ String getProductAvailabilityName(
 ) {
   switch (availability) {
     case ProductAvailability.ready:
-      return quantity! > 0 ? 'In Stock' : 'Sold Out';
+      if (quantity! > 0) {
+        if (quantity <= 10) {
+          return 'Low Stock';
+        }
+        return availability.label;
+      } else {
+        return 'Sold Out';
+      }
     case ProductAvailability.preorder:
-      return 'Preorder';
+      return availability.label;
   }
 }
 

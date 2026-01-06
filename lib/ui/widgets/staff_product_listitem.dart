@@ -1,7 +1,7 @@
 import 'package:cheng_eng_3/core/models/product_model.dart';
 import 'package:cheng_eng_3/core/services/image_service.dart';
-import 'package:cheng_eng_3/ui/extensions/product_extension.dart';
 import 'package:cheng_eng_3/ui/widgets/imagebuilder.dart';
+import 'package:cheng_eng_3/utils/status_colour.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -20,36 +20,7 @@ class StaffProductListitem extends ConsumerWidget {
     final imageService = ref.read(imageServiceProvider);
     final theme = Theme.of(context);
 
-    // --- 1. Stock Logic ---
-    final bool isLowStock =
-        product.quantity != null &&
-        product.quantity! <= 10 &&
-        product.quantity! > 0;
     final bool isOOS = product.quantity != null && product.quantity! <= 0;
-
-    // --- 2. Availability Chip Logic ---
-    Color chipColor;
-    Color chipTextColor;
-    String chipLabel = product.availability.label;
-
-    if (product.availability == ProductAvailability.ready) {
-      if (isOOS) {
-        chipColor = theme.colorScheme.error.withValues(alpha: 0.1);
-        chipTextColor = theme.colorScheme.error;
-        chipLabel = "No Stock";
-      } else if (isLowStock) {
-        chipColor = Colors.orange.withValues(alpha: 0.1);
-        chipTextColor = Colors.orange;
-        chipLabel = "Low Stock";
-      } else {
-        chipColor = Colors.green.withValues(alpha: 0.1);
-        chipTextColor = Colors.green;
-      }
-    } else {
-      // Preorder
-      chipColor = Colors.blue.withValues(alpha: 0.1);
-      chipTextColor = Colors.blue;
-    }
 
     final bool isActive = product.status;
 
@@ -142,13 +113,13 @@ class StaffProductListitem extends ConsumerWidget {
                       vertical: 4,
                     ),
                     decoration: BoxDecoration(
-                      color: chipColor,
+                      color: getProductAvailabilityColor(product.availability, product.quantity, context).withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(6),
                     ),
                     child: Text(
-                      chipLabel,
+                      getProductAvailabilityName(product.availability, product.quantity, context),
                       style: theme.textTheme.labelSmall?.copyWith(
-                        color: chipTextColor,
+                        color: getProductAvailabilityColor(product.availability, product.quantity, context),
                         fontWeight: FontWeight.bold,
                       ),
                     ),

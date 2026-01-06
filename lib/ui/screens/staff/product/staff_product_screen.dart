@@ -92,9 +92,9 @@ class _StaffProductScreenState extends ConsumerState<StaffProductScreen> {
                     children: [
                       Expanded(
                         child: _StatCard(
-                          label: "No Stock",
+                          label: "Sold Out",
                           value: outOfStock,
-                          color: theme.colorScheme.error,
+                          color: Colors.red,
                         ),
                       ),
                       const SizedBox(width: 12),

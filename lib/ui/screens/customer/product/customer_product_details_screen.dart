@@ -118,12 +118,13 @@ class _CustomerProductDetailsScreenState
                     ),
 
                     const SizedBox(height: 4),
-                    Text(
-                      'hi',
-                      style: theme.textTheme.bodyMedium?.copyWith(
-                        color: theme.colorScheme.onSurface,
+                    if (product.colour != null)
+                      Text(
+                        '${product.colour}',
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          color: theme.colorScheme.onSurface,
+                        ),
                       ),
-                    ),
 
                     const SizedBox(height: 20),
 
@@ -132,7 +133,7 @@ class _CustomerProductDetailsScreenState
                       'RM ${product.price.toStringAsFixed(2)}',
                       style: theme.textTheme.headlineSmall?.copyWith(
                         fontWeight: FontWeight.bold,
-                        color: textYellow
+                        color: textYellow,
                       ),
                     ),
 
