@@ -2,9 +2,9 @@ import 'package:cheng_eng_3/core/controllers/realtime_provider.dart';
 import 'package:cheng_eng_3/core/controllers/towing/customer_towings_notifier.dart';
 import 'package:cheng_eng_3/core/controllers/towing/towing_by_id_provider.dart';
 import 'package:cheng_eng_3/core/models/towing_model.dart';
+import 'package:cheng_eng_3/ui/extensions/towing_extension.dart';
 import 'package:cheng_eng_3/ui/widgets/snackbar.dart';
 import 'package:cheng_eng_3/ui/widgets/towing_details.dart';
-import 'package:cheng_eng_3/utils/status_colour.dart'; // Ensure imported
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -33,7 +33,7 @@ class _CustomerTowingDetailsScreenState
       customerTowingsProvider(currentTowing.userId).notifier,
     );
 
-    final isPending = currentTowing.status.toLowerCase() == 'pending';
+    final isPending = currentTowing.status == TowingStatus.pending;
     final theme = Theme.of(context);
 
     return Scaffold(
@@ -91,37 +91,25 @@ class _CustomerTowingDetailsScreenState
                   width: double.infinity,
                   padding: const EdgeInsets.symmetric(vertical: 16),
                   decoration: BoxDecoration(
-                    color: getTowingStatusColor(
-                      currentTowing.status,
-                      context,
-                    ).withValues(alpha: 0.1),
+                    color:  currentTowing.status.color.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(
-                      color: getTowingStatusColor(
-                        currentTowing.status,
-                        context,
-                      ).withValues(alpha: 0.3),
+                      color: currentTowing.status.color.withValues(alpha: 0.3),
                     ),
                   ),
                   child: Column(
                     children: [
                       Icon(
-                        _getStatusIcon(currentTowing.status),
-                        color: getTowingStatusColor(
-                          currentTowing.status,
-                          context,
-                        ),
+                        currentTowing.status.statusIcon,
+                        color: currentTowing.status.color
                       ),
                       const SizedBox(width: 8),
                       Text(
-                        _getStatusMessage(currentTowing.status),
+                        currentTowing.status.statusMessage,
                         textAlign: TextAlign.center,
                         style: TextStyle(
                           fontWeight: FontWeight.bold,
-                          color: getTowingStatusColor(
-                            currentTowing.status,
-                            context,
-                          ),
+                          color: currentTowing.status.color
                         ),
                       ),
                     ],
@@ -132,32 +120,6 @@ class _CustomerTowingDetailsScreenState
         ),
       ),
     );
-  }
-
-  IconData _getStatusIcon(String status) {
-    switch (status.toLowerCase()) {
-      case 'cancelled':
-        return Icons.cancel_presentation;
-      case 'accepted':
-        return Icons.near_me;
-      case 'completed':
-        return Icons.check_circle;
-      default:
-        return Icons.info;
-    }
-  }
-
-  String _getStatusMessage(String status) {
-    switch (status.toLowerCase()) {
-      case 'cancelled':
-        return 'Request Cancelled';
-      case 'accepted':
-        return 'Help is on the way';
-      case 'completed':
-        return 'Thanks for choosing us';
-      default:
-        return 'Status: $status'; // Safe fallback
-    }
   }
 
   Future<void> _confirmCancel(
@@ -191,9 +153,8 @@ class _CustomerTowingDetailsScreenState
     if (confirm == true) {
       setState(() => _isCancelling = true);
 
-      final success = await notifier.updateStatus(
+      final success = await notifier.cancelBooking(
         id: towingId,
-        status: 'Cancelled',
       );
 
       if (context.mounted) {

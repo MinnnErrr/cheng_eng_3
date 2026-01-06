@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$Towing {
 
- String get id; String? get remarks; double get latitude; double get longitude; String get address; String get phoneNum; String get countryCode; String get dialCode; String? get photoPath; String get status; String get regNum; String get make; String get model; String get colour; String? get vehiclePhoto; DateTime get createdAt; DateTime? get updatedAt; DateTime? get deletedAt; String get vehicleId; String get userId;
+ String get id; String? get remarks; double get latitude; double get longitude; String get address; String get phoneNum; String get countryCode; String get dialCode; String? get photoPath; TowingStatus get status; String get regNum; String get make; String get model; String get colour; String? get vehiclePhoto; DateTime get createdAt; DateTime? get updatedAt; DateTime? get deletedAt; String get vehicleId; String get userId;
 /// Create a copy of Towing
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -48,7 +48,7 @@ abstract mixin class $TowingCopyWith<$Res>  {
   factory $TowingCopyWith(Towing value, $Res Function(Towing) _then) = _$TowingCopyWithImpl;
 @useResult
 $Res call({
- String id, String? remarks, double latitude, double longitude, String address, String phoneNum, String countryCode, String dialCode, String? photoPath, String status, String regNum, String make, String model, String colour, String? vehiclePhoto, DateTime createdAt, DateTime? updatedAt, DateTime? deletedAt, String vehicleId, String userId
+ String id, String? remarks, double latitude, double longitude, String address, String phoneNum, String countryCode, String dialCode, String? photoPath, TowingStatus status, String regNum, String make, String model, String colour, String? vehiclePhoto, DateTime createdAt, DateTime? updatedAt, DateTime? deletedAt, String vehicleId, String userId
 });
 
 
@@ -77,7 +77,7 @@ as String,countryCode: null == countryCode ? _self.countryCode : countryCode // 
 as String,dialCode: null == dialCode ? _self.dialCode : dialCode // ignore: cast_nullable_to_non_nullable
 as String,photoPath: freezed == photoPath ? _self.photoPath : photoPath // ignore: cast_nullable_to_non_nullable
 as String?,status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
-as String,regNum: null == regNum ? _self.regNum : regNum // ignore: cast_nullable_to_non_nullable
+as TowingStatus,regNum: null == regNum ? _self.regNum : regNum // ignore: cast_nullable_to_non_nullable
 as String,make: null == make ? _self.make : make // ignore: cast_nullable_to_non_nullable
 as String,model: null == model ? _self.model : model // ignore: cast_nullable_to_non_nullable
 as String,colour: null == colour ? _self.colour : colour // ignore: cast_nullable_to_non_nullable
@@ -169,7 +169,7 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String? remarks,  double latitude,  double longitude,  String address,  String phoneNum,  String countryCode,  String dialCode,  String? photoPath,  String status,  String regNum,  String make,  String model,  String colour,  String? vehiclePhoto,  DateTime createdAt,  DateTime? updatedAt,  DateTime? deletedAt,  String vehicleId,  String userId)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String? remarks,  double latitude,  double longitude,  String address,  String phoneNum,  String countryCode,  String dialCode,  String? photoPath,  TowingStatus status,  String regNum,  String make,  String model,  String colour,  String? vehiclePhoto,  DateTime createdAt,  DateTime? updatedAt,  DateTime? deletedAt,  String vehicleId,  String userId)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _Towing() when $default != null:
 return $default(_that.id,_that.remarks,_that.latitude,_that.longitude,_that.address,_that.phoneNum,_that.countryCode,_that.dialCode,_that.photoPath,_that.status,_that.regNum,_that.make,_that.model,_that.colour,_that.vehiclePhoto,_that.createdAt,_that.updatedAt,_that.deletedAt,_that.vehicleId,_that.userId);case _:
@@ -190,7 +190,7 @@ return $default(_that.id,_that.remarks,_that.latitude,_that.longitude,_that.addr
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String? remarks,  double latitude,  double longitude,  String address,  String phoneNum,  String countryCode,  String dialCode,  String? photoPath,  String status,  String regNum,  String make,  String model,  String colour,  String? vehiclePhoto,  DateTime createdAt,  DateTime? updatedAt,  DateTime? deletedAt,  String vehicleId,  String userId)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String? remarks,  double latitude,  double longitude,  String address,  String phoneNum,  String countryCode,  String dialCode,  String? photoPath,  TowingStatus status,  String regNum,  String make,  String model,  String colour,  String? vehiclePhoto,  DateTime createdAt,  DateTime? updatedAt,  DateTime? deletedAt,  String vehicleId,  String userId)  $default,) {final _that = this;
 switch (_that) {
 case _Towing():
 return $default(_that.id,_that.remarks,_that.latitude,_that.longitude,_that.address,_that.phoneNum,_that.countryCode,_that.dialCode,_that.photoPath,_that.status,_that.regNum,_that.make,_that.model,_that.colour,_that.vehiclePhoto,_that.createdAt,_that.updatedAt,_that.deletedAt,_that.vehicleId,_that.userId);}
@@ -207,7 +207,7 @@ return $default(_that.id,_that.remarks,_that.latitude,_that.longitude,_that.addr
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String? remarks,  double latitude,  double longitude,  String address,  String phoneNum,  String countryCode,  String dialCode,  String? photoPath,  String status,  String regNum,  String make,  String model,  String colour,  String? vehiclePhoto,  DateTime createdAt,  DateTime? updatedAt,  DateTime? deletedAt,  String vehicleId,  String userId)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String? remarks,  double latitude,  double longitude,  String address,  String phoneNum,  String countryCode,  String dialCode,  String? photoPath,  TowingStatus status,  String regNum,  String make,  String model,  String colour,  String? vehiclePhoto,  DateTime createdAt,  DateTime? updatedAt,  DateTime? deletedAt,  String vehicleId,  String userId)?  $default,) {final _that = this;
 switch (_that) {
 case _Towing() when $default != null:
 return $default(_that.id,_that.remarks,_that.latitude,_that.longitude,_that.address,_that.phoneNum,_that.countryCode,_that.dialCode,_that.photoPath,_that.status,_that.regNum,_that.make,_that.model,_that.colour,_that.vehiclePhoto,_that.createdAt,_that.updatedAt,_that.deletedAt,_that.vehicleId,_that.userId);case _:
@@ -234,7 +234,7 @@ class _Towing implements Towing {
 @override final  String countryCode;
 @override final  String dialCode;
 @override final  String? photoPath;
-@override final  String status;
+@override final  TowingStatus status;
 @override final  String regNum;
 @override final  String make;
 @override final  String model;
@@ -279,7 +279,7 @@ abstract mixin class _$TowingCopyWith<$Res> implements $TowingCopyWith<$Res> {
   factory _$TowingCopyWith(_Towing value, $Res Function(_Towing) _then) = __$TowingCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String? remarks, double latitude, double longitude, String address, String phoneNum, String countryCode, String dialCode, String? photoPath, String status, String regNum, String make, String model, String colour, String? vehiclePhoto, DateTime createdAt, DateTime? updatedAt, DateTime? deletedAt, String vehicleId, String userId
+ String id, String? remarks, double latitude, double longitude, String address, String phoneNum, String countryCode, String dialCode, String? photoPath, TowingStatus status, String regNum, String make, String model, String colour, String? vehiclePhoto, DateTime createdAt, DateTime? updatedAt, DateTime? deletedAt, String vehicleId, String userId
 });
 
 
@@ -308,7 +308,7 @@ as String,countryCode: null == countryCode ? _self.countryCode : countryCode // 
 as String,dialCode: null == dialCode ? _self.dialCode : dialCode // ignore: cast_nullable_to_non_nullable
 as String,photoPath: freezed == photoPath ? _self.photoPath : photoPath // ignore: cast_nullable_to_non_nullable
 as String?,status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
-as String,regNum: null == regNum ? _self.regNum : regNum // ignore: cast_nullable_to_non_nullable
+as TowingStatus,regNum: null == regNum ? _self.regNum : regNum // ignore: cast_nullable_to_non_nullable
 as String,make: null == make ? _self.make : make // ignore: cast_nullable_to_non_nullable
 as String,model: null == model ? _self.model : model // ignore: cast_nullable_to_non_nullable
 as String,colour: null == colour ? _self.colour : colour // ignore: cast_nullable_to_non_nullable

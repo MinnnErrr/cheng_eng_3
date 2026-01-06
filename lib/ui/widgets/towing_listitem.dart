@@ -1,6 +1,6 @@
 import 'package:cheng_eng_3/colorscheme/colorscheme.dart';
 import 'package:cheng_eng_3/core/models/towing_model.dart';
-import 'package:cheng_eng_3/utils/status_colour.dart';
+import 'package:cheng_eng_3/ui/extensions/towing_extension.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -45,19 +45,13 @@ class TowingListItem extends ConsumerWidget {
                       vertical: 4,
                     ),
                     decoration: BoxDecoration(
-                      color: getTowingStatusColor(
-                        towing.status,
-                        context,
-                      ).withValues(alpha: 0.1),
+                      color: towing.status.color.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(6),
                     ),
                     child: Text(
-                      towing.status,
+                      towing.status.label,
                       style: theme.textTheme.labelSmall?.copyWith(
-                        color: getTowingStatusColor(
-                          towing.status,
-                          context,
-                        ),
+                        color: towing.status.color,
                         fontWeight: FontWeight.bold,
                       ),
                     ),

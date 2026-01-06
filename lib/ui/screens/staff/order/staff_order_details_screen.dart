@@ -376,9 +376,9 @@ class StaffOrderDetailsScreen extends ConsumerWidget {
                                 },
                           style: OutlinedButton.styleFrom(
                             side: BorderSide(
-                              color: theme.colorScheme.error,
+                              color: theme.colorScheme.outline,
                             ),
-                            foregroundColor: theme.colorScheme.error,
+                            foregroundColor: theme.colorScheme.onSurface,
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(12),
                             ),

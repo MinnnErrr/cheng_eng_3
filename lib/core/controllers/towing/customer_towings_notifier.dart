@@ -62,7 +62,7 @@ class CustomerTowingsNotifier extends _$CustomerTowingsNotifier {
       phoneNum: phoneNum,
       countryCode: countryCode,
       dialCode: dialCode,
-      status: 'Pending',
+      status: TowingStatus.pending,
       regNum: vehicle.regNum,
       make: vehicle.make,
       model: vehicle.model,
@@ -84,12 +84,11 @@ class CustomerTowingsNotifier extends _$CustomerTowingsNotifier {
     }
   }
 
-  Future<bool> updateStatus({
+  Future<bool> cancelBooking({
     required String id,
-    required String status,
   }) async {
     try {
-      await _towingService.updateStatus(status, id);
+      await _towingService.updateStatus(TowingStatus.cancelled.name, id);
 
       return true;
     } catch (e) {

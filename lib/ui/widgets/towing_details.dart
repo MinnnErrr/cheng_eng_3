@@ -1,6 +1,7 @@
 import 'package:cheng_eng_3/colorscheme/colorscheme.dart';
 import 'package:cheng_eng_3/core/models/towing_model.dart';
 import 'package:cheng_eng_3/core/services/image_service.dart';
+import 'package:cheng_eng_3/ui/extensions/towing_extension.dart';
 import 'package:cheng_eng_3/ui/widgets/imagebuilder.dart';
 import 'package:cheng_eng_3/utils/status_colour.dart';
 import 'package:flutter/material.dart';
@@ -18,7 +19,6 @@ class TowingDetailsWidget extends ConsumerWidget {
     final imageService = ref.read(imageServiceProvider);
     final theme = Theme.of(context);
     final dateFormatter = DateFormat('dd MMM yyyy, h:mm a');
-    final statusColor = getTowingStatusColor(towing.status, context);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -91,13 +91,13 @@ class TowingDetailsWidget extends ConsumerWidget {
                         vertical: 6,
                       ),
                       decoration: BoxDecoration(
-                        color: statusColor.withValues(alpha: 0.1),
+                        color: towing.status.color.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Text(
-                        towing.status.toUpperCase(),
+                        towing.status.label.toUpperCase(),
                         style: TextStyle(
-                          color: statusColor,
+                          color: towing.status.color,
                           fontWeight: FontWeight.bold,
                           fontSize: 11,
                           letterSpacing: 0.5,

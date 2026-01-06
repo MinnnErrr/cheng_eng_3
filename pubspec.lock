@@ -771,19 +771,21 @@ packages:
   huawei_location:
     dependency: "direct main"
     description:
-      name: huawei_location
-      sha256: dd939b0add3e228865cb7da230d7723551e55677d7d59de7dbfd466229847b9f
-      url: "https://pub.dev"
-    source: hosted
-    version: "6.16.0+300"
+      path: flutter-hms-location
+      ref: HEAD
+      resolved-ref: "3577b72b8f373c53f14385ed7ee0aa10cbd86c9d"
+      url: "https://github.com/HMS-Core/hms-flutter-plugin.git"
+    source: git
+    version: "6.12.0+303"
   huawei_map:
     dependency: "direct main"
     description:
-      name: huawei_map
-      sha256: "8aefa4138293348cb98920f8a126fc022a94173ef3785e8f2fbd0549e8012661"
-      url: "https://pub.dev"
-    source: hosted
-    version: "6.12.0+300"
+      path: flutter-hms-map
+      ref: HEAD
+      resolved-ref: "3577b72b8f373c53f14385ed7ee0aa10cbd86c9d"
+      url: "https://github.com/HMS-Core/hms-flutter-plugin.git"
+    source: git
+    version: "6.11.2+303"
   image_picker:
     dependency: "direct main"
     description:

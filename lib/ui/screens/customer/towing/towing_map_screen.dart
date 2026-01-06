@@ -4,7 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:geocoding/geocoding.dart' as geo;
 import 'package:huawei_map/huawei_map.dart';
-import 'package:location/location.dart' as loc;
+import 'package:huawei_location/huawei_location.dart'
+    as hms_loc; // ✅ Use HMS Location
 import 'package:permission_handler/permission_handler.dart';
 
 class TowingMapScreen extends ConsumerStatefulWidget {
@@ -15,9 +16,14 @@ class TowingMapScreen extends ConsumerStatefulWidget {
       _TowingMapScreenState();
 }
 
-class _TowingMapScreenState extends ConsumerState<TowingMapScreen> {
+class _TowingMapScreenState extends ConsumerState<TowingMapScreen>
+    with WidgetsBindingObserver {
+  // ✅ HMS Location Client
+  final hms_loc.FusedLocationProviderClient _locationService =
+      hms_loc.FusedLocationProviderClient();
+
   final _addressCtrl = TextEditingController();
-  // We keep coordinates in state, no need for UI controllers unless debugging
+
   double? _selectedLat;
   double? _selectedLng;
 
@@ -26,7 +32,6 @@ class _TowingMapScreenState extends ConsumerState<TowingMapScreen> {
 
   bool _gettingLocation = false;
   bool _isSearchingAddress = false;
-
   bool _showMapLayer = false;
 
   final Set<Marker> _markers = {};
@@ -34,67 +39,106 @@ class _TowingMapScreenState extends ConsumerState<TowingMapScreen> {
   @override
   void initState() {
     super.initState();
-    HuaweiMapInitializer.initializeMap();
-    _checkLocationRequirements();
+    WidgetsBinding.instance.addObserver(this);
+    _initMapAndLocation();
   }
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _addressCtrl.dispose();
     super.dispose();
   }
 
-  // ... (Keep _checkLocationRequirements, _showSettingsDialog, _getUserLocation exactly as they are) ...
-  // Keeping them brief here to focus on the UI changes.
-
-  Future<void> _checkLocationRequirements() async {
-    // ... [Your existing logic] ...
-    // Just ensure _getUserLocation() calls the map update
-    loc.Location location = loc.Location();
-    bool serviceEnabled = await location.serviceEnabled();
-    if (!serviceEnabled) {
-      serviceEnabled = await location.requestService();
-      if (!serviceEnabled) {
-        _finalizeMapInitialization(false);
-        return;
-      }
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    // If the user comes back to the app (Resumed)
+    if (state == AppLifecycleState.resumed) {
+      // Check permission/GPS again silently
+      _checkPermission(silent: true).then((isReady) {
+        if (isReady) {
+          setState(() => _hasLocationPermission = true);
+          // If we didn't have location before, initialize it now
+          _locationService.initFusedLocationService().then((_) {
+            _getUserLocation();
+          });
+        }
+      });
     }
-    var status = await Permission.locationWhenInUse.status;
-    if (status.isPermanentlyDenied) {
-      if (mounted) _showSettingsDialog();
-      _finalizeMapInitialization(false);
-      return;
-    }
-    if (!status.isGranted) {
-      final statuses = await [
-        Permission.location,
-        Permission.locationWhenInUse,
-      ].request();
-      if (statuses[Permission.locationWhenInUse] != PermissionStatus.granted) {
-        _finalizeMapInitialization(false);
-        return;
-      }
-    }
-    _finalizeMapInitialization(true);
   }
 
-  void _finalizeMapInitialization(bool permissionGranted) {
-    setState(() {
-      _hasLocationPermission = permissionGranted;
-    });
+  Future<void> _initMapAndLocation() async {
+    try {
+      // 1. Initialize Map
+      HuaweiMapInitializer.initializeMap();
 
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) {
-        setState(() {
-          _showMapLayer = true;
-        });
-        
-        // If we have permission, fetch location now
-        if (permissionGranted) {
-          _getUserLocation();
+      // 2. Check Permissions
+      final bool isLocationReady = await _checkPermission();
+
+      setState(() {
+        _hasLocationPermission = isLocationReady;
+        _showMapLayer =
+            true; // Show map regardless, so they see the map even without location
+      });
+
+      // 3. Initialize Location Service (If permission granted)
+      if (isLocationReady) {
+        try {
+          await _locationService.initFusedLocationService();
+          _getUserLocation(); // Fetch initial location
+        } catch (e) {
+          debugPrint("Location Service Init Error: $e");
         }
       }
-    });
+    } catch (e) {
+      debugPrint("Initialization Error: $e");
+      if (!mounted) return;
+      showAppSnackBar(
+        context: context,
+        content: 'Failed to initialize map',
+        isError: true,
+      );
+    }
+  }
+
+  Future<bool> _checkPermission({bool silent = false}) async {
+    var status = await Permission.location.status;
+
+    if (!status.isGranted && !silent) {
+      status = await Permission.location.request();
+    }
+
+    if (!mounted) return false;
+    if (!status.isGranted) {
+      if (!silent) {
+        if (status.isPermanentlyDenied) {
+          _showSettingsDialog();
+        } else {
+          showAppSnackBar(
+            context: context,
+            content: 'Location permission is required.',
+            isError: true,
+          );
+        }
+      }
+      return false;
+    }
+
+    final serviceStatus = await Permission.location.serviceStatus;
+
+    if (!serviceStatus.isEnabled) {
+      if (!mounted) return false;
+      if (!silent) {
+        showAppSnackBar(
+          context: context,
+          content: 'Please turn on your GPS Location service.',
+          isError: true,
+        );
+      }
+      return false;
+    }
+
+    return true;
   }
 
   void _showSettingsDialog() {
@@ -122,22 +166,32 @@ class _TowingMapScreenState extends ConsumerState<TowingMapScreen> {
     );
   }
 
+  // ✅ Updated to use HMS Location Service
   Future<void> _getUserLocation() async {
+    if (!_hasLocationPermission) {
+      final isReady = await _checkPermission(silent: false);
+      if (isReady) {
+        setState(() => _hasLocationPermission = true);
+        await _locationService.initFusedLocationService();
+      } else {
+        return; // Still no permission, stop here
+      }
+    }
+
     try {
       setState(() => _gettingLocation = true);
-      loc.Location location = loc.Location();
-      loc.LocationData current = await location.getLocation();
 
-      if (current.latitude != null && current.longitude != null) {
-        final pos = LatLng(current.latitude!, current.longitude!);
-        await _getAddressFromCoordinates(pos);
-        // Animate camera to user
-        mapController?.animateCamera(
-          CameraUpdate.newCameraPosition(CameraPosition(target: pos, zoom: 16)),
-        );
-      }
+      // Use HMS getLastLocation
+      final loc = await _locationService.getLastLocation();
+
+      final pos = LatLng(loc.latitude!, loc.longitude!);
+      await _getAddressFromCoordinates(pos);
+
+      mapController?.animateCamera(
+        CameraUpdate.newCameraPosition(CameraPosition(target: pos, zoom: 18)),
+      );
     } catch (e) {
-      debugPrint("Error: $e");
+      debugPrint("Error getting location: $e");
     } finally {
       if (mounted) setState(() => _gettingLocation = false);
     }
@@ -153,13 +207,12 @@ class _TowingMapScreenState extends ConsumerState<TowingMapScreen> {
         Marker(
           markerId: const MarkerId('selected_location'),
           position: coordinate,
-          icon: BitmapDescriptor.defaultMarker,
-          // You can use a custom icon here later if you want
+          // Custom red pin for visibility
+          icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRed),
         ),
       );
     });
 
-    // Smooth animation
     mapController?.animateCamera(
       CameraUpdate.newLatLng(coordinate),
     );
@@ -213,7 +266,7 @@ class _TowingMapScreenState extends ConsumerState<TowingMapScreen> {
         final pos = LatLng(loc.latitude, loc.longitude);
         _updateMarkerPosition(pos);
         mapController?.animateCamera(
-          CameraUpdate.newCameraPosition(CameraPosition(target: pos, zoom: 16)),
+          CameraUpdate.newCameraPosition(CameraPosition(target: pos, zoom: 18)),
         );
       } else {
         if (mounted) {
@@ -233,20 +286,17 @@ class _TowingMapScreenState extends ConsumerState<TowingMapScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
     return Scaffold(
-      // Allow map to go behind status bar for immersion
       extendBodyBehindAppBar: true,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        // Dark icon on light map usually, or a small background circle
         leading: Container(
           margin: const EdgeInsets.all(8),
           decoration: const BoxDecoration(
             color: Colors.white,
             shape: BoxShape.circle,
+            boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 4)],
           ),
           child: IconButton(
             icon: const Icon(Icons.arrow_back, color: Colors.black),
@@ -254,46 +304,50 @@ class _TowingMapScreenState extends ConsumerState<TowingMapScreen> {
           ),
         ),
       ),
-      resizeToAvoidBottomInset: false, // Prevent map resize
+      resizeToAvoidBottomInset: false,
       body: Stack(
         children: [
           // 1. FULL SCREEN MAP
           Positioned.fill(
             child: _showMapLayer
-                ? HuaweiMap(
-                    initialCameraPosition: CameraPosition(
-                      target: (_selectedLat != null && _selectedLng != null)
-                          ? LatLng(_selectedLat!, _selectedLng!)
-                          : const LatLng(3.1466, 101.6958),
-                      zoom: 15,
+                // ✅ FIX 1: RepaintBoundary prevents Samsung Overlap
+                ? RepaintBoundary(
+                    child: HuaweiMap(
+                      initialCameraPosition: CameraPosition(
+                        target: (_selectedLat != null && _selectedLng != null)
+                            ? LatLng(_selectedLat!, _selectedLng!)
+                            : const LatLng(3.1466, 101.6958), // Default KL
+                        zoom: 15,
+                      ),
+                      markers: _markers,
+                      // ✅ FIX 2: Disable Native Blue Dot to prevent Xiaomi Crash
+                      myLocationEnabled: false,
+                      myLocationButtonEnabled: false,
+                      zoomControlsEnabled: false,
+                      onMapCreated: (controller) {
+                        mapController = controller;
+                        if (_selectedLat != null && _selectedLng != null) {
+                          controller.animateCamera(
+                            CameraUpdate.newLatLng(
+                              LatLng(_selectedLat!, _selectedLng!),
+                            ),
+                          );
+                        }
+                      },
+                      onClick: (LatLng latLng) {
+                        _getAddressFromCoordinates(latLng);
+                      },
                     ),
-                    markers: _markers,
-                    myLocationEnabled: _hasLocationPermission,
-                    myLocationButtonEnabled: false,
-                    zoomControlsEnabled: false,
-                    onMapCreated: (controller) {
-                      mapController = controller;
-
-                      if (_selectedLat != null && _selectedLng != null) {
-                        controller.animateCamera(
-                          CameraUpdate.newLatLng(
-                            LatLng(_selectedLat!, _selectedLng!),
-                          ),
-                        );
-                      }
-                    },
-                    onClick: (LatLng latLng) {
-                      _getAddressFromCoordinates(latLng);
-                    },
                   )
                 : Container(
                     color: Colors.white,
-                  ), // ✅ Show white bg while loading
+                    child: const Center(child: CircularProgressIndicator()),
+                  ),
           ),
 
           // 2. FLOATING SEARCH BAR (Top)
           Positioned(
-            top: MediaQuery.of(context).padding.top + 60, // Below AppBar
+            top: MediaQuery.of(context).padding.top + 60,
             left: 20,
             right: 20,
             child: Card(
@@ -304,6 +358,8 @@ class _TowingMapScreenState extends ConsumerState<TowingMapScreen> {
               child: TextField(
                 controller: _addressCtrl,
                 decoration: InputDecoration(
+                  filled: true,
+                  fillColor: Theme.of(context).colorScheme.surfaceContainer,
                   hintText: "Search location...",
                   prefixIcon: const Icon(Icons.search),
                   border: InputBorder.none,
@@ -328,6 +384,7 @@ class _TowingMapScreenState extends ConsumerState<TowingMapScreen> {
             ),
           ),
 
+          // 3. BOTTOM SHEET DETAILS
           Positioned(
             bottom: 0,
             left: 0,
@@ -352,8 +409,9 @@ class _TowingMapScreenState extends ConsumerState<TowingMapScreen> {
                   // Location Status
                   if (_selectedLat != null)
                     Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Icon(
+                        const Icon(
                           Icons.location_on,
                           color: Colors.red,
                         ),
@@ -363,7 +421,7 @@ class _TowingMapScreenState extends ConsumerState<TowingMapScreen> {
                             _addressCtrl.text.isEmpty
                                 ? "Selected Location"
                                 : _addressCtrl.text,
-                            maxLines: 1,
+                            maxLines: 3,
                             overflow: TextOverflow.ellipsis,
                             style: const TextStyle(
                               fontWeight: FontWeight.bold,

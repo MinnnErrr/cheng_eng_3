@@ -3,6 +3,14 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 part 'towing_model.g.dart';
 part 'towing_model.freezed.dart';
 
+enum TowingStatus{
+  completed,
+  pending,
+  accepted,
+  cancelled,
+  declined
+}
+
 @freezed
 sealed class Towing with _$Towing {
   const factory Towing({
@@ -15,7 +23,7 @@ sealed class Towing with _$Towing {
     required String countryCode,
     required String dialCode,
     String? photoPath,
-    required String status,
+    required TowingStatus status,
     required String regNum,
     required String make,
     required String model,

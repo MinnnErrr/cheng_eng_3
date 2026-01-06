@@ -1,43 +1,12 @@
-import 'dart:collection';
-
 import 'package:cheng_eng_3/core/controllers/realtime_provider.dart';
 import 'package:cheng_eng_3/core/controllers/towing/staff_towings_notifier.dart';
 import 'package:cheng_eng_3/core/controllers/towing/towing_by_id_provider.dart';
 import 'package:cheng_eng_3/core/models/towing_model.dart';
+import 'package:cheng_eng_3/ui/extensions/towing_extension.dart';
 import 'package:cheng_eng_3/ui/widgets/snackbar.dart';
 import 'package:cheng_eng_3/ui/widgets/towing_details.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
-typedef TowingEntry = DropdownMenuEntry<String>;
-
-enum TowingStatus {
-  decline('Decline', 'Declined'),
-  accept('Accept', 'Accepted'),
-  complete('Complete', 'Completed');
-
-  const TowingStatus(this.label, this.value);
-  final String label;
-  final String value;
-
-  static final List<TowingEntry> entries = UnmodifiableListView<TowingEntry>(
-    values.map<TowingEntry>(
-      (TowingStatus status) => TowingEntry(
-        label: status.label,
-        value: status.value,
-        leadingIcon: Icon(
-          status == TowingStatus.decline
-              ? Icons.close
-              : status == TowingStatus.accept
-              ? Icons.check
-              : Icons.flag,
-          color: status == TowingStatus.decline ? Colors.red : null,
-        ),
-      ),
-    ),
-  );
-}
 
 class StaffTowingDetailsScreen extends ConsumerStatefulWidget {
   const StaffTowingDetailsScreen({super.key, required this.towing});
@@ -51,7 +20,7 @@ class StaffTowingDetailsScreen extends ConsumerStatefulWidget {
 
 class _StaffTowingDetailsScreenState
     extends ConsumerState<StaffTowingDetailsScreen> {
-  String? _selectedStatus;
+  TowingStatus? _selectedStatus;
 
   @override
   Widget build(BuildContext context) {
@@ -61,15 +30,22 @@ class _StaffTowingDetailsScreenState
     final Towing currentTowing = towingAsync.value ?? widget.towing;
     final towingNotifier = ref.read(staffTowingsProvider.notifier);
 
-    final bool isCancelled = currentTowing.status.toLowerCase() == 'cancelled';
-    final bool isCompleted = currentTowing.status.toLowerCase() == 'completed';
-    final bool canUpdate = !isCancelled && !isCompleted;
-
-    // Check if user has selected a DIFFERENT status
+    final bool isCancelled = currentTowing.status == TowingStatus.cancelled;
+    final bool canUpdate = !isCancelled;
     final bool isChanged =
         _selectedStatus != null && _selectedStatus != currentTowing.status;
 
     final theme = Theme.of(context);
+
+    final towingEntries = TowingStatus.values
+        .where((status) => status != TowingStatus.cancelled)
+        .map((status) {
+      return DropdownMenuEntry<TowingStatus>(
+        value: status,
+        label: status.label,
+        leadingIcon: Icon(Icons.circle, color: status.color, size: 10),
+      );
+    }).toList();
 
     return Scaffold(
       backgroundColor: theme.colorScheme.surface,
@@ -109,10 +85,11 @@ class _StaffTowingDetailsScreenState
                           const SizedBox(width: 8),
                           // Dropdown
                           Expanded(
-                            child: DropdownMenu<String>(
+                            child: DropdownMenu<TowingStatus>(
+                              key: ValueKey(currentTowing.status),
                               width: double.infinity,
                               initialSelection: currentTowing.status,
-                              dropdownMenuEntries: TowingStatus.entries,
+                              dropdownMenuEntries: towingEntries,
                               textStyle: const TextStyle(
                                 fontWeight: FontWeight.bold,
                                 fontSize: 14,
@@ -124,9 +101,12 @@ class _StaffTowingDetailsScreenState
                                 contentPadding: EdgeInsets.zero,
                                 constraints: BoxConstraints(maxHeight: 48),
                               ),
-                              onSelected: (value) =>
-                                  setState(() => _selectedStatus = value),
-                            ),
+                              onSelected: (value) {
+                                  if (value != null) {
+                                  setState(() => _selectedStatus = value);
+                                }
+                              },
+                            )
                           ),
                         ],
                       ),
@@ -146,7 +126,7 @@ class _StaffTowingDetailsScreenState
                       disabledForegroundColor: theme
                           .colorScheme
                           .onSurfaceVariant
-                          .withOpacity(0.4),
+                          .withValues(alpha: 0.4),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
@@ -188,6 +168,8 @@ class _StaffTowingDetailsScreenState
     StaffTowingsNotifier notifier,
     String id,
   ) async {
+    if (_selectedStatus == null) return;
+
     final success = await notifier.updateStatus(
       id: id,
       status: _selectedStatus!,

@@ -16,7 +16,7 @@ _Towing _$TowingFromJson(Map<String, dynamic> json) => _Towing(
   countryCode: json['countryCode'] as String,
   dialCode: json['dialCode'] as String,
   photoPath: json['photoPath'] as String?,
-  status: json['status'] as String,
+  status: $enumDecode(_$TowingStatusEnumMap, json['status']),
   regNum: json['regNum'] as String,
   make: json['make'] as String,
   model: json['model'] as String,
@@ -43,7 +43,7 @@ Map<String, dynamic> _$TowingToJson(_Towing instance) => <String, dynamic>{
   'countryCode': instance.countryCode,
   'dialCode': instance.dialCode,
   'photoPath': instance.photoPath,
-  'status': instance.status,
+  'status': _$TowingStatusEnumMap[instance.status]!,
   'regNum': instance.regNum,
   'make': instance.make,
   'model': instance.model,
@@ -54,4 +54,12 @@ Map<String, dynamic> _$TowingToJson(_Towing instance) => <String, dynamic>{
   'deletedAt': instance.deletedAt?.toIso8601String(),
   'vehicleId': instance.vehicleId,
   'userId': instance.userId,
+};
+
+const _$TowingStatusEnumMap = {
+  TowingStatus.completed: 'completed',
+  TowingStatus.pending: 'pending',
+  TowingStatus.accepted: 'accepted',
+  TowingStatus.cancelled: 'cancelled',
+  TowingStatus.declined: 'declined',
 };

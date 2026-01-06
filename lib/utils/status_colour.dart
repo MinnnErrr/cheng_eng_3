@@ -1,22 +1,6 @@
 import 'package:cheng_eng_3/core/models/product_model.dart';
 import 'package:flutter/material.dart';
 
-
-Color getTowingStatusColor(String status, BuildContext context) {
-  switch (status.toLowerCase()) {
-    case 'complete':
-      return Colors.green;
-    case 'pending':
-      return Colors.orange;
-    case 'accepted':
-      return Colors.blue;
-    case 'cancelled':
-    case 'declined':
-    default:
-      return Colors.red;
-  }
-}
-
 Color getProductAvailabilityColor(
   ProductAvailability availability,
   int? quantity,

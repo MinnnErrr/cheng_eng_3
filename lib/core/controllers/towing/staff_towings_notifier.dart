@@ -18,10 +18,10 @@ class StaffTowingsNotifier extends _$StaffTowingsNotifier {
 
   Future<bool> updateStatus({
     required String id,
-    required String status,
+    required TowingStatus status,
   }) async {
     try {
-      await _towingService.updateStatus(status, id);
+      await _towingService.updateStatus(status.name, id);
 
       return true;
     } catch (e) {

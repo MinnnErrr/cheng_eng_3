@@ -7,6 +7,7 @@ buildscript{
     }
     dependencies {
         classpath("com.android.tools.build:gradle:8.9.1")
+        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:2.0.21")  
         classpath("com.huawei.agconnect:agcp:1.9.1.301")
     }
 }
