@@ -2,9 +2,7 @@ import 'package:cheng_eng_3/core/controllers/auth/auth_notifier.dart';
 import 'package:cheng_eng_3/ui/screens/login_screen.dart';
 import 'package:cheng_eng_3/ui/screens/verify_email_screen.dart';
 import 'package:cheng_eng_3/ui/widgets/snackbar.dart';
-import 'package:cheng_eng_3/ui/widgets/textformfield.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart'; // For Autofill
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class SignupScreen extends ConsumerStatefulWidget {
@@ -137,8 +135,10 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                             onPressed: userState.isLoading
                                 ? null
                                 : () async {
-                                    if (!_formKey.currentState!.validate())
+                                    if (!_formKey.currentState!.validate()){
                                       return;
+                                    }
+                                      
 
                                     // Close keyboard
                                     FocusScope.of(context).unfocus();

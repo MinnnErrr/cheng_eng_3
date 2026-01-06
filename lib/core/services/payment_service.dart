@@ -75,10 +75,8 @@ class PaymentService {
         return PaymentResult.canceled; 
       }
       // Log the actual error for debugging
-      print("Stripe Error: ${e.error.localizedMessage}");
       return PaymentResult.failed;
     } catch (e) {
-      print("General Error: $e");
       return PaymentResult.failed;
     }
   }

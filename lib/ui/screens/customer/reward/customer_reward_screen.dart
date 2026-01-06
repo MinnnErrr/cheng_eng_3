@@ -1,7 +1,6 @@
 import 'package:cheng_eng_3/core/controllers/reward/customer_rewards_notifier.dart';
 import 'package:cheng_eng_3/ui/screens/customer/reward/customer_reward_details_screen.dart';
 import 'package:cheng_eng_3/ui/widgets/reward_listitem.dart';
-import 'package:cheng_eng_3/utils/search_sort_filter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 

@@ -36,7 +36,6 @@ class _StaffRewardUpdateState extends ConsumerState<StaffRewardUpdateScreen> {
   bool _limitedPeriod = false;
   DateTime? _availableUntil;
   bool _hasValidity = false;
-  bool _isActive = true; // Added active state tracking
   bool _isLoading = false;
 
   // List to hold Strings (URLs) and Files (New Photos)
@@ -61,7 +60,6 @@ class _StaffRewardUpdateState extends ConsumerState<StaffRewardUpdateScreen> {
     _pointCtrl.text = reward.points.toString();
     _qtyCtrl.text = reward.quantity.toString();
     _conditionCtrl.text = reward.conditions ?? '';
-    _isActive = reward.status; // Load status
 
     // Handle Limited Period Logic
     if (reward.availableUntil != null) {

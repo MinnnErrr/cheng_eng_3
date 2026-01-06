@@ -51,7 +51,7 @@ class _ProfileUpdateScreenState extends ConsumerState<ProfileUpdateScreen> {
     // Standardized Input Decoration
     final inputDecoration = InputDecoration(
       filled: true,
-      fillColor: theme.colorScheme.surfaceContainerHighest.withOpacity(0.3),
+      fillColor: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
         borderSide: BorderSide.none,

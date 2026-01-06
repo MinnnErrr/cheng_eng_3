@@ -74,7 +74,7 @@ class _CustomerBookingChooseVehicleScreenState
                 child: Container(
                   decoration: BoxDecoration(
                     color: isSelected
-                        ? theme.colorScheme.primaryContainer.withOpacity(0.3)
+                        ? theme.colorScheme.primaryContainer.withValues(alpha: 0.3)
                         : theme.colorScheme.surfaceContainer,
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(

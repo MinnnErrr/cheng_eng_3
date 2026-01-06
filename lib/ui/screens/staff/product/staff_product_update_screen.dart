@@ -36,7 +36,6 @@ class _StaffProductUpdateState extends ConsumerState<StaffProductUpdateScreen> {
   // State Variables
   bool _hasInstallation = false;
   ProductAvailability _availability = ProductAvailability.ready;
-  bool _isActive = true; // Added Active State tracking
   bool _isLoading = false;
 
   // Mixed list: Can contain Strings (URLs) or Files (New photos)
@@ -68,7 +67,6 @@ class _StaffProductUpdateState extends ConsumerState<StaffProductUpdateScreen> {
     setState(() {
       _hasInstallation = product.installation;
       _availability = product.availability;
-      _isActive = product.status; // Load status
 
       if (product.photoPaths.isNotEmpty) {
         for (final path in product.photoPaths) {

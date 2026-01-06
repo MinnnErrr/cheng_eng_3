@@ -59,7 +59,6 @@ class ChatNotifier extends _$ChatNotifier {
         ChatMessage(text: responseText, isUser: false, isLoading: false),
       ];
     } catch (e) {
-      print('chat error: $e');
       // Handle Error
       state = [
         ...state.sublist(0, state.length - 1),

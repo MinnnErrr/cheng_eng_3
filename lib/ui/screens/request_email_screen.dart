@@ -121,8 +121,10 @@ class _RequestEmailScreenState extends ConsumerState<RequestEmailScreen> {
                           onPressed: userState.isLoading
                               ? null
                               : () async {
-                                  if (!_formKey.currentState!.validate())
+                                  if (!_formKey.currentState!.validate()){
                                     return;
+                                  }
+                                    
 
                                   // Hide keyboard
                                   FocusScope.of(context).unfocus();

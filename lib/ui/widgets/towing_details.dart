@@ -3,7 +3,6 @@ import 'package:cheng_eng_3/core/models/towing_model.dart';
 import 'package:cheng_eng_3/core/services/image_service.dart';
 import 'package:cheng_eng_3/ui/extensions/towing_extension.dart';
 import 'package:cheng_eng_3/ui/widgets/imagebuilder.dart';
-import 'package:cheng_eng_3/utils/status_colour.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';

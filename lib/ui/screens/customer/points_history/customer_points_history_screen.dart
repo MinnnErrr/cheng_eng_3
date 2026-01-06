@@ -1,4 +1,4 @@
-import 'package:cheng_eng_3/colorscheme/colorscheme.dart';
+
 import 'package:cheng_eng_3/core/controllers/auth/auth_notifier.dart';
 import 'package:cheng_eng_3/core/controllers/point/nearest_expiry_point_provider.dart';
 import 'package:cheng_eng_3/core/controllers/point/point_history_notifier.dart';
@@ -101,8 +101,8 @@ class CustomerPointsHistoryScreen extends ConsumerWidget {
                           vertical: 6,
                         ),
                         decoration: BoxDecoration(
-                          color: theme.colorScheme.errorContainer.withOpacity(
-                            0.3,
+                          color: theme.colorScheme.errorContainer.withValues(
+                            alpha: 0.3,
                           ),
                           borderRadius: BorderRadius.circular(20),
                         ),

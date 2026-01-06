@@ -1,9 +1,7 @@
 import 'package:cheng_eng_3/core/controllers/auth/auth_notifier.dart';
 import 'package:cheng_eng_3/ui/screens/login_screen.dart';
 import 'package:cheng_eng_3/ui/widgets/snackbar.dart';
-import 'package:cheng_eng_3/ui/widgets/textformfield.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class ResetPasswordScreen extends ConsumerStatefulWidget {
@@ -126,8 +124,10 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
                           onPressed: userState.isLoading
                               ? null
                               : () async {
-                                  if (!_formKey.currentState!.validate())
-                                    return;
+                                  if (!_formKey.currentState!.validate()){
+                                     return;
+                                  }
+                                   
 
                                   // Hide Keyboard
                                   FocusScope.of(context).unfocus();

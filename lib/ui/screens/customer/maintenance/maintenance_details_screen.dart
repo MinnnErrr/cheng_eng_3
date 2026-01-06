@@ -4,7 +4,6 @@ import 'package:cheng_eng_3/core/controllers/vehicle/customer_vehicle_by_id_prov
 import 'package:cheng_eng_3/core/models/maintenance_model.dart';
 import 'package:cheng_eng_3/ui/screens/customer/maintenance/maintenance_update_screen.dart';
 import 'package:cheng_eng_3/ui/widgets/vehicle_listitem.dart';
-import 'package:cheng_eng_3/utils/status_colour.dart';
 import 'package:cheng_eng_3/ui/widgets/snackbar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';

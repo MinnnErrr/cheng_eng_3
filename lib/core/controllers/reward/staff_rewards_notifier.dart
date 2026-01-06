@@ -48,7 +48,6 @@ class StaffRewardsNotifier extends _$StaffRewardsNotifier {
           );
           photoPaths.add(photoPath);
         } catch (e) {
-          print(e);
           return Message(isSuccess: false, message: 'Failed to upload photos');
         }
       }

@@ -145,7 +145,7 @@ class RewardListitem extends ConsumerWidget {
                             ),
                             decoration: BoxDecoration(
                               color: reward.status
-                                  ? Colors.green.withOpacity(0.1)
+                                  ? Colors.green.withValues(alpha: 0.1)
                                   : theme.colorScheme.errorContainer,
                               borderRadius: BorderRadius.circular(6),
                             ),

@@ -81,7 +81,6 @@ class ProfileNotifier extends _$ProfileNotifier {
       state = AsyncData(updated);
       return true;
     } catch (e) {
-      print('error update profile: $e');
       return false;
     }
   }

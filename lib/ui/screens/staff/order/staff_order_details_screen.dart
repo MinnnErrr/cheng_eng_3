@@ -4,8 +4,6 @@ import 'package:cheng_eng_3/core/controllers/realtime_provider.dart';
 import 'package:cheng_eng_3/core/models/order_model.dart';
 import 'package:cheng_eng_3/core/models/staff_order_details_state.dart';
 import 'package:cheng_eng_3/ui/extensions/order_extension.dart';
-import 'package:cheng_eng_3/ui/widgets/imagebuilder.dart';
-import 'package:cheng_eng_3/ui/widgets/order_delivery.dart';
 import 'package:cheng_eng_3/ui/widgets/order_summary.dart';
 import 'package:cheng_eng_3/ui/widgets/snackbar.dart';
 import 'package:flutter/material.dart';
@@ -56,10 +54,10 @@ class StaffOrderDetailsScreen extends ConsumerWidget {
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
                 // Use light background tint based on status color
-                color: currentOrder.status.color.withOpacity(0.1),
+                color: currentOrder.status.color.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(16),
                 border: Border.all(
-                  color: currentOrder.status.color.withOpacity(0.5),
+                  color: currentOrder.status.color.withValues(alpha: 0.5),
                   width: 1.5,
                 ),
               ),

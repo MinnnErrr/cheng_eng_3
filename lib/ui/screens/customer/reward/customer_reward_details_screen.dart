@@ -187,8 +187,8 @@ class _CustomerRewardDetailsScreenState
                           ),
                           decoration: BoxDecoration(
                             color: currentReward.quantity > 0
-                                ? Colors.green.withOpacity(0.1)
-                                : Colors.red.withOpacity(0.1),
+                                ? Colors.green.withValues(alpha: 0.1)
+                                : Colors.red.withValues(alpha: 0.1),
                             borderRadius: BorderRadius.circular(20),
                           ),
                           child: Row(

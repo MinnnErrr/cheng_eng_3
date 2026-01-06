@@ -1,5 +1,4 @@
 import 'package:cheng_eng_3/ui/screens/profile_screen.dart';
-import 'package:cheng_eng_3/ui/screens/staff/claim_reward/staff_claim_reward_scanner_screen.dart';
 import 'package:cheng_eng_3/ui/screens/staff/claim_reward/staff_claim_reward_screen.dart';
 import 'package:cheng_eng_3/ui/screens/staff/point/staff_add_point_history.dart';
 import 'package:cheng_eng_3/ui/screens/staff/staff_home.dart';

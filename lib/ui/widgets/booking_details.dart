@@ -12,7 +12,6 @@ class BookingDetailsWidget extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
-    final dateFormatter = DateFormat('EEEE, dd MMM yyyy');
     final metaDateFormatter = DateFormat('dd/MM/yyyy h:mm a');
 
     // Combine services for display

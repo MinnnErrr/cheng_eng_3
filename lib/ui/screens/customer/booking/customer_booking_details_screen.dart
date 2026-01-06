@@ -1,7 +1,6 @@
 import 'package:cheng_eng_3/core/controllers/booking/booking_by_id_provider.dart';
 import 'package:cheng_eng_3/core/controllers/booking/customer_booking_notifier.dart';
 import 'package:cheng_eng_3/core/models/booking_model.dart';
-import 'package:cheng_eng_3/core/models/vehicle_model.dart';
 import 'package:cheng_eng_3/ui/extensions/booking_extension.dart';
 import 'package:cheng_eng_3/ui/widgets/booking_details.dart';
 import 'package:cheng_eng_3/ui/widgets/snackbar.dart';

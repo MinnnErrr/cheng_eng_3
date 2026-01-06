@@ -247,7 +247,7 @@ class CartListitem extends ConsumerWidget {
           if (isSoldOut)
             Positioned.fill(
               child: Container(
-                color: Colors.white.withOpacity(0.5),
+                color: Colors.white.withValues(alpha: 0.5),
                 alignment: Alignment.center,
                 child: Container(
                   padding: const EdgeInsets.symmetric(

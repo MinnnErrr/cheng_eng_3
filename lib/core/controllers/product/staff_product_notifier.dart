@@ -171,7 +171,6 @@ class StaffProductNotifier extends _$StaffProductNotifier {
 
       return Message(isSuccess: true, message: 'Status updated');
     } catch (e) {
-      print('error: $e');
       return Message(isSuccess: false, message: 'Failed to update status');
     }
   }

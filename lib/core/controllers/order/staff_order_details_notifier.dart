@@ -3,7 +3,6 @@ import 'package:cheng_eng_3/core/models/message_model.dart';
 import 'package:cheng_eng_3/core/models/order_model.dart';
 import 'package:cheng_eng_3/core/models/staff_order_details_state.dart';
 import 'package:cheng_eng_3/core/services/order_service.dart';
-import 'package:cheng_eng_3/ui/extensions/order_extension.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'staff_order_details_notifier.g.dart';
@@ -43,7 +42,6 @@ class StaffOrderDetailNotifier extends _$StaffOrderDetailNotifier {
       // so we just return.
       return const Message(isSuccess: true, message: 'Status updated');
     } catch (e) {
-      print('error: $e');
       // ✅ SAFETY CHECK: Only revert state if we are still on the screen
       if (isMounted) {
         state = previousState;

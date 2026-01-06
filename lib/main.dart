@@ -7,16 +7,14 @@ import 'package:cheng_eng_3/core/services/notification_service.dart';
 import 'package:cheng_eng_3/ui/screens/customer/customer_main_wrapper.dart';
 import 'package:cheng_eng_3/ui/screens/initial_profile_screen.dart';
 import 'package:cheng_eng_3/ui/screens/login_screen.dart';
-import 'package:cheng_eng_3/ui/screens/request_email_screen.dart';
 import 'package:cheng_eng_3/ui/screens/reset_password_screen.dart';
 import 'package:cheng_eng_3/ui/screens/staff/staff_main_wrapper.dart';
-import 'package:cheng_eng_3/ui/screens/verify_email_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_stripe/flutter_stripe.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-String stripe_publishable =
+String stripePublishable =
     "pk_test_51ShA7kLXdt9JqGlW7kQoPSUoejcUht31ulHygbPOuJpFjBVBnsXQ1hfkzCaoPtGOsaA5sBIlfjGTHjMbfQa6IaH100WCSfc1tH";
 
 Future<void> main() async {
@@ -28,7 +26,7 @@ Future<void> main() async {
         'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlxdWVtYWludWRhYnNmcmZ6eXBsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM4MTgyMzIsImV4cCI6MjA3OTM5NDIzMn0.7hCB-cZ5KUm08rt_UNIQolhgkhwGL2hjLHNPoM0XMe8',
   );
 
-  Stripe.publishableKey = stripe_publishable;
+  Stripe.publishableKey = stripePublishable;
   Stripe.instance.applySettings();
 
   final container = ProviderContainer();
