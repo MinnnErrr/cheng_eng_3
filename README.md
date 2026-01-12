@@ -1,6 +1,18 @@
 # cheng_eng_3
 
-A new Flutter project.
+This is my Final Year Project, a Smart Service Management Mobile Application developed for Cheng Eng Auto Accessories, designed to serve both customers and staff.
+
+The application integrates e-commerce and automotive service management into a single platform, streamlining operations and enhancing customer experience. 
+
+Key Features & Modules:
+- Vehicle Management: Store and manage customer vehicle details
+- Maintenance Management: Track service history and maintenance records with push notifications
+- Towing Service Management: Request and manage towing services using HMS Map and HMS Location
+- Product Management: Browse automotive accessories
+- Shopping Cart & Order Management: Secure payments via Stripe and order management
+- Booking Management: Schedule service appointments
+- Reward & Membership Points System: Points tracking and reward redemption
+- AI Chatbot: General-purpose chatbot for enquiries and assistance
 
 ## Getting Started
 
