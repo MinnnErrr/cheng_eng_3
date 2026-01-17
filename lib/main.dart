@@ -1,14 +1,14 @@
-import 'package:cheng_eng_3/colorscheme/colorscheme.dart';
-import 'package:cheng_eng_3/core/controllers/auth/auth_notifier.dart';
-import 'package:cheng_eng_3/core/controllers/auth/auth_stream_provider.dart';
-import 'package:cheng_eng_3/core/controllers/profile/profile_notifier.dart';
-import 'package:cheng_eng_3/core/controllers/realtime_provider.dart';
-import 'package:cheng_eng_3/core/services/notification_service.dart';
-import 'package:cheng_eng_3/ui/screens/customer/customer_main_wrapper.dart';
-import 'package:cheng_eng_3/ui/screens/initial_profile_screen.dart';
-import 'package:cheng_eng_3/ui/screens/login_screen.dart';
-import 'package:cheng_eng_3/ui/screens/reset_password_screen.dart';
-import 'package:cheng_eng_3/ui/screens/staff/staff_main_wrapper.dart';
+import 'package:cheng_eng_3/ui/core/theme/colorscheme.dart';
+import 'package:cheng_eng_3/ui/auth/notifiers/auth_notifier.dart';
+import 'package:cheng_eng_3/data/providers/auth/auth_stream_provider.dart';
+import 'package:cheng_eng_3/ui/profile/notifiers/profile_notifier.dart';
+import 'package:cheng_eng_3/data/providers/realtime_provider.dart';
+import 'package:cheng_eng_3/data/services/notification_service.dart';
+import 'package:cheng_eng_3/ui/home/screens/customer_main_wrapper.dart';
+import 'package:cheng_eng_3/ui/profile/screens/initial_profile_screen.dart';
+import 'package:cheng_eng_3/ui/auth/screens/login_screen.dart';
+import 'package:cheng_eng_3/ui/auth/screens/reset_password_screen.dart';
+import 'package:cheng_eng_3/ui/home/screens/staff_main_wrapper.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_stripe/flutter_stripe.dart';
@@ -78,7 +78,7 @@ class MyApp extends ConsumerWidget {
 
         textSelectionTheme: TextSelectionThemeData(
           cursorColor: chengEngCustomScheme.onSurface, 
-          selectionHandleColor: chengEngCustomScheme.onSurface 
+          selectionHandleColor: chengEngCustomScheme.onSurface,
           selectionColor: chengEngCustomScheme.primary.withValues(alpha: 0.4),
         ),
 
@@ -158,7 +158,7 @@ class Main extends ConsumerWidget {
     });
 
     final userAsync = ref.watch(authProvider);
---
+
     return userAsync.when(
       loading: () =>
           const Scaffold(body: Center(child: CircularProgressIndicator())),

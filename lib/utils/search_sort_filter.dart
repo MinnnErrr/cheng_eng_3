@@ -1,6 +1,6 @@
 
-import 'package:cheng_eng_3/core/models/product_model.dart';
-import 'package:cheng_eng_3/core/models/redeemed_reward_model.dart';
+import 'package:cheng_eng_3/domain/models/product_model.dart';
+import 'package:cheng_eng_3/domain/models/redeemed_reward_model.dart';
 
 List<Product> productSearchSortFilter({
   required List<Product> products,

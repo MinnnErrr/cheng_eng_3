@@ -12,5 +12,5 @@ List<TimeOfDay> generateTimeSlots() {
     }
   }
 
-  return slots;
+  return slots ;
 }
