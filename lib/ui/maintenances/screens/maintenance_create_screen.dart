@@ -2,7 +2,8 @@ import 'package:cheng_eng_3/ui/maintenances/notifiers/maintenance_notifier.dart'
 import 'package:cheng_eng_3/data/services/notification_service.dart';
 import 'package:cheng_eng_3/utils/datepicker.dart';
 import 'package:cheng_eng_3/utils/snackbar.dart';
-import 'package:cheng_eng_3/ui/core/widgets/textformfield.dart';
+import 'package:cheng_eng_3/ui/core/widgets/custom_text_field.dart';
+import 'package:cheng_eng_3/utils/validation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
@@ -101,19 +102,22 @@ class _MaintenanceCreateScreenState
                 _buildSectionHeader("Service Details", theme),
                 Column(
                   children: [
-                    textFormField(
+                    Customtextfield(
                       controller: _title,
                       label: 'Service Title (e.g. Oil Change)',
                       textCapitalization: TextCapitalization.sentences,
                       prefixIcon: const Icon(Icons.build_circle_outlined),
+                      validator: Validators.maxLength(50),
                     ),
                     const SizedBox(height: 16),
-                    textFormField(
+                    Customtextfield(
                       controller: _desc,
                       label: 'Description',
-                      maxLines: 3,
-                      validationRequired: false,
+                      maxLines: null,
+                      keyboardType: TextInputType.multiline,
+                      isRequired: false,
                       textCapitalization: TextCapitalization.sentences,
+                      validator: Validators.maxLength(200),
                     ),
                   ],
                 ),
@@ -128,7 +132,7 @@ class _MaintenanceCreateScreenState
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Expanded(
-                      child: textFormField(
+                      child: Customtextfield(
                         controller: _currentDateCtrl,
                         label: 'Date Done',
                         readOnly: true,
@@ -151,14 +155,15 @@ class _MaintenanceCreateScreenState
                     ),
                     const SizedBox(width: 16),
                     Expanded(
-                      child: textFormField(
+                      child: Customtextfield(
                         controller: _currentDist,
                         label: 'Mileage',
                         suffix: Text('km'), 
                         keyboardType: const TextInputType.numberWithOptions(
                           decimal: true,
                         ),
-                        validationRequired: false,
+                        isRequired: false,
+                        validator: Validators.isFloat
                       ),
                     ),
                   ],
@@ -174,7 +179,7 @@ class _MaintenanceCreateScreenState
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Expanded(
-                      child: textFormField(
+                      child: Customtextfield(
                         controller: _nextDateCtrl,
                         label: 'Due Date',
                         readOnly: true,
@@ -198,14 +203,15 @@ class _MaintenanceCreateScreenState
                     ),
                     const SizedBox(width: 16),
                     Expanded(
-                      child: textFormField(
+                      child: Customtextfield(
                         controller: _nextDist,
                         label: 'Due Mileage',
                         suffix: Text('km'),
                         keyboardType: const TextInputType.numberWithOptions(
                           decimal: true,
                         ),
-                        validationRequired: false,
+                        isRequired: false,
+                        validator: Validators.isFloat,
                       ),
                     ),
                   ],
@@ -216,13 +222,16 @@ class _MaintenanceCreateScreenState
                 ),
 
                 // --- REMARKS ---
-                textFormField(
+                Customtextfield(
                   controller: _remarks,
                   label: 'Remarks / Notes',
-                  maxLines: 3,
-                  validationRequired: false,
+                  minLines: 2,
+                  maxLines: null,
+                  keyboardType: TextInputType.multiline,
+                  isRequired: false,
                   textCapitalization: TextCapitalization.sentences,
                   prefixIcon: const Icon(Icons.note_alt_outlined),
+                  validator: Validators.maxLength(200),
                 ),
 
                 const SizedBox(height: 30),

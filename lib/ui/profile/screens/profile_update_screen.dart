@@ -2,7 +2,8 @@ import 'package:cheng_eng_3/ui/auth/notifiers/auth_notifier.dart';
 import 'package:cheng_eng_3/ui/profile/notifiers/profile_notifier.dart';
 import 'package:cheng_eng_3/utils/datepicker.dart';
 import 'package:cheng_eng_3/utils/snackbar.dart';
-import 'package:cheng_eng_3/ui/core/widgets/textformfield.dart';
+import 'package:cheng_eng_3/ui/core/widgets/custom_text_field.dart';
+import 'package:cheng_eng_3/utils/validation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_intl_phone_field/flutter_intl_phone_field.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -107,7 +108,7 @@ class _ProfileUpdateScreenState extends ConsumerState<ProfileUpdateScreen> {
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     // Email (Read Only)
-                    textFormField(
+                    Customtextfield(
                       label: 'Email Address',
                       initialValue: profile?.email ?? user.value?.email ?? '',
                       enabled: false,
@@ -117,11 +118,12 @@ class _ProfileUpdateScreenState extends ConsumerState<ProfileUpdateScreen> {
                     const SizedBox(height: 20),
 
                     // Name
-                    textFormField(
+                    Customtextfield(
                       label: 'Full Name',
                       controller: _nameController,
                       prefixIcon: const Icon(Icons.person_outline),
                       textCapitalization: TextCapitalization.words,
+                      validator: Validators.maxLength(100),
                     ),
                     const SizedBox(height: 20),
 
@@ -162,11 +164,11 @@ class _ProfileUpdateScreenState extends ConsumerState<ProfileUpdateScreen> {
                     const SizedBox(height: 20),
 
                     // Birthday
-                    textFormField(
+                    Customtextfield(
                       controller: _dateController,
                       label: 'Date of Birth',
                       readOnly: true,
-                      validationRequired: false,
+                      isRequired: false,
                       prefixIcon: const Icon(Icons.cake_outlined),
                       suffix: Icon(Icons.calendar_month),
                       onTap: () async {

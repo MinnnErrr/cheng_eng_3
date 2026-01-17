@@ -37,7 +37,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       backgroundColor: Colors.black,
       body: SingleChildScrollView(
         child: SizedBox(
-          height: screenSize.height, 
+          height: screenSize.height,
           child: Column(
             children: [
               Expanded(
@@ -47,7 +47,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   alignment: Alignment.center,
                   child: Image.asset(
                     'assets/images/cheng_eng_logo.png',
-                    width: screenSize.width * 0.6, 
+                    width: screenSize.width * 0.6,
                   ),
                 ),
               ),
@@ -70,8 +70,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   child: Form(
                     key: _formKey,
                     child: Column(
-                      crossAxisAlignment:
-                          CrossAxisAlignment.stretch, 
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
                         Text(
                           'Log In',
@@ -89,10 +88,15 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                             label: const Text('Email'),
                             prefixIcon: const Icon(Icons.email_outlined),
                           ),
-
                           keyboardType: TextInputType.emailAddress,
                           textInputAction: TextInputAction.next,
                           autofillHints: const [AutofillHints.email],
+                          validator: (value) {
+                            if (value == null || value.trim().isEmpty) {
+                              return 'This field is required';
+                            }
+                            return null;
+                          },
                         ),
 
                         const SizedBox(height: 20),
@@ -119,6 +123,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                           obscureText: _obscurePassword,
                           textInputAction: TextInputAction.done,
                           autofillHints: const [AutofillHints.password],
+                          validator: (value) {
+                            if (value == null || value.trim().isEmpty) {
+                              return 'This field is required';
+                            }
+                            return null;
+                          },
                         ),
 
                         // Forgot Password
@@ -137,15 +147,15 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
                         const SizedBox(height: 10),
 
-                        // Login Button 
+                        // Login Button
                         FilledButton(
                           onPressed: userState.isLoading
-                              ? null 
+                              ? null
                               : () async {
-                                  if (!_formKey.currentState!.validate()){
+                                  if (!_formKey.currentState!.validate()) {
                                     return;
                                   }
-                                    
+
                                   FocusScope.of(context).unfocus();
 
                                   final res = await userNotifier.signIn(

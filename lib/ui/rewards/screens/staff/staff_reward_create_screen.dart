@@ -3,7 +3,8 @@ import 'dart:io';
 import 'package:cheng_eng_3/ui/rewards/notifiers/staff_rewards_notifier.dart';
 import 'package:cheng_eng_3/utils/datepicker.dart';
 import 'package:cheng_eng_3/utils/snackbar.dart';
-import 'package:cheng_eng_3/ui/core/widgets/textformfield.dart';
+import 'package:cheng_eng_3/ui/core/widgets/custom_text_field.dart';
+import 'package:cheng_eng_3/utils/validation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
@@ -141,11 +142,11 @@ class _StaffRewardCreateState extends ConsumerState<StaffRewardCreateScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 _SectionHeader(title: "Basic Information"),
-                textFormField(controller: _codeCtrl, label: 'Reward Code'),
+                Customtextfield(controller: _codeCtrl, label: 'Reward Code', validator: Validators.maxLength(20),),
                 const SizedBox(height: 20),
-                textFormField(controller: _nameCtrl, label: 'Reward Name'),
+                Customtextfield(controller: _nameCtrl, label: 'Reward Name', validator: Validators.maxLength(50)),
                 const SizedBox(height: 20),
-                textFormField(
+                Customtextfield(
                   controller: _descCtrl,
                   label: 'Description',
                   minLines: 3,
@@ -157,18 +158,20 @@ class _StaffRewardCreateState extends ConsumerState<StaffRewardCreateScreen> {
                 Row(
                   children: [
                     Expanded(
-                      child: textFormField(
+                      child: Customtextfield(
                         controller: _pointCtrl,
                         label: 'Points Cost',
                         keyboardType: TextInputType.number,
+                        validator: Validators.isInt,
                       ),
                     ),
                     const SizedBox(width: 16),
                     Expanded(
-                      child: textFormField(
+                      child: Customtextfield(
                         controller: _qtyCtrl,
                         label: 'Quantity',
                         keyboardType: TextInputType.number,
+                        validator: Validators.isInt,
                       ),
                     ),
                   ],
@@ -209,6 +212,7 @@ class _StaffRewardCreateState extends ConsumerState<StaffRewardCreateScreen> {
                       });
                     }
                   },
+                  validator: (value) => value == null ? 'Required' : null,
                 ),
 
                 if (_limitedPeriod) ...[
@@ -216,7 +220,7 @@ class _StaffRewardCreateState extends ConsumerState<StaffRewardCreateScreen> {
                   GestureDetector(
                     onTap: _handleDateSelection, 
                     child: AbsorbPointer(
-                      child: textFormField(
+                      child: Customtextfield(
                         controller: _availableDateCtrl,
                         label: 'Available Until',
                         suffix: const Icon(Icons.calendar_today),
@@ -253,11 +257,12 @@ class _StaffRewardCreateState extends ConsumerState<StaffRewardCreateScreen> {
                       });
                     }
                   },
+                  validator: (value) => value == null ? 'Required' : null,
                 ),
 
                 if (_hasValidity) ...[
                   const SizedBox(height: 20),
-                  textFormField(
+                  Customtextfield(
                     controller: _validityCtrl,
                     label: 'Valid for (Weeks)',
                     keyboardType: TextInputType.number,
@@ -265,14 +270,15 @@ class _StaffRewardCreateState extends ConsumerState<StaffRewardCreateScreen> {
                       "weeks",
                       style: TextStyle(color: Colors.grey),
                     ),
+                    validator: Validators.isInt,
                   ),
                 ],
 
                 const SizedBox(height: 30),
                 _SectionHeader(title: "Terms & Conditions (Optional)"),
-                textFormField(
+                Customtextfield(
                   controller: _conditionCtrl,
-                  validationRequired: false,
+                  isRequired: false,
                   minLines: 3,
                   maxLines: null,
                 ),
@@ -314,6 +320,7 @@ class _StaffRewardCreateState extends ConsumerState<StaffRewardCreateScreen> {
                   onChanged: (val) {
                     if (val != null) setState(() => _isActive = val);
                   },
+                  validator: (value) => value == null ? 'Required' : null,
                 ),
 
                 const SizedBox(height: 40),

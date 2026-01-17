@@ -5,7 +5,8 @@ import 'package:cheng_eng_3/data/providers/profile/user_profile_provider.dart';
 import 'package:cheng_eng_3/domain/models/message_model.dart';
 import 'package:cheng_eng_3/domain/models/profile_model.dart';
 import 'package:cheng_eng_3/utils/snackbar.dart';
-import 'package:cheng_eng_3/ui/core/widgets/textformfield.dart';
+import 'package:cheng_eng_3/ui/core/widgets/custom_text_field.dart';
+import 'package:cheng_eng_3/utils/validation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
@@ -247,18 +248,20 @@ class _StaffAddPointHistoryScreenState
           ),
           const SizedBox(height: 16),
 
-          textFormField(
+          Customtextfield(
             controller: _amountCtrl,
             label: "Points Amount",
             keyboardType: TextInputType.number,
+            validator: Validators.isInt,
           ),
           const SizedBox(height: 20),
 
-          textFormField(
+          Customtextfield(
             controller: _reasonCtrl,
             label: "Reason / Remarks",
-            minLines: 2,
+            minLines: 1,
             maxLines: 3,
+            validator: Validators.maxLength(50),
           ),
 
           const SizedBox(height: 30),

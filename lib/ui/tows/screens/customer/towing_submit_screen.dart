@@ -6,7 +6,7 @@ import 'package:cheng_eng_3/ui/vehicles/notifiers/customer_vehicle_notifier.dart
 import 'package:cheng_eng_3/domain/models/vehicle_model.dart';
 import 'package:cheng_eng_3/ui/tows/screens/customer/towing_screen.dart';
 import 'package:cheng_eng_3/utils/snackbar.dart';
-import 'package:cheng_eng_3/ui/core/widgets/textformfield.dart';
+import 'package:cheng_eng_3/ui/core/widgets/custom_text_field.dart';
 import 'package:cheng_eng_3/ui/vehicles/widgets/vehicle_listitem.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_intl_phone_field/flutter_intl_phone_field.dart';
@@ -164,7 +164,7 @@ class _TowingSubmitScreenState extends ConsumerState<TowingSubmitScreen> {
                 const SizedBox(height: 10),
 
                 // --- 3. VEHICLE ---
-                textFormField(
+                Customtextfield(
                   controller: _vehicleCtrl,
                   label: 'Select Vehicle',
                   readOnly: true,
@@ -175,11 +175,12 @@ class _TowingSubmitScreenState extends ConsumerState<TowingSubmitScreen> {
                 const SizedBox(height: 20),
 
                 // --- 4. DETAILS ---
-                textFormField(
+                Customtextfield(
                   controller: _remarksCtrl,
                   label: 'Remarks (Optional)',
-                  maxLines: 3,
-                  validationRequired: false,
+                  minLines: 2,
+                  maxLines: null,
+                  isRequired: false,
                   textCapitalization: TextCapitalization.sentences,
                 ),
 

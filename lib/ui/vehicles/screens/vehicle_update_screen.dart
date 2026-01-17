@@ -3,7 +3,8 @@ import 'package:cheng_eng_3/ui/vehicles/notifiers/customer_vehicle_notifier.dart
 import 'package:cheng_eng_3/domain/models/vehicle_model.dart';
 import 'package:cheng_eng_3/data/services/image_service.dart';
 import 'package:cheng_eng_3/utils/snackbar.dart';
-import 'package:cheng_eng_3/ui/core/widgets/textformfield.dart';
+import 'package:cheng_eng_3/ui/core/widgets/custom_text_field.dart';
+import 'package:cheng_eng_3/utils/validation.dart';
 import 'package:cheng_eng_3/utils/yearpicker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -102,18 +103,20 @@ class _VehicleUpdateScreenState extends ConsumerState<VehicleUpdateScreen> {
               const SizedBox(height: 20),
 
               // FIELDS
-              textFormField(
+              Customtextfield(
                 controller: _description,
                 label: 'Description',
-                validationRequired: false,
+                isRequired: false,
                 textCapitalization: TextCapitalization.sentences,
+                validator: Validators.maxLength(20),
               ),
               const SizedBox(height: 16),
 
-              textFormField(
+              Customtextfield(
                 controller: _regNum,
                 label: 'Registration Number',
                 textCapitalization: TextCapitalization.characters,
+                validator: Validators.maxLength(10),
               ),
               const SizedBox(height: 16),
 
@@ -121,18 +124,20 @@ class _VehicleUpdateScreenState extends ConsumerState<VehicleUpdateScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Expanded(
-                    child: textFormField(
+                    child: Customtextfield(
                       controller: _make,
                       label: 'Make',
                       textCapitalization: TextCapitalization.words,
+                      validator: Validators.maxLength(20),
                     ),
                   ),
                   const SizedBox(width: 16),
                   Expanded(
-                    child: textFormField(
+                    child: Customtextfield(
                       controller: _model,
                       label: 'Model',
                       textCapitalization: TextCapitalization.words,
+                      validator: Validators.maxLength(50),
                     ),
                   ),
                 ],
@@ -143,15 +148,16 @@ class _VehicleUpdateScreenState extends ConsumerState<VehicleUpdateScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Expanded(
-                    child: textFormField(
+                    child: Customtextfield(
                       controller: _colour,
                       label: 'Colour',
                       textCapitalization: TextCapitalization.words,
+                      validator: Validators.maxLength(20),
                     ),
                   ),
                   const SizedBox(width: 16),
                   Expanded(
-                    child: textFormField(
+                    child: Customtextfield(
                       controller: _yearController,
                       label: 'Year',
                       readOnly: true,

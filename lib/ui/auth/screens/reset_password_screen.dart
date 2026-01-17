@@ -105,10 +105,15 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
                               ),
                             ),
                           ),
-
                           obscureText: _obscurePassword,
                           textInputAction: TextInputAction.done,
                           autofillHints: const [AutofillHints.newPassword],
+                          validator: (value) {
+                            if (value == null || value.trim().isEmpty) {
+                              return 'This field is required';
+                            }
+                            return null;
+                          },
                         ),
 
                         const SizedBox(height: 40),

@@ -4,7 +4,7 @@ import 'package:cheng_eng_3/ui/bookings/notifiers/customer_booking_notifier.dart
 import 'package:cheng_eng_3/ui/bookings/extensions/booking_extension.dart';
 import 'package:cheng_eng_3/ui/bookings/screens/customer/customer_booking_screen.dart';
 import 'package:cheng_eng_3/utils/snackbar.dart';
-import 'package:cheng_eng_3/ui/core/widgets/textformfield.dart';
+import 'package:cheng_eng_3/ui/core/widgets/custom_text_field.dart';
 import 'package:cheng_eng_3/ui/vehicles/widgets/vehicle_listitem.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -139,13 +139,14 @@ class _CustomerBookingSubmitScreenState
             // --- REMARKS ---
             _SectionHeader(title: "Additional Notes"),
             const SizedBox(height: 12),
-            textFormField(
+            Customtextfield(
               controller: _remarksCtrl,
               label: 'Remarks (Optional)',
               hint: "Any specific issues or requests...",
               minLines: 3,
-              maxLines: 5,
-              validationRequired: false,
+              maxLines: null,
+              keyboardType: TextInputType.multiline,
+              isRequired: false,
             ),
 
             const SizedBox(height: 40),

@@ -5,7 +5,8 @@ import 'package:cheng_eng_3/domain/models/product_model.dart';
 import 'package:cheng_eng_3/data/services/image_service.dart';
 import 'package:cheng_eng_3/ui/products/extensions/product_extension.dart';
 import 'package:cheng_eng_3/utils/snackbar.dart';
-import 'package:cheng_eng_3/ui/core/widgets/textformfield.dart';
+import 'package:cheng_eng_3/ui/core/widgets/custom_text_field.dart';
+import 'package:cheng_eng_3/utils/validation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
@@ -173,21 +174,23 @@ class _StaffProductUpdateState extends ConsumerState<StaffProductUpdateScreen> {
               children: [
                 // --- 1. Basic Info ---
                 const _SectionHeader(title: "Basic Information"),
-                textFormField(controller: _nameCtrl, label: 'Product Name'),
+                Customtextfield(controller: _nameCtrl, label: 'Product Name', validator: Validators.maxLength(50),),
                 const SizedBox(height: 20),
                 Row(
                   children: [
                     Expanded(
-                      child: textFormField(
+                      child: Customtextfield(
                         controller: _categoryCtrl,
                         label: 'Category',
+                        validator: Validators.maxLength(50),
                       ),
                     ),
                     const SizedBox(width: 16),
                     Expanded(
-                      child: textFormField(
+                      child: Customtextfield(
                         controller: _brandCtrl,
                         label: 'Brand',
+                        validator: Validators.maxLength(50),
                       ),
                     ),
                   ],
@@ -196,24 +199,26 @@ class _StaffProductUpdateState extends ConsumerState<StaffProductUpdateScreen> {
                 Row(
                   children: [
                     Expanded(
-                      child: textFormField(
+                      child: Customtextfield(
                         controller: _modelCtrl,
                         label: 'Model (Opt)',
-                        validationRequired: false,
+                        isRequired: false,
+                        validator: Validators.maxLength(50),
                       ),
                     ),
                     const SizedBox(width: 16),
                     Expanded(
-                      child: textFormField(
+                      child: Customtextfield(
                         controller: _colourCtrl,
                         label: 'Colour (Opt)',
-                        validationRequired: false,
+                        isRequired: false,
+                        validator: Validators.maxLength(20),
                       ),
                     ),
                   ],
                 ),
                 const SizedBox(height: 20),
-                textFormField(
+                Customtextfield(
                   controller: _descCtrl,
                   minLines: 3,
                   maxLines: null,
@@ -224,12 +229,13 @@ class _StaffProductUpdateState extends ConsumerState<StaffProductUpdateScreen> {
 
                 // --- 2. Pricing & Availability ---
                 const _SectionHeader(title: "Pricing & Stock"),
-                textFormField(
+                Customtextfield(
                   controller: _priceCtrl,
                   label: 'Price (RM)',
                   keyboardType: const TextInputType.numberWithOptions(
                     decimal: true,
                   ),
+                  validator: Validators.isFloat,
                 ),
                 const SizedBox(height: 20),
                 DropdownButtonFormField<ProductAvailability>(
@@ -255,14 +261,16 @@ class _StaffProductUpdateState extends ConsumerState<StaffProductUpdateScreen> {
                       });
                     }
                   },
+                  validator: (value) => value == null ? 'Required' : null,
                 ),
 
                 if (_availability == ProductAvailability.ready) ...[
                   const SizedBox(height: 20),
-                  textFormField(
+                  Customtextfield(
                     controller: _quantityCtrl,
                     label: 'Stock Quantity',
                     keyboardType: TextInputType.number,
+                    validator: Validators.isInt,
                   ),
                 ],
 
@@ -289,16 +297,18 @@ class _StaffProductUpdateState extends ConsumerState<StaffProductUpdateScreen> {
                       });
                     }
                   },
+                  validator: (value) => value == null ? 'Required' : null,
                 ),
 
                 if (_hasInstallation) ...[
                   const SizedBox(height: 20),
-                  textFormField(
+                  Customtextfield(
                     controller: _installFeeCtrl,
                     label: 'Installation Fee (RM)',
                     keyboardType: const TextInputType.numberWithOptions(
                       decimal: true,
                     ),
+                    validator: Validators.isFloat,
                   ),
                 ],
 
@@ -308,12 +318,12 @@ class _StaffProductUpdateState extends ConsumerState<StaffProductUpdateScreen> {
                 _photoSection(theme),
 
                 const SizedBox(height: 20),
-                textFormField(
+                Customtextfield(
                   controller: _remarksCtrl,
                   minLines: 2,
                   maxLines: null,
                   label: 'Remarks',
-                  validationRequired: false,
+                  isRequired: false,
                 ),
 
                 const SizedBox(height: 40),

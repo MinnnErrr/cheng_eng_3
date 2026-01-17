@@ -107,6 +107,12 @@ class _RequestEmailScreenState extends ConsumerState<RequestEmailScreen> {
                           ),
                           keyboardType: TextInputType.emailAddress,
                           autofillHints: const [AutofillHints.email],
+                          validator: (value) {
+                            if (value == null || value.trim().isEmpty) {
+                              return 'This field is required';
+                            }
+                            return null;
+                          },
                         ),
 
                         const SizedBox(height: 30),

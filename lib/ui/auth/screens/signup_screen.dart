@@ -87,10 +87,15 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                             label: const Text('Email'),
                             prefixIcon: const Icon(Icons.email_outlined),
                           ),
-
                           keyboardType: TextInputType.emailAddress,
                           textInputAction: TextInputAction.next,
                           autofillHints: const [AutofillHints.email],
+                          validator: (value) {
+                            if (value == null || value.trim().isEmpty) {
+                              return 'This field is required';
+                            }
+                            return null;
+                          },
                         ),
 
                         const SizedBox(height: 20),
@@ -114,11 +119,15 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                               ),
                             ),
                           ),
-
                           obscureText: _obscurePassword,
-
                           textInputAction: TextInputAction.done,
                           autofillHints: const [AutofillHints.newPassword],
+                          validator: (value) {
+                            if (value == null || value.trim().isEmpty) {
+                              return 'This field is required';
+                            }
+                            return null;
+                          },
                         ),
 
                         const SizedBox(height: 40),

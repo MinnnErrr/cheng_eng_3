@@ -1,7 +1,8 @@
 import 'dart:io';
 import 'package:cheng_eng_3/ui/vehicles/notifiers/customer_vehicle_notifier.dart';
 import 'package:cheng_eng_3/utils/snackbar.dart';
-import 'package:cheng_eng_3/ui/core/widgets/textformfield.dart';
+import 'package:cheng_eng_3/ui/core/widgets/custom_text_field.dart';
+import 'package:cheng_eng_3/utils/validation.dart';
 import 'package:cheng_eng_3/utils/yearpicker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -58,7 +59,6 @@ class _VehicleCreateScreenState extends ConsumerState<VehicleCreateScreen> {
         title: const Text('Create Vehicle'),
       ),
       body: SafeArea(
-        // Use ListView for better keyboard handling
         child: Form(
           key: _formKey,
           child: ListView(
@@ -78,21 +78,22 @@ class _VehicleCreateScreenState extends ConsumerState<VehicleCreateScreen> {
               const SizedBox(height: 20),
 
               // FIELDS
-              // Ensure validationRequired logic works in your custom widget
-              textFormField(
+              Customtextfield(
                 controller: _description,
-                label: 'Description', // e.g., "My Work Truck"
-                validationRequired: false,
+                label: 'Description',
+                isRequired: false,
                 hint: 'e.g. Work Car',
                 textCapitalization: TextCapitalization.sentences,
+                validator: Validators.maxLength(20),
               ),
               const SizedBox(height: 16),
 
-              textFormField(
+              Customtextfield(
                 controller: _regNum,
                 label: 'Registration Number',
                 hint: 'e.g. ABC1234',
                 textCapitalization: TextCapitalization.characters,
+                validator: Validators.maxLength(10),
               ),
               const SizedBox(height: 16),
 
@@ -100,18 +101,20 @@ class _VehicleCreateScreenState extends ConsumerState<VehicleCreateScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Expanded(
-                    child: textFormField(
+                    child: Customtextfield(
                       controller: _make,
                       label: 'Make',
                       textCapitalization: TextCapitalization.words,
+                      validator: Validators.maxLength(20),
                     ),
                   ),
                   const SizedBox(width: 16),
                   Expanded(
-                    child: textFormField(
+                    child: Customtextfield(
                       controller: _model,
                       label: 'Model',
                       textCapitalization: TextCapitalization.words,
+                      validator: Validators.maxLength(50),
                     ),
                   ),
                 ],
@@ -122,15 +125,16 @@ class _VehicleCreateScreenState extends ConsumerState<VehicleCreateScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Expanded(
-                    child: textFormField(
+                    child: Customtextfield(
                       controller: _colour,
                       label: 'Colour',
                       textCapitalization: TextCapitalization.words,
+                      validator: Validators.maxLength(20),
                     ),
                   ),
                   const SizedBox(width: 16),
                   Expanded(
-                    child: textFormField(
+                    child: Customtextfield(
                       controller: _yearController,
                       label: 'Year',
                       readOnly: true,
@@ -151,13 +155,11 @@ class _VehicleCreateScreenState extends ConsumerState<VehicleCreateScreen> {
 
               // BUTTON
               FilledButton(
-                // Disable button while loading to prevent double submission
                 onPressed: isLoading
                     ? null
                     : () async {
                         if (!_formKey.currentState!.validate()) return;
 
-                        // Validate Year manually since it's a specialized field
                         if (_year == null) {
                           showAppSnackBar(
                             context: context,
@@ -167,12 +169,11 @@ class _VehicleCreateScreenState extends ConsumerState<VehicleCreateScreen> {
                           return;
                         }
 
-                        // Close keyboard
                         FocusScope.of(context).unfocus();
 
                         final success = await vehicleNotifier.addVehicle(
                           description: _description.text
-                              .trim(), // FIX: Was missing
+                              .trim(), 
                           regNum: _regNum.text.trim(),
                           make: _make.text.trim(),
                           model: _model.text.trim(),
@@ -224,7 +225,6 @@ class _VehicleCreateScreenState extends ConsumerState<VehicleCreateScreen> {
   Widget _buildImagePicker() {
     final theme = Theme.of(context).colorScheme;
 
-    // ✅ UX Fix: InkWell makes the WHOLE box clickable, not just the button
     return InkWell(
       onTap: _pickImage,
       borderRadius: BorderRadius.circular(12),
@@ -266,7 +266,6 @@ class _VehicleCreateScreenState extends ConsumerState<VehicleCreateScreen> {
                 ],
               ),
 
-            // Decorative Icon in corner to show editability
             if (_pickedImage != null)
               Positioned(
                 right: 12,

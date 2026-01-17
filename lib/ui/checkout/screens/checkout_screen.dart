@@ -8,7 +8,8 @@ import 'package:cheng_eng_3/ui/orders/extensions/order_extension.dart';
 import 'package:cheng_eng_3/ui/orders/screens/customer/customer_order_details_screen.dart';
 import 'package:cheng_eng_3/ui/orders/widgets/order_summary_listitem.dart';
 import 'package:cheng_eng_3/utils/snackbar.dart';
-import 'package:cheng_eng_3/ui/core/widgets/textformfield.dart';
+import 'package:cheng_eng_3/ui/core/widgets/custom_text_field.dart';
+import 'package:cheng_eng_3/utils/validation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_intl_phone_field/flutter_intl_phone_field.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -417,16 +418,18 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
         Row(
           children: [
             Expanded(
-              child: textFormField(
+              child: Customtextfield(
                 controller: _firstNameCtrl,
                 label: 'First Name',
+                validator: Validators.maxLength(50),
               ),
             ),
             const SizedBox(width: 12),
             Expanded(
-              child: textFormField(
+              child: Customtextfield(
                 controller: _lastNameCtrl,
                 label: 'Last Name',
+                validator: Validators.maxLength(50),
               ),
             ),
           ],
@@ -452,30 +455,31 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
           },
         ),
         const SizedBox(height: 20),
-        textFormField(controller: _address1Ctrl, label: 'Address Line 1'),
+        Customtextfield(controller: _address1Ctrl, label: 'Address Line 1', validator: Validators.maxLength(100),),
         const SizedBox(height: 20),
-        textFormField(
+        Customtextfield(
           controller: _address2Ctrl,
           label: 'Address Line 2 (Optional)',
-          validationRequired: false,
+          isRequired: false,
+          validator: Validators.maxLength(100),
         ),
         const SizedBox(height: 20),
         Row(
           children: [
             Expanded(
-              child: textFormField(
+              child: Customtextfield(
                 controller: _postcodeCtrl,
                 label: 'Postcode',
-                validationRequired: true,
                 keyboardType: TextInputType.number,
+                validator: Validators.postcode
               ),
             ),
             const SizedBox(width: 12),
             Expanded(
-              child: textFormField(
+              child: Customtextfield(
                 controller: _cityCtrl,
                 label: 'City',
-                validationRequired: true,
+                validator: Validators.maxLength(50),
               ),
             ),
           ],
@@ -512,10 +516,9 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
             ),
             const SizedBox(width: 12),
             Expanded(
-              child: textFormField(
+              child: Customtextfield(
                 controller: _countryCtrl,
                 label: 'Country',
-                validationRequired: true,
                 enabled: false,
               ),
             ),

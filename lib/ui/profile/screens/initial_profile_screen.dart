@@ -3,7 +3,8 @@ import 'package:cheng_eng_3/ui/profile/notifiers/profile_notifier.dart';
 import 'package:cheng_eng_3/main.dart';
 import 'package:cheng_eng_3/utils/datepicker.dart';
 import 'package:cheng_eng_3/utils/snackbar.dart';
-import 'package:cheng_eng_3/ui/core/widgets/textformfield.dart';
+import 'package:cheng_eng_3/ui/core/widgets/custom_text_field.dart';
+import 'package:cheng_eng_3/utils/validation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_intl_phone_field/flutter_intl_phone_field.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -96,7 +97,7 @@ class _InitialProfileScreenState extends ConsumerState<InitialProfileScreen> {
                     ),
                     const SizedBox(height: 40),
 
-                    textFormField(
+                    Customtextfield(
                       label: 'Email',
                       initialValue: user.value?.email ?? '',
                       enabled: false,
@@ -105,11 +106,12 @@ class _InitialProfileScreenState extends ConsumerState<InitialProfileScreen> {
                     ),
                     const SizedBox(height: 20),
 
-                    textFormField(
+                    Customtextfield(
                       label: 'Full Name',
                       controller: _nameController,
                       prefixIcon: const Icon(Icons.person_outline),
                       textCapitalization: TextCapitalization.words,
+                      validator: Validators.maxLength(100),
                     ),
                     const SizedBox(height: 20),
 
@@ -147,8 +149,8 @@ class _InitialProfileScreenState extends ConsumerState<InitialProfileScreen> {
                     ),
                     const SizedBox(height: 20),
 
-                    textFormField(
-                      validationRequired: false,
+                    Customtextfield(
+                      isRequired: false,
                       controller: _dateController,
                       label: 'Date of Birth',
                       readOnly: true,
