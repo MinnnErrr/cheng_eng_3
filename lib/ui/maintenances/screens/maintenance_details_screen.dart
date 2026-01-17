@@ -161,12 +161,16 @@ class _MaintenanceDetailsScreenState
                           isComplete: newStatus,
                         );
 
+                        final newStatusName = newStatus == false
+                            ? 'Incomplete'
+                            : 'Complete';
+
                         if (context.mounted) {
                           setState(() => _isUpdatingStatus = false);
                           showAppSnackBar(
                             context: context,
                             content: success
-                                ? 'Status updated to $newStatus'
+                                ? 'Status updated to $newStatusName'
                                 : 'Failed to update status',
                             isError: !success,
                           );
@@ -219,7 +223,7 @@ class _MaintenanceDetailsScreenState
 
   Widget _buildDetailsList(BuildContext context, Maintenance maintenance) {
     final dateFormatter = DateFormat('dd/MM/yyyy');
-    final timeFormatter = DateFormat('dd/MM/yyyy h:mm a'); 
+    final timeFormatter = DateFormat('dd/MM/yyyy h:mm a');
 
     return Column(
       children: [
@@ -301,7 +305,7 @@ class _MaintenanceDetailsScreenState
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         SizedBox(
-          width: 120, 
+          width: 120,
           child: Text(
             label,
             style: TextStyle(

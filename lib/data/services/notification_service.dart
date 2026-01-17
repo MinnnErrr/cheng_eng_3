@@ -1,4 +1,5 @@
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:intl/intl.dart';
 import 'package:timezone/data/latest_all.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
 import 'package:flutter_timezone/flutter_timezone.dart';
@@ -47,11 +48,10 @@ class NotificationService {
         );
 
     await flutterLocalNotificationsPlugin.initialize(initializationSettings);
-
   }
 
   Future<void> scheduleMaintenanceReminder({
-    required String id, 
+    required String id,
     required String vehicleName,
     required DateTime serviceDate,
   }) async {
@@ -101,23 +101,22 @@ class NotificationService {
       0,
     );
 
-    final AndroidNotificationDetails androidDetails = AndroidNotificationDetails(
-      'maintenance_channel',
-      'Maintenance Reminders',
-      channelDescription: 'Reminders for upcoming vehicle service',
-      importance: Importance.max,
-      priority: Priority.high,
-      icon: '@mipmap/cheng_eng_logo_black_background', 
-    );
+    final AndroidNotificationDetails androidDetails =
+        AndroidNotificationDetails(
+          'maintenance_channel',
+          'Maintenance Reminders',
+          channelDescription: 'Reminders for upcoming maintenance service',
+          importance: Importance.max,
+          priority: Priority.high,
+          icon: '@mipmap/cheng_eng_logo_black_background',
+        );
 
     await flutterLocalNotificationsPlugin.zonedSchedule(
       id,
       title,
       body,
       scheduledTime,
-       NotificationDetails(
-        android: androidDetails
-        ),
+      NotificationDetails(android: androidDetails),
       androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
     );
   }
@@ -128,5 +127,32 @@ class NotificationService {
 
     await flutterLocalNotificationsPlugin.cancel(earlyId);
     await flutterLocalNotificationsPlugin.cancel(dueId);
+  }
+
+  Future<void> showNotification({
+    required String vehicleName,
+    required DateTime serviceDate,
+    int id = 0,
+  }) async {
+    final formattedDate = DateFormat('dd/MM/yyyy').format(serviceDate);
+    final AndroidNotificationDetails
+    androidDetails = AndroidNotificationDetails(
+      'maintenance_channel',
+      'Maintenance Reminders',
+      channelDescription: 'Reminders for upcoming maintenance service',
+      importance: Importance.max,
+      priority: Priority.high,
+      icon:
+          '@mipmap/cheng_eng_logo_black_background', // Using your specific icon
+      enableVibration: true,
+      playSound: true,
+    );
+
+    await flutterLocalNotificationsPlugin.show(
+      id,
+      'Cheng Eng Auto Accessories',
+      'Your vehicle $vehicleName is scheduled for a maintenance service on $formattedDate',
+      NotificationDetails(android: androidDetails),
+    );
   }
 }

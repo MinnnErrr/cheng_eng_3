@@ -66,6 +66,11 @@ class MaintenanceNotifier extends _$MaintenanceNotifier {
         serviceDate: nextServDate,
       );
 
+      await _notificationService.showNotification(
+        vehicleName: vehicle.regNum,
+        serviceDate: nextServDate,
+      );
+
       state = AsyncData(
         MaintenanceList(
           maintenances: [...previous.maintenances, newMaintenance],
@@ -122,6 +127,10 @@ class MaintenanceNotifier extends _$MaintenanceNotifier {
           vehicleName: vehicle.regNum,
           serviceDate: nextServDate,
         );
+        await _notificationService.showNotification(
+        vehicleName: vehicle.regNum,
+        serviceDate: nextServDate,
+      );
       }
 
       final updatedList = previous.maintenances.map((m) {

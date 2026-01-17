@@ -36,7 +36,7 @@ class Customtextfield extends ConsumerWidget {
     this.maxLines = 1,
     this.onTap,
     this.textCapitalization = TextCapitalization.none,
-    this.initialValue
+    this.initialValue,
   });
 
   @override
@@ -67,10 +67,7 @@ class Customtextfield extends ConsumerWidget {
         labelText: label,
         hintText: hint,
         prefixIcon: prefixIcon,
-        suffixIcon: suffix,
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
+        suffix: suffix,
       ),
     );
   }
