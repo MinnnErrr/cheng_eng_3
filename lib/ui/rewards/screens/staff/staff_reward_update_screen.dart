@@ -103,7 +103,7 @@ class _StaffRewardUpdateState extends ConsumerState<StaffRewardUpdateScreen> {
   }
 
   Future<void> _handleDateSelection() async {
-    final date = await datePicker(DateTime.now(), context);
+    final date = await datePicker(initialDate: DateTime.now(), context);
     if (date != null) {
       setState(() {
         _availableUntil = date;

@@ -68,7 +68,7 @@ class _StaffRewardCreateState extends ConsumerState<StaffRewardCreateScreen> {
   }
 
   Future<void> _handleDateSelection() async {
-    final date = await datePicker(DateTime.now(), context);
+    final date = await datePicker(initialDate: DateTime.now(), context);
     if (date != null) {
       setState(() {
         _availableUntil = date;
@@ -142,9 +142,17 @@ class _StaffRewardCreateState extends ConsumerState<StaffRewardCreateScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 _SectionHeader(title: "Basic Information"),
-                Customtextfield(controller: _codeCtrl, label: 'Reward Code', validator: Validators.maxLength(20),),
+                Customtextfield(
+                  controller: _codeCtrl,
+                  label: 'Reward Code',
+                  validator: Validators.maxLength(20),
+                ),
                 const SizedBox(height: 20),
-                Customtextfield(controller: _nameCtrl, label: 'Reward Name', validator: Validators.maxLength(50)),
+                Customtextfield(
+                  controller: _nameCtrl,
+                  label: 'Reward Name',
+                  validator: Validators.maxLength(50),
+                ),
                 const SizedBox(height: 20),
                 Customtextfield(
                   controller: _descCtrl,
@@ -218,7 +226,7 @@ class _StaffRewardCreateState extends ConsumerState<StaffRewardCreateScreen> {
                 if (_limitedPeriod) ...[
                   const SizedBox(height: 20),
                   GestureDetector(
-                    onTap: _handleDateSelection, 
+                    onTap: _handleDateSelection,
                     child: AbsorbPointer(
                       child: Customtextfield(
                         controller: _availableDateCtrl,
@@ -468,7 +476,7 @@ class _SectionHeader extends StatelessWidget {
           fontWeight: FontWeight.bold,
           color: Theme.of(
             context,
-          ).colorScheme.onSurfaceVariant, 
+          ).colorScheme.onSurfaceVariant,
         ),
       ),
     );

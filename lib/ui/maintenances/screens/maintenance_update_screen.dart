@@ -129,7 +129,7 @@ class _MaintenanceUpdateScreenState
                         suffix: const Icon(Icons.calendar_today, size: 20),
                         onTap: () async {
                           final date = await datePicker(
-                            _currentDate,
+                            initialDate: _currentDate,
                             context,
                           );
                           if (date != null) {
@@ -173,7 +173,10 @@ class _MaintenanceUpdateScreenState
                         readOnly: true,
                         suffix: const Icon(Icons.event, size: 20),
                         onTap: () async {
-                          final date = await datePicker(_nextDate, context);
+                          final date = await datePicker(
+                            initialDate: _nextDate,
+                            context,
+                          );
                           if (date != null) {
                             setState(() {
                               _nextDate = date;

@@ -165,8 +165,11 @@ final bookingRealTimeProvider = Provider<void>((ref) {
         table: 'bookings',
         callback: (payload) {
           final userId = payload.newRecord['userId'];
-          final date = payload.newRecord['date'];
+          final dateString = payload.newRecord['date'];
           final bookingId = payload.newRecord['id'];
+
+          final date = DateTime.parse(dateString);
+          final finalDate = DateTime(date.year, date.month, date.day);
 
           // staff refresh
           ref.invalidate(staffBookingProvider);
@@ -178,7 +181,7 @@ final bookingRealTimeProvider = Provider<void>((ref) {
           ref.invalidate(bookingByIdProvider(bookingId));
 
           //time slot
-          ref.invalidate(bookingPerSlotProvider(date));
+          ref.invalidate(bookingPerSlotProvider(finalDate));
         },
       )
       .subscribe();

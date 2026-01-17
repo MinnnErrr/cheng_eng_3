@@ -50,7 +50,9 @@ class _InitialProfileScreenState extends ConsumerState<InitialProfileScreen> {
 
     final inputDecoration = InputDecoration(
       filled: true,
-      fillColor: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
+      fillColor: theme.colorScheme.surfaceContainerHighest.withValues(
+        alpha: 0.3,
+      ),
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
         borderSide: BorderSide.none,
@@ -157,7 +159,10 @@ class _InitialProfileScreenState extends ConsumerState<InitialProfileScreen> {
                       prefixIcon: const Icon(Icons.cake_outlined),
                       suffix: const Icon(Icons.calendar_month),
                       onTap: () async {
-                        final date = await datePicker(_birthday, context);
+                        final date = await datePicker(
+                          initialDate: _birthday,
+                          context,
+                        );
                         if (date != null) {
                           setState(() {
                             _birthday = date;
@@ -179,16 +184,16 @@ class _InitialProfileScreenState extends ConsumerState<InitialProfileScreen> {
 
                               setState(() => _isSubmitting = true);
 
-                              final success = await profileNotifier.createProfile(
-                                name: _nameController.text.trim(),
-                                email: user.value?.email ?? '',
-                                phoneNum:
-                                    _phoneNum!, 
-                                countryCode: _countryCode,
-                                dialCode: _dialCode,
-                                gender: _gender!, 
-                                birthday: _birthday,
-                              );
+                              final success = await profileNotifier
+                                  .createProfile(
+                                    name: _nameController.text.trim(),
+                                    email: user.value?.email ?? '',
+                                    phoneNum: _phoneNum!,
+                                    countryCode: _countryCode,
+                                    dialCode: _dialCode,
+                                    gender: _gender!,
+                                    birthday: _birthday,
+                                  );
 
                               if (context.mounted) {
                                 setState(() => _isSubmitting = false);

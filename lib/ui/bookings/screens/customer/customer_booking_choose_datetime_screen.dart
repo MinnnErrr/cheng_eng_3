@@ -19,7 +19,7 @@ class _CustomerBookingChooseDatetimeScreenState
     extends ConsumerState<CustomerBookingChooseDatetimeScreen> {
   final _dateFormatter = DateFormat(
     'dd MMM yyyy, EEEE',
-  ); 
+  );
   final slots = generateTimeSlots();
 
   DateTime? _selectedDate;
@@ -38,11 +38,15 @@ class _CustomerBookingChooseDatetimeScreenState
   }
 
   Future<void> _pickDate() async {
-    final date = await datePicker(DateTime.now(), context);
+    final date = await datePicker(
+      firstDate: DateTime.now(),
+      initialDate: DateTime.now(),
+      context,
+    );
     if (date != null) {
       setState(() {
         _selectedDate = date;
-        _selectedTime = null; 
+        _selectedTime = null;
       });
     }
   }
@@ -144,7 +148,9 @@ class _CustomerBookingChooseDatetimeScreenState
                           Icon(
                             Icons.event_busy,
                             size: 48,
-                            color: theme.colorScheme.outline.withValues(alpha: 0.5),
+                            color: theme.colorScheme.outline.withValues(
+                              alpha: 0.5,
+                            ),
                           ),
                           const SizedBox(height: 16),
                           Text(
@@ -178,8 +184,7 @@ class _CustomerBookingChooseDatetimeScreenState
                               children: slots.map((time) {
                                 final isSelected = _selectedTime == time;
                                 final currentBookings = slotCounts[time] ?? 0;
-                                final isFull =
-                                    currentBookings >= 5; 
+                                final isFull = currentBookings >= 5;
 
                                 return InkWell(
                                   onTap: isFull

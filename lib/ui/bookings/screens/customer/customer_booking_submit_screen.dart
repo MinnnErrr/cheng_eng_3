@@ -221,8 +221,6 @@ class _CustomerBookingSubmitScreenState
     );
 
     if (message.isSuccess) {
-      ref.read(bookingStateProvider.notifier).reset();
-
       Navigator.of(context).popUntil((route) => route.isFirst);
 
       Navigator.of(context).push(
@@ -230,6 +228,8 @@ class _CustomerBookingSubmitScreenState
           builder: (context) => const CustomerBookingScreen(),
         ),
       );
+
+      ref.read(bookingStateProvider.notifier).reset();
     }
   }
 

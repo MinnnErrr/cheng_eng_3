@@ -139,8 +139,8 @@ class _MaintenanceCreateScreenState
                         suffix: const Icon(Icons.calendar_today, size: 20),
                         onTap: () async {
                           final date = await datePicker(
-                            _currentDate,
-                            context,
+                            initialDate: _currentDate,
+                            context
                           );
                           if (date != null) {
                             setState(() {
@@ -187,7 +187,7 @@ class _MaintenanceCreateScreenState
                         onTap: () async {
                           final initialDate = _currentDate ?? DateTime.now();
                           final date = await datePicker(
-                            _nextDate ?? initialDate,
+                            initialDate:  _nextDate ?? initialDate,
                             context,
                           );
                           if (date != null) {

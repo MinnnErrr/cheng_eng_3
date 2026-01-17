@@ -49,7 +49,9 @@ class _ProfileUpdateScreenState extends ConsumerState<ProfileUpdateScreen> {
 
     final inputDecoration = InputDecoration(
       filled: true,
-      fillColor: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
+      fillColor: theme.colorScheme.surfaceContainerHighest.withValues(
+        alpha: 0.3,
+      ),
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
         borderSide: BorderSide.none,
@@ -172,7 +174,10 @@ class _ProfileUpdateScreenState extends ConsumerState<ProfileUpdateScreen> {
                       prefixIcon: const Icon(Icons.cake_outlined),
                       suffix: Icon(Icons.calendar_month),
                       onTap: () async {
-                        final date = await datePicker(_birthday, context);
+                        final date = await datePicker(
+                          initialDate: _birthday,
+                          context,
+                        );
                         if (date != null) {
                           setState(() {
                             _birthday = date;
