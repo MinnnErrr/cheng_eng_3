@@ -2,7 +2,7 @@ import 'dart:io';
 
 import 'package:cheng_eng_3/core/controllers/product/staff_product_notifier.dart';
 import 'package:cheng_eng_3/core/models/product_model.dart';
-import 'package:cheng_eng_3/ui/extensions/product_extension.dart'; // Ensure this extension exists for .label
+import 'package:cheng_eng_3/ui/extensions/product_extension.dart'; 
 import 'package:cheng_eng_3/ui/widgets/snackbar.dart';
 import 'package:cheng_eng_3/ui/widgets/textformfield.dart';
 import 'package:flutter/material.dart';
@@ -18,7 +18,6 @@ class StaffProductCreateScreen extends ConsumerStatefulWidget {
 }
 
 class _StaffProductCreateState extends ConsumerState<StaffProductCreateScreen> {
-  // Controllers
   final _nameCtrl = TextEditingController();
   final _categoryCtrl = TextEditingController();
   final _brandCtrl = TextEditingController();
@@ -30,7 +29,6 @@ class _StaffProductCreateState extends ConsumerState<StaffProductCreateScreen> {
   final _installFeeCtrl = TextEditingController();
   final _remarksCtrl = TextEditingController();
 
-  // State
   bool _isActive = true;
   bool _hasInstallation = false;
   ProductAvailability _availability = ProductAvailability.ready;
@@ -53,8 +51,6 @@ class _StaffProductCreateState extends ConsumerState<StaffProductCreateScreen> {
     _remarksCtrl.dispose();
     super.dispose();
   }
-
-  // --- ACTIONS ---
 
   Future<void> _pickPhoto() async {
     final picker = ImagePicker();
@@ -79,11 +75,8 @@ class _StaffProductCreateState extends ConsumerState<StaffProductCreateScreen> {
 
     final notifer = ref.read(staffProductProvider.notifier);
 
-    // Safe Parsing
     final quantity = int.tryParse(_quantityCtrl.text.trim()) ?? 0;
     final price = double.tryParse(_priceCtrl.text.trim()) ?? 0.0;
-
-    // Logic for optional Install fee
     final installFee = _hasInstallation
         ? double.tryParse(_installFeeCtrl.text.trim())
         : null;
@@ -121,8 +114,6 @@ class _StaffProductCreateState extends ConsumerState<StaffProductCreateScreen> {
       Navigator.of(context).pop();
     }
   }
-
-  // --- UI BUILD ---
 
   @override
   Widget build(BuildContext context) {
@@ -212,7 +203,7 @@ class _StaffProductCreateState extends ConsumerState<StaffProductCreateScreen> {
                       .map(
                         (availability) => DropdownMenuItem(
                           value: availability,
-                          child: Text(availability.label),
+                          child: Text(availability.dropDownOption),
                         ),
                       )
                       .toList(),
@@ -228,7 +219,6 @@ class _StaffProductCreateState extends ConsumerState<StaffProductCreateScreen> {
                   },
                 ),
 
-                // Conditionally show Quantity
                 if (_availability == ProductAvailability.ready) ...[
                   const SizedBox(height: 20),
                   textFormField(
@@ -263,7 +253,6 @@ class _StaffProductCreateState extends ConsumerState<StaffProductCreateScreen> {
                   },
                 ),
 
-                // Conditionally show Installation Fee
                 if (_hasInstallation) ...[
                   const SizedBox(height: 20),
                   textFormField(
@@ -355,8 +344,6 @@ class _StaffProductCreateState extends ConsumerState<StaffProductCreateScreen> {
     );
   }
 
-  // --- WIDGETS ---
-
   Widget _photoSection(ThemeData theme) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -379,7 +366,6 @@ class _StaffProductCreateState extends ConsumerState<StaffProductCreateScreen> {
             childAspectRatio: 1.0,
           ),
           itemBuilder: (context, index) {
-            // Upload Button Card
             if (index == _photos.length) {
               return InkWell(
                 onTap: _pickPhoto,
@@ -410,7 +396,6 @@ class _StaffProductCreateState extends ConsumerState<StaffProductCreateScreen> {
               );
             }
 
-            // Image Thumbnail
             final file = _photos[index];
             return Stack(
               children: [
@@ -453,7 +438,6 @@ class _StaffProductCreateState extends ConsumerState<StaffProductCreateScreen> {
   }
 }
 
-// Reusable Header
 class _SectionHeader extends StatelessWidget {
   final String title;
   final double padding;

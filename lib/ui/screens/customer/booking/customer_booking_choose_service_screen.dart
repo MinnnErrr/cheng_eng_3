@@ -87,7 +87,7 @@ class _CustomerBookingChooseServiceScreenState
                                     top: Radius.circular(14),
                                   ),
                                   child: Image.asset(
-                                    type.picture, // Ensure extension exists
+                                    type.picture, 
                                     fit: BoxFit.cover,
                                   ),
                                 ),
@@ -96,7 +96,7 @@ class _CustomerBookingChooseServiceScreenState
                                 flex: 1,
                                 child: Center(
                                   child: Text(
-                                    type.name, // Ensure extension exists
+                                    type.name,
                                     textAlign: TextAlign.center,
                                     style: TextStyle(
                                       fontWeight: FontWeight.bold,

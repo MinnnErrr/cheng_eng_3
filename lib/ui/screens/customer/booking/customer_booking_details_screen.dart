@@ -25,7 +25,6 @@ class _CustomerBookingDetailsScreenState
 
   @override
   Widget build(BuildContext context) {
-    // Watch for live updates
     final bookingAsync = ref.watch(bookingByIdProvider(widget.booking.id));
     final currentBooking = bookingAsync.value ?? widget.booking;
 
@@ -49,7 +48,7 @@ class _CustomerBookingDetailsScreenState
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // --- HERO STATUS CARD (Without Vehicle Image) ---
+            // --- HERO STATUS CARD ---
             Container(
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
@@ -71,7 +70,6 @@ class _CustomerBookingDetailsScreenState
                     style: TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.bold,
-                      // Use status color for text to make it pop
                       color: currentBooking.status.color,
                       letterSpacing: 1.2,
                     ),
@@ -85,7 +83,6 @@ class _CustomerBookingDetailsScreenState
                     ),
                   ),
                   const SizedBox(height: 12),
-                  // Date & Time
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
@@ -225,7 +222,6 @@ class _CustomerBookingDetailsScreenState
           isError: !message.isSuccess,
         );
 
-        // Optionally pop back if success
         if (message.isSuccess) {
           Navigator.pop(context);
         }

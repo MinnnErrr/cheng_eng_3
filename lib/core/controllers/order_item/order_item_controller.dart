@@ -9,7 +9,6 @@ part 'order_item_controller.g.dart';
 class OrderItemNotifier extends _$OrderItemNotifier {
   OrderItemService get _orderItemService => ref.read(orderItemServiceProvider);
 
-  // Use family to pass the orderId
   @override
   FutureOr<void> build() async {}
 

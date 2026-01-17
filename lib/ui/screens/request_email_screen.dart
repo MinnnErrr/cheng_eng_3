@@ -30,19 +30,16 @@ class _RequestEmailScreenState extends ConsumerState<RequestEmailScreen> {
 
     return Scaffold(
       backgroundColor: Colors.black,
-      // 1. Safe Layout for Keyboard
       body: SingleChildScrollView(
         child: SizedBox(
           height: screenSize.height,
           child: Column(
             children: [
-              // --- TOP: Logo Section ---
               Expanded(
                 flex: 3,
                 child: Stack(
                   alignment: Alignment.center,
                   children: [
-                    // Back Button (Top Left)
                     Positioned(
                       top: 10,
                       left: 10,
@@ -64,7 +61,6 @@ class _RequestEmailScreenState extends ConsumerState<RequestEmailScreen> {
                 ),
               ),
 
-              // --- BOTTOM: Form Section ---
               Expanded(
                 flex: 7,
                 child: Container(
@@ -103,7 +99,6 @@ class _RequestEmailScreenState extends ConsumerState<RequestEmailScreen> {
 
                         const SizedBox(height: 30),
 
-                        // Email Input
                         TextFormField(
                           controller: _emailCtrl,
                           decoration: InputDecoration(
@@ -116,7 +111,6 @@ class _RequestEmailScreenState extends ConsumerState<RequestEmailScreen> {
 
                         const SizedBox(height: 30),
 
-                        // Send Button
                         FilledButton(
                           onPressed: userState.isLoading
                               ? null
@@ -124,9 +118,7 @@ class _RequestEmailScreenState extends ConsumerState<RequestEmailScreen> {
                                   if (!_formKey.currentState!.validate()){
                                     return;
                                   }
-                                    
-
-                                  // Hide keyboard
+                                  
                                   FocusScope.of(context).unfocus();
 
                                   final message = await userNotifier
@@ -142,7 +134,6 @@ class _RequestEmailScreenState extends ConsumerState<RequestEmailScreen> {
                                     isError: !message.isSuccess,
                                   );
 
-                                  // Optional: Pop if success
                                   if (message.isSuccess) {
                                     Navigator.pop(context);
                                   }
@@ -164,7 +155,6 @@ class _RequestEmailScreenState extends ConsumerState<RequestEmailScreen> {
 
                         const SizedBox(height: 16),
 
-                        // Cancel Button
                         SizedBox(
                           height: 50,
                           child: OutlinedButton(

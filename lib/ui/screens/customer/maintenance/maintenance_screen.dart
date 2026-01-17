@@ -17,7 +17,6 @@ class MaintenanceScreen extends ConsumerWidget {
     return maintenanceList.when(
       data: (list) {
         if (list.maintenances.isEmpty) {
-          // ✅ FIX: Use SizedBox instead of Padding/Center to prevent layout crashes
           return SizedBox(
             height: 150,
             child: Center(
@@ -45,7 +44,6 @@ class MaintenanceScreen extends ConsumerWidget {
           child: Column(
             children: [
               for (int i = 0; i < list.maintenances.length; i++) ...[
-                // Add separator logic manually
                 if (i > 0) const SizedBox(height: 12),
 
                 MaintenanceListItem(
@@ -63,7 +61,6 @@ class MaintenanceScreen extends ConsumerWidget {
           ),
         );
       },
-      // ✅ FIX: Fixed heights prevent "RenderBox not laid out" errors
       error: (error, stackTrace) => SizedBox(
         height: 100,
         child: Center(child: Text('Error: $error')),

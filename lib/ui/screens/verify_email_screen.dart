@@ -18,7 +18,7 @@ class VerifyEmailScreen extends ConsumerStatefulWidget {
 class _VerifyEmailScreenState extends ConsumerState<VerifyEmailScreen> {
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _pinController = TextEditingController();
-  bool _isResending = false; // Local state for resend button loading
+  bool _isResending = false; 
 
   @override
   Widget build(BuildContext context) {
@@ -28,7 +28,6 @@ class _VerifyEmailScreenState extends ConsumerState<VerifyEmailScreen> {
     final screenSize = MediaQuery.of(context).size;
     final theme = Theme.of(context);
 
-    // Default styling for Pinput
     final defaultPinTheme = PinTheme(
       width: 56,
       height: 56,
@@ -45,13 +44,11 @@ class _VerifyEmailScreenState extends ConsumerState<VerifyEmailScreen> {
 
     return Scaffold(
       backgroundColor: Colors.black,
-      // 1. SingleChildScrollView fixes layout issues on small screens/keyboard open
       body: SingleChildScrollView(
         child: SizedBox(
           height: screenSize.height,
           child: Column(
             children: [
-              // --- TOP: Logo Section ---
               Expanded(
                 flex: 3,
                 child: Container(
@@ -63,7 +60,6 @@ class _VerifyEmailScreenState extends ConsumerState<VerifyEmailScreen> {
                 ),
               ),
 
-              // --- BOTTOM: Form Section ---
               Expanded(
                 flex: 7,
                 child: Container(
@@ -102,7 +98,6 @@ class _VerifyEmailScreenState extends ConsumerState<VerifyEmailScreen> {
 
                         const SizedBox(height: 40),
 
-                        // OTP Input
                         Center(
                           child: Pinput(
                             length: 6,
@@ -121,7 +116,7 @@ class _VerifyEmailScreenState extends ConsumerState<VerifyEmailScreen> {
                               }
                               return null;
                             },
-                            // Auto-submit when last digit entered (Optional UX improvement)
+                            // Auto-submit
                             pinputAutovalidateMode:
                                 PinputAutovalidateMode.onSubmit,
                             showCursor: true,
@@ -130,7 +125,6 @@ class _VerifyEmailScreenState extends ConsumerState<VerifyEmailScreen> {
 
                         const SizedBox(height: 30),
 
-                        // Resend Logic
                         Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
@@ -145,8 +139,6 @@ class _VerifyEmailScreenState extends ConsumerState<VerifyEmailScreen> {
                                   ? null
                                   : () async {
                                       setState(() => _isResending = true);
-
-                                      // Call Resend API
                                       await userNotifier.resendOtp(email);
 
                                       if (context.mounted) {
@@ -173,7 +165,6 @@ class _VerifyEmailScreenState extends ConsumerState<VerifyEmailScreen> {
 
                         const SizedBox(height: 20),
 
-                        // Verify Button
                         FilledButton(
                           onPressed: userState.isLoading
                               ? null
@@ -193,7 +184,6 @@ class _VerifyEmailScreenState extends ConsumerState<VerifyEmailScreen> {
                                   if (!context.mounted) return;
 
                                   if (res == null) {
-                                    // Success
                                     showAppSnackBar(
                                       content: 'Email verified successfully!',
                                       isError: false,
@@ -207,7 +197,6 @@ class _VerifyEmailScreenState extends ConsumerState<VerifyEmailScreen> {
                                       ),
                                     );
                                   } else {
-                                    // Error
                                     showAppSnackBar(
                                       content: res,
                                       isError: true,

@@ -16,7 +16,6 @@ class CustomerRewardsNotifier extends _$CustomerRewardsNotifier {
 
     final now = DateTime.now();
 
-    //keep available rewards only
     for (final reward in data) {
       if (reward.availableUntil == null) {
         finalData.add(reward);
@@ -31,7 +30,5 @@ class CustomerRewardsNotifier extends _$CustomerRewardsNotifier {
 
     return finalData;
   }
-
-  // void refresh() => ref.invalidateSelf();
 }
 

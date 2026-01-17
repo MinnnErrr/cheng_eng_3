@@ -58,7 +58,6 @@ class VehicleDetailsScreen extends ConsumerWidget {
               padding: const EdgeInsets.fromLTRB(20, 20, 20, 5),
               child: Row(
                 children: [
-                  // ✅ FIX 1: Wrap Text in Expanded to stabilize constraints
                   Expanded(
                     child: Text(
                       'Maintenance Records',

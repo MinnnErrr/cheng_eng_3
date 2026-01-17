@@ -59,10 +59,8 @@ class MaintenanceListItem extends ConsumerWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // 1. Header: Title + Status
                       Row(
                         children: [
-                          // ✅ FIX 1: Expanded prevents Title from pushing Chip off-screen
                           Expanded(
                             child: Text(
                               maintenance.title,
@@ -78,21 +76,18 @@ class MaintenanceListItem extends ConsumerWidget {
 
                       const Spacer(),
 
-                      // 2. Data Rows (Icons instead of Labels)
-                      // Date
                       _iconTextRow(
                         context,
                         Icons.calendar_month,
                         dateFormatter.format(maintenance.nextServDate),
                       ),
 
-                      // Distance
                       if (maintenance.nextServDistance != null) ...[
                         const SizedBox(height: 6),
                         _iconTextRow(
                           context,
                           Icons
-                              .add_road_outlined, // "Road" icon implies distance
+                              .add_road_outlined,
                           '${maintenance.nextServDistance} KM',
                         ),
                       ],
@@ -107,7 +102,6 @@ class MaintenanceListItem extends ConsumerWidget {
                   crossAxisAlignment: CrossAxisAlignment.end,
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    // Status Chip
                     Container(
                       padding: const EdgeInsets.symmetric(
                         horizontal: 8,
@@ -160,7 +154,6 @@ class MaintenanceListItem extends ConsumerWidget {
     );
   }
 
-  // Helper widget for clean Icon + Text rows
   Widget _iconTextRow(BuildContext context, IconData icon, String text) {
     final theme = Theme.of(context);
     return Row(
@@ -168,7 +161,7 @@ class MaintenanceListItem extends ConsumerWidget {
         Icon(
           icon,
           size: 16,
-          color: theme.colorScheme.tertiary, // Use your Industrial Grey
+          color: theme.colorScheme.tertiary, 
         ),
         const SizedBox(width: 8),
         Text(

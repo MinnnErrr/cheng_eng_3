@@ -14,6 +14,4 @@ class CustomerProductNotifier extends _$CustomerProductNotifier {
     return await _productService.getActiveProducts();
   }
 
-  // void refresh() => ref.invalidateSelf();
-
 }

@@ -35,13 +35,9 @@ class _StaffProductDetailsScreenState
 
   @override
   Widget build(BuildContext context) {
-    // Realtime listener
     ref.watch(productRealTimeProvider);
 
-    // Watch specific ID
     final productState = ref.watch(productByIdProvider(widget.product.id));
-
-    // Optimistic UI
     final Product displayedProduct = productState.value ?? widget.product;
     final bool isActive = displayedProduct.status;
     final notifier = ref.read(staffProductProvider.notifier);
@@ -55,7 +51,6 @@ class _StaffProductDetailsScreenState
         title: const Text('Product Details'),
         centerTitle: true,
         actions: [
-          // Edit Button moved to AppBar
           IconButton(
             onPressed: () {
               Navigator.of(context).push(
@@ -277,7 +272,6 @@ class _StaffProductDetailsScreenState
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              // Header Info
                               Text(
                                 '${displayedProduct.brand} ${displayedProduct.name} ${displayedProduct.model ?? ''}',
                                 style: theme.textTheme.titleLarge!.copyWith(
@@ -288,11 +282,9 @@ class _StaffProductDetailsScreenState
 
                               const SizedBox(height: 8),
 
-                              // 2. ROW: COLOUR (Left) & PRICE (Right)
                               Row(
                                 crossAxisAlignment: CrossAxisAlignment.center,
                                 children: [
-                                  // Colour (Plain Text)
                                   if (displayedProduct.colour != null)
                                     Text(
                                       displayedProduct.colour!,
@@ -307,7 +299,6 @@ class _StaffProductDetailsScreenState
 
                                   const Spacer(),
 
-                                  // Price
                                   Text(
                                     'RM ${displayedProduct.price.toStringAsFixed(2)}',
                                     style: theme.textTheme.titleMedium
@@ -322,7 +313,6 @@ class _StaffProductDetailsScreenState
 
                               const SizedBox(height: 30),
 
-                              // Basic Specs
                               _buildDetailRow(
                                 context,
                                 'Category',
@@ -330,19 +320,16 @@ class _StaffProductDetailsScreenState
                               ),
                               const SizedBox(height: 12),
 
-                              // Availability Logic (Integrated)
                               _buildAvailabilityRow(context, displayedProduct),
 
                               const SizedBox(height: 12),
 
-                              // Installation Logic (Integrated)
                               _buildInstallationRow(context, displayedProduct),
 
                               const SizedBox(height: 24),
                               const Divider(),
                               const SizedBox(height: 16),
 
-                              // Metadata
                               _buildDetailRow(
                                 context,
                                 'Created On',
@@ -367,7 +354,6 @@ class _StaffProductDetailsScreenState
                               const Divider(),
                               const SizedBox(height: 16),
 
-                              // Long Text Sections
                               _buildLongTextSection(
                                 context,
                                 "Description",
@@ -459,7 +445,6 @@ class _StaffProductDetailsScreenState
     );
   }
 
-  // Helper for single line details
   Widget _buildDetailRow(
     BuildContext context,
     String label,
@@ -490,22 +475,15 @@ class _StaffProductDetailsScreenState
     );
   }
 
-  // Specialized Helper for Availability
   Widget _buildAvailabilityRow(BuildContext context, Product product) {
     String label;
     Color color;
 
+    label = product.availability.getlabel(product.quantity);
+    color = product.availability.getcolor(product.quantity);
+
     if (product.availability == ProductAvailability.ready) {
-      if ((product.quantity ?? 0) > 0) {
-        label = "${product.availability.label} (${product.quantity})";
-        color = product.availability.color;
-      } else {
-        label = 'Out of Stock (0)';
-        color = Theme.of(context).colorScheme.error;
-      }
-    } else {
-      label = ProductAvailability.preorder.label;
-      color = ProductAvailability.preorder.color;
+        label = "$label (${product.quantity})";
     }
 
     return Row(
@@ -537,7 +515,6 @@ class _StaffProductDetailsScreenState
     );
   }
 
-  // Specialized Helper for Installation
   Widget _buildInstallationRow(BuildContext context, Product product) {
     final hasInstallation = product.installation;
     final fee = product.installationFee ?? 0.0;
@@ -564,7 +541,6 @@ class _StaffProductDetailsScreenState
     );
   }
 
-  // Helper for long text blocks
   Widget _buildLongTextSection(
     BuildContext context,
     String title,

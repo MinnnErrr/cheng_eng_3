@@ -33,10 +33,6 @@ class PointHistoryService {
     return data.map<PointHistory>((p) => PointHistory.fromJson(p)).toList();
   }
 
-  // Future<void> create(PointHistory record) async {
-  //   await supabase.from('point_history').insert(record.toJson());
-  // }
-
   Future<void> deductPoints(String userId, int points, String reason, bool isIssuedByStaff) async {
     await supabase.rpc(
       'deduct_points',

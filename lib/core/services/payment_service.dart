@@ -23,12 +23,10 @@ class PaymentService {
     required String email,
   }) async {
     try {
-      // 1. Call Edge Function
-      // FIX 1: Send the original double amount. Let the server handle the *100 logic.
       final response = await _supabase.functions.invoke(
         'payment-sheet',
         body: {
-          'amount': amount, // Send 10.50, not 1050
+          'amount': amount, 
           'email': email,
           'description': 'Order #$orderId',
           'orderId': orderId,
@@ -45,19 +43,17 @@ class PaymentService {
       // 2. Initialize the Payment Sheet
       await Stripe.instance.initPaymentSheet(
         paymentSheetParameters: SetupPaymentSheetParameters(
-          // FIX 2: Pass these to allow saving cards/recognizing the user
           customerId: data['customer'], 
           customerEphemeralKeySecret: data['ephemeralKey'], 
           
           paymentIntentClientSecret: data['paymentIntent'],
           merchantDisplayName: 'Cheng Eng Auto Accessories',
-          style: ThemeMode.light, // Forces light mode to match your custom colors below
           appearance: const PaymentSheetAppearance(
             primaryButton: PaymentSheetPrimaryButtonAppearance(
               colors: PaymentSheetPrimaryButtonTheme(
                 light: PaymentSheetPrimaryButtonThemeColors(
                   background: Colors.amberAccent, 
-                  text: Colors.black, // White text on Amber is hard to read, Black is better
+                  text: Colors.black, 
                 ),
               ),
             ),
@@ -65,7 +61,6 @@ class PaymentService {
         ),
       );
 
-      // 3. Present the Payment Sheet
       await Stripe.instance.presentPaymentSheet();
       
       return PaymentResult.success;
@@ -74,7 +69,6 @@ class PaymentService {
       if (e.error.code == FailureCode.Canceled) {
         return PaymentResult.canceled; 
       }
-      // Log the actual error for debugging
       return PaymentResult.failed;
     } catch (e) {
       return PaymentResult.failed;

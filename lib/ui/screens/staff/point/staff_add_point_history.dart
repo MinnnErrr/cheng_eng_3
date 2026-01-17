@@ -71,8 +71,6 @@ class _StaffAddPointHistoryScreenState
                 hintText: "Search Customer Email",
                 textInputAction: TextInputAction.search,
                 onSubmitted: (_) => _performSearch(),
-
-                // 1. Icons
                 leading: const Icon(Icons.search),
                 trailing: [
                   IconButton(
@@ -125,7 +123,7 @@ class _StaffAddPointHistoryScreenState
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // --- A. CUSTOMER DETAILS CARD (Matches Order Summary Card) ---
+          // --- A. CUSTOMER DETAILS CARD ---
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
@@ -193,7 +191,6 @@ class _StaffAddPointHistoryScreenState
                       style: const TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.w900,
-                        // Assuming textYellow is defined globally or imported
                         color: textYellow,
                       ),
                     ),
@@ -205,7 +202,7 @@ class _StaffAddPointHistoryScreenState
 
           const SizedBox(height: 24),
 
-          // --- B. ACTION SELECTION (Matches Delivery Method Cards) ---
+          // --- B. ACTION SELECTION ---
           Text(
             'Transaction Type',
             style: theme.textTheme.titleMedium?.copyWith(
@@ -399,7 +396,6 @@ class _StaffAddPointHistoryScreenState
 }
 
 // --- HELPER: Action Selection Card ---
-// Exact replica of _DeliveryOptionCard styling logic
 class _ActionOptionCard extends StatelessWidget {
   const _ActionOptionCard({
     required this.label,

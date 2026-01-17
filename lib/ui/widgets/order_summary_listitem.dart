@@ -52,7 +52,6 @@ class OrderSummaryListItem extends ConsumerWidget {
               noImageContent: Container(
                 height: 80,
                 width: 80,
-                // ✅ Matches other screens
                 color: theme.colorScheme.surfaceContainerHighest,
                 child: Icon(
                   Icons.image_not_supported_outlined,
@@ -64,7 +63,7 @@ class OrderSummaryListItem extends ConsumerWidget {
           ),
           const SizedBox(width: 16),
 
-          // --- 2. DETAILS (Middle) ---
+          // --- 2. DETAILS ---
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -97,7 +96,7 @@ class OrderSummaryListItem extends ConsumerWidget {
 
           const SizedBox(width: 12),
 
-          // --- 3. PRICE (Right) ---
+          // --- 3. PRICE ---
           Column(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
@@ -107,7 +106,6 @@ class OrderSummaryListItem extends ConsumerWidget {
                   fontWeight: FontWeight.bold,
                 ),
               ),
-              // ✅ Cleaner Installation Display
               if (installationTotal != null && installationTotal! > 0) ...[
                 const SizedBox(height: 4),
                 Text(

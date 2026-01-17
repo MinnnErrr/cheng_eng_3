@@ -32,7 +32,6 @@ class CustomerHome extends ConsumerWidget {
     final userState = ref.watch(authProvider);
     final user = userState.value;
 
-    // Handle loading or null user gracefully in UI while listener redirects
     if (user == null) {
       return const Scaffold(
         body: Center(child: Text('No user found')),
@@ -65,7 +64,6 @@ class CustomerHome extends ConsumerWidget {
       body: SafeArea(
         child: RefreshIndicator(
           onRefresh: () async {
-            // Refresh data when user pulls down
             ref.invalidate(totalPointsProvider(user.id));
             ref.invalidate(maintenanceByNearestDateProvider);
             ref.invalidate(profileProvider);
@@ -102,7 +100,6 @@ class CustomerHome extends ConsumerWidget {
                       totalPoints: total,
                       expiryPoints: expiryPoints,
                     ),
-                    // Handle error gracefully with 0 points or error text
                     error: (error, _) => _pointDashboard(
                       context: context,
                       totalPoints: 0,
@@ -127,14 +124,13 @@ class CustomerHome extends ConsumerWidget {
                   ),
                 ),
                 const SizedBox(height: 15),
-                _buildMenuGrid(context), // 👈 Replaced the Row with this Grid
+                _buildMenuGrid(context), 
 
                 const SizedBox(height: 30),
 
                 // Maintenance Notification
                 nearestMaintenance.when(
                   data: (list) {
-                    // Assuming your provider returns an object with a .maintenances list
                     final nearest = list.maintenances;
                     return _maintenanceNotification(nearest, context);
                   },
@@ -156,7 +152,6 @@ class CustomerHome extends ConsumerWidget {
   }
 
   Widget _buildMenuGrid(BuildContext context) {
-    // List of menu items to make code cleaner
     final menuItems = [
       _MenuItem('Vehicles', Icons.directions_car, const VehicleScreen()),
       _MenuItem('Booking', Icons.calendar_month, const CustomerBookingScreen()),
@@ -167,11 +162,11 @@ class CustomerHome extends ConsumerWidget {
     ];
 
     return GridView.builder(
-      shrinkWrap: true, // Vital: Makes grid take only needed space
+      shrinkWrap: true, 
       physics:
           const NeverScrollableScrollPhysics(), // Disable grid scrolling, let parent scroll
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 3, // 👈 3 Buttons per row
+        crossAxisCount: 3,
         crossAxisSpacing: 30,
         mainAxisSpacing: 10,
         childAspectRatio: 0.85,
@@ -188,7 +183,6 @@ class CustomerHome extends ConsumerWidget {
 
     return Column(
       children: [
-        // The Icon Circle/Square
         InkWell(
           onTap: () => Navigator.of(context).push(
             MaterialPageRoute(builder: (context) => item.screen),
@@ -198,9 +192,7 @@ class CustomerHome extends ConsumerWidget {
             height: 60,
             width: 60,
             decoration: BoxDecoration(
-              // Use a soft grey background for the button...
               color: colors.primaryContainer,
-              // ...or use colors.primaryContainer for a Yellowish tint
               borderRadius: BorderRadius.circular(16),
               border: Border.all(
                 color: colors.outlineVariant.withValues(alpha: 0.3),
@@ -209,13 +201,11 @@ class CustomerHome extends ConsumerWidget {
             child: Icon(
               item.icon,
               size: 28,
-              color: colors.onPrimaryContainer, // Yellow Icon (Brand Color)
-              // OR use colors.onSurface for Black Icon
+              color: colors.onPrimaryContainer, 
             ),
           ),
         ),
         const SizedBox(height: 8),
-        // The Label
         Text(
           item.label,
           textAlign: TextAlign.center,
@@ -269,7 +259,6 @@ class CustomerHome extends ConsumerWidget {
                   ),
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(8),
-                    // Use transparent black for better contrast on Yellow
                     color: Colors.black.withValues(alpha: 0.1),
                   ),
                   child: Text(
@@ -277,7 +266,7 @@ class CustomerHome extends ConsumerWidget {
                     style: Theme.of(context).textTheme.labelSmall?.copyWith(
                       color: Theme.of(
                         context,
-                      ).colorScheme.onPrimary, // Match text color
+                      ).colorScheme.onPrimary, 
                       fontWeight: FontWeight.bold,
                     ),
                   ),
@@ -303,14 +292,13 @@ class CustomerHome extends ConsumerWidget {
           ),
         ),
 
-        // Image with error handling
         Positioned(
           right: -7,
           bottom: -19,
           child: Opacity(
-            opacity: 0.9, // Slight transparency blends it better
+            opacity: 0.9,
             child: SizedBox(
-              height: 190, // Slightly bigger
+              height: 190, 
               child: Image.asset(
                 'assets/images/reward.png',
                 fit: BoxFit.contain,

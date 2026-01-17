@@ -11,7 +11,6 @@ part 'checkout_notifier.g.dart';
 class CheckoutNotifier extends _$CheckoutNotifier {
   @override
   FutureOr<CheckoutState> build() async {
-    // 1. Read Cart Data
     final cartState = await ref.watch(cartProvider.future);
 
     final user = Supabase.instance.client.auth.currentUser;
@@ -29,7 +28,6 @@ class CheckoutNotifier extends _$CheckoutNotifier {
   void setDeliveryMethod(DeliveryMethod method) {
     if (!state.hasValue) return;
 
-    // Logic: Force pickup if installation required
     if (state.value!.hasInstallation && method == DeliveryMethod.delivery) {
       return;
     }

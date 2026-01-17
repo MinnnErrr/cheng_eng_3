@@ -35,13 +35,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
     return Scaffold(
       backgroundColor: Colors.black,
-      // 1. SingleChildScrollView fixes keyboard overflow issues
       body: SingleChildScrollView(
         child: SizedBox(
-          height: screenSize.height, // Forces full screen height
+          height: screenSize.height, 
           child: Column(
             children: [
-              // --- TOP: Logo Section (30%) ---
               Expanded(
                 flex: 3,
                 child: Container(
@@ -49,12 +47,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   alignment: Alignment.center,
                   child: Image.asset(
                     'assets/images/cheng_eng_logo.png',
-                    width: screenSize.width * 0.6, // Constrain width
+                    width: screenSize.width * 0.6, 
                   ),
                 ),
               ),
 
-              // --- BOTTOM: Form Section (70%) ---
               Expanded(
                 flex: 7,
                 child: Container(
@@ -74,7 +71,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     key: _formKey,
                     child: Column(
                       crossAxisAlignment:
-                          CrossAxisAlignment.stretch, // Full width children
+                          CrossAxisAlignment.stretch, 
                       children: [
                         Text(
                           'Log In',
@@ -140,16 +137,15 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
                         const SizedBox(height: 10),
 
-                        // Login Button (With Loading State inside)
+                        // Login Button 
                         FilledButton(
                           onPressed: userState.isLoading
-                              ? null // Disable button while loading
+                              ? null 
                               : () async {
                                   if (!_formKey.currentState!.validate()){
                                     return;
                                   }
                                     
-                                  // Close keyboard
                                   FocusScope.of(context).unfocus();
 
                                   final res = await userNotifier.signIn(

@@ -19,8 +19,6 @@ class StaffRewardsNotifier extends _$StaffRewardsNotifier {
     return await _rewardService.getAllRewards();
   }
 
-  // void refresh() => ref.invalidateSelf();
-
   Future<Message> addReward({
     required String rewardCode,
     required String name,
@@ -157,29 +155,6 @@ class StaffRewardsNotifier extends _$StaffRewardsNotifier {
       );
     }
   }
-
-  // Future<Message> descreaseQuantity({
-  //   required String id,
-  // }) async {
-  //   try {
-  //     final previous = state.value ?? [];
-  //     final currentReward = previous.firstWhere(
-  //       (r) => r.id == id,
-  //       orElse: () => throw Exception('Reward not found'),
-  //     );
-
-  //     final newQty = currentReward.quantity - 1;
-
-  //     await _rewardService.updateQuantity(newQty, id);
-
-  //     return Message(isSuccess: true, message: 'Reward quantity updated');
-  //   } catch (e) {
-  //     return Message(
-  //       isSuccess: false,
-  //       message: 'Failed to update reward quantity',
-  //     );
-  //   }
-  // }
 
   Future<Message> deleteReward(String id) async {
     try {

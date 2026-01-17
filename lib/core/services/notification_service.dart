@@ -18,14 +18,12 @@ class NotificationService {
       FlutterLocalNotificationsPlugin();
 
   Future<bool> requestPermission() async {
-    // 1. Check current status
     final status = await Permission.notification.status;
 
     if (status.isGranted) {
       return true;
     }
 
-    // 2. If not granted, request it
     final result = await Permission.notification.request();
     return result.isGranted;
   }
@@ -50,18 +48,10 @@ class NotificationService {
 
     await flutterLocalNotificationsPlugin.initialize(initializationSettings);
 
-    // // ✅ ADD THIS: Request Permission explicitly for Android 13+
-    // final AndroidFlutterLocalNotificationsPlugin? androidImplementation =
-    //     flutterLocalNotificationsPlugin.resolvePlatformSpecificImplementation<
-    //         AndroidFlutterLocalNotificationsPlugin>();
-
-    // if (androidImplementation != null) {
-    //   await androidImplementation.requestNotificationsPermission();
-    // }
   }
 
   Future<void> scheduleMaintenanceReminder({
-    required String id, // Unique ID for this vehicle/service
+    required String id, 
     required String vehicleName,
     required DateTime serviceDate,
   }) async {
@@ -71,7 +61,6 @@ class NotificationService {
     );
 
     if (dateBefore.isAfter(DateTime.now())) {
-      // Create a unique INT based on UUID + suffix
       final int earlyId = ('$id + "_early"').hashCode;
 
       await _scheduleSingleNotification(
@@ -84,7 +73,6 @@ class NotificationService {
     }
 
     if (serviceDate.isAfter(DateTime.now())) {
-      // Create a different unique INT based on UUID + different suffix
       final int dueId = ('$id + "_due"').hashCode;
 
       await _scheduleSingleNotification(
@@ -103,7 +91,7 @@ class NotificationService {
     required String body,
     required DateTime time,
   }) async {
-    // Schedule for 9:00 AM
+    //schedule for 9am
     final tz.TZDateTime scheduledTime = tz.TZDateTime(
       tz.local,
       time.year,
@@ -113,21 +101,13 @@ class NotificationService {
       0,
     );
 
-    // final largeIcon = 
-    //     DrawableResourceAndroidBitmap('@mipmap/cheng_eng_logo_black_background');
-
     final AndroidNotificationDetails androidDetails = AndroidNotificationDetails(
       'maintenance_channel',
       'Maintenance Reminders',
       channelDescription: 'Reminders for upcoming vehicle service',
       importance: Importance.max,
       priority: Priority.high,
-
-      // A. Small Icon (Status Bar): White Silhouette
       icon: '@mipmap/cheng_eng_logo_black_background', 
-
-      // // C. Large Icon (Content): Full Color Brand Logo
-      // largeIcon: largeIcon,
     );
 
     await flutterLocalNotificationsPlugin.zonedSchedule(

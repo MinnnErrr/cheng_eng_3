@@ -3,12 +3,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class CartIconBadge extends ConsumerWidget {
-  // ✅ 1. Accept the icon as a parameter
   final Widget icon;
   
   const CartIconBadge({
     super.key, 
-    required this.icon, // Force the caller to provide the icon
+    required this.icon, 
   });
 
   @override
@@ -19,7 +18,6 @@ class CartIconBadge extends ConsumerWidget {
     return Stack(
       clipBehavior: Clip.none,
       children: [
-        // ✅ 2. Use the passed icon instead of hardcoding
         icon,
 
         if (number > 0)

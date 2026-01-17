@@ -12,7 +12,7 @@ import 'package:intl/intl.dart';
 class RewardClaimContent extends ConsumerStatefulWidget {
   const RewardClaimContent({
     super.key,
-    this.userId, // Nullable (if manual search)
+    this.userId, 
     required this.redeemedId,
   });
 
@@ -31,13 +31,10 @@ class __RewardClaimContentState extends ConsumerState<RewardClaimContent> {
   Widget build(BuildContext context) {
     ref.watch(redeemedRewardRealTimeProvider);
     final theme = Theme.of(context);
-
-    // --- STEP 1: Fetch Reward Data ---
     final redeemedAsync = ref.watch(
       redeeemdRewardByIdProvider(widget.redeemedId),
     );
 
-    // Handle Reward Loading/Error BEFORE accessing .value
     if (redeemedAsync.isLoading) {
       return const Padding(
         padding: EdgeInsets.all(40),
@@ -56,8 +53,6 @@ class __RewardClaimContentState extends ConsumerState<RewardClaimContent> {
         redeemedData.expiryDate != null &&
         redeemedData.expiryDate!.isBefore(DateTime.now());
 
-    // --- STEP 2: Fetch Profile Data ---
-    // Use the passed userId OR the one found in the reward data
     final targetUserId = widget.userId ?? redeemedData.userId;
     final profileAsync = ref.watch(userProfileByUserIdProvider(targetUserId));
 
@@ -74,7 +69,6 @@ class __RewardClaimContentState extends ConsumerState<RewardClaimContent> {
 
     final profileData = profileAsync.value!;
 
-    // --- STEP 3: Display Content ---
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -96,7 +90,6 @@ class __RewardClaimContentState extends ConsumerState<RewardClaimContent> {
 
         const SizedBox(height: 40),
 
-        // Action Button
         FilledButton(
           onPressed: _isLoading || redeemedData.isClaimed || isExpired
               ? null

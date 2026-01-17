@@ -22,7 +22,6 @@ class StaffRewardUpdateScreen extends ConsumerStatefulWidget {
 }
 
 class _StaffRewardUpdateState extends ConsumerState<StaffRewardUpdateScreen> {
-  // Controllers
   final _codeCtrl = TextEditingController();
   final _nameCtrl = TextEditingController();
   final _descCtrl = TextEditingController();
@@ -32,13 +31,11 @@ class _StaffRewardUpdateState extends ConsumerState<StaffRewardUpdateScreen> {
   final _availableDateCtrl = TextEditingController();
   final _validityCtrl = TextEditingController();
 
-  // State Variables
   bool _limitedPeriod = false;
   DateTime? _availableUntil;
   bool _hasValidity = false;
   bool _isLoading = false;
 
-  // List to hold Strings (URLs) and Files (New Photos)
   final List<dynamic> _photos = [];
 
   final _formKey = GlobalKey<FormState>();
@@ -47,7 +44,6 @@ class _StaffRewardUpdateState extends ConsumerState<StaffRewardUpdateScreen> {
   @override
   void initState() {
     super.initState();
-    // Load data after super.initState
     _loadReward(widget.reward);
   }
 
@@ -61,7 +57,6 @@ class _StaffRewardUpdateState extends ConsumerState<StaffRewardUpdateScreen> {
     _qtyCtrl.text = reward.quantity.toString();
     _conditionCtrl.text = reward.conditions ?? '';
 
-    // Handle Limited Period Logic
     if (reward.availableUntil != null) {
       _limitedPeriod = true;
       _availableUntil = reward.availableUntil;
@@ -70,7 +65,6 @@ class _StaffRewardUpdateState extends ConsumerState<StaffRewardUpdateScreen> {
       _limitedPeriod = false;
     }
 
-    // Handle Validity Logic
     if (reward.validityWeeks != null) {
       _hasValidity = true;
       _validityCtrl.text = reward.validityWeeks.toString();
@@ -78,7 +72,6 @@ class _StaffRewardUpdateState extends ConsumerState<StaffRewardUpdateScreen> {
       _hasValidity = false;
     }
 
-    // Handle Photos
     if (reward.photoPaths.isNotEmpty) {
       for (final path in reward.photoPaths) {
         final url = imageService.retrieveImageUrl(path);
@@ -105,7 +98,7 @@ class _StaffRewardUpdateState extends ConsumerState<StaffRewardUpdateScreen> {
 
   ImageProvider _getImage(dynamic item) {
     if (item is File) return FileImage(item);
-    return NetworkImage(item as String); // Cast as String for safety
+    return NetworkImage(item as String);
   }
 
   Future<void> _handleDateSelection() async {
@@ -131,16 +124,12 @@ class _StaffRewardUpdateState extends ConsumerState<StaffRewardUpdateScreen> {
     super.dispose();
   }
 
-  // --- ACTIONS ---
-
   Future<void> _submitUpdate() async {
     if (!_formKey.currentState!.validate()) return;
 
     setState(() => _isLoading = true);
 
     final notifier = ref.read(staffRewardsProvider.notifier);
-
-    // Safe parsing to prevent crashes
     final points = int.tryParse(_pointCtrl.text.trim()) ?? 0;
     final quantity = int.tryParse(_qtyCtrl.text.trim()) ?? 0;
 
@@ -177,8 +166,6 @@ class _StaffRewardUpdateState extends ConsumerState<StaffRewardUpdateScreen> {
       }
     }
   }
-
-  // --- UI BUILD ---
 
   @override
   Widget build(BuildContext context) {
@@ -235,7 +222,6 @@ class _StaffRewardUpdateState extends ConsumerState<StaffRewardUpdateScreen> {
                 const SizedBox(height: 30),
                 _SectionHeader(title: "Availability"),
 
-                // Limited Period Toggle
                 DropdownButtonFormField<bool>(
                   initialValue: _limitedPeriod,
                   decoration: InputDecoration(
@@ -286,7 +272,6 @@ class _StaffRewardUpdateState extends ConsumerState<StaffRewardUpdateScreen> {
 
                 const SizedBox(height: 20),
 
-                // Validity Toggle
                 DropdownButtonFormField<bool>(
                   initialValue: _hasValidity,
                   decoration: InputDecoration(
@@ -342,41 +327,8 @@ class _StaffRewardUpdateState extends ConsumerState<StaffRewardUpdateScreen> {
 
                 const SizedBox(height: 30),
                 _photoSection(theme),
-
-                // const SizedBox(height: 30),
-
-                // // Status Toggle (Active/Inactive)
-                // _SectionHeader(title: "Status"),
-                // DropdownButtonFormField<bool>(
-                //   value: _isActive,
-                //   decoration: InputDecoration(
-                //     labelText: "Reward Status",
-                //     filled: true,
-                //     fillColor: theme.colorScheme.surfaceContainer,
-                //     border: OutlineInputBorder(
-                //       borderRadius: BorderRadius.circular(12),
-                //       borderSide: BorderSide.none,
-                //     ),
-                //   ),
-                //   items: const [
-                //     DropdownMenuItem(
-                //       value: true,
-                //       child: Text("Active (Visible)",
-                //           style: TextStyle(color: Colors.green)),
-                //     ),
-                //     DropdownMenuItem(
-                //       value: false,
-                //       child: Text("Inactive (Hidden)",
-                //           style: TextStyle(color: Colors.grey)),
-                //     ),
-                //   ],
-                //   onChanged: (val) {
-                //     if (val != null) setState(() => _isActive = val);
-                //   },
-                // ),
                 const SizedBox(height: 40),
 
-                // Submit Button
                FilledButton(
                     onPressed: _isLoading ? null : _submitUpdate,
                     style: FilledButton.styleFrom(
@@ -402,7 +354,7 @@ class _StaffRewardUpdateState extends ConsumerState<StaffRewardUpdateScreen> {
                   ),
                 
 
-                const SizedBox(height: 40), // Bottom Padding
+                const SizedBox(height: 40), 
               ],
             ),
           ),
@@ -410,8 +362,6 @@ class _StaffRewardUpdateState extends ConsumerState<StaffRewardUpdateScreen> {
       ),
     );
   }
-
-  // --- SUB WIDGETS ---
 
   Widget _photoSection(ThemeData theme) {
     return Column(
@@ -427,7 +377,7 @@ class _StaffRewardUpdateState extends ConsumerState<StaffRewardUpdateScreen> {
         GridView.builder(
           physics: const NeverScrollableScrollPhysics(),
           shrinkWrap: true,
-          itemCount: _photos.length + 1, // +1 for Add button
+          itemCount: _photos.length + 1,
           gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
             crossAxisCount: 3,
             crossAxisSpacing: 12,
@@ -435,7 +385,6 @@ class _StaffRewardUpdateState extends ConsumerState<StaffRewardUpdateScreen> {
             childAspectRatio: 1.0,
           ),
           itemBuilder: (context, index) {
-            // "Add Photo" Button
             if (index == _photos.length) {
               return InkWell(
                 onTap: _pickPhoto,
@@ -531,7 +480,6 @@ class _StaffRewardUpdateState extends ConsumerState<StaffRewardUpdateScreen> {
   }
 }
 
-// Reusable Header
 class _SectionHeader extends StatelessWidget {
   final String title;
   final double padding;

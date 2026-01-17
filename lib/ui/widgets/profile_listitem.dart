@@ -21,7 +21,6 @@ class ProfileListitem extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
 
-    // Fallback if critical data is missing
     if (email == null || name == null) {
       return Card(
         color: theme.colorScheme.errorContainer,

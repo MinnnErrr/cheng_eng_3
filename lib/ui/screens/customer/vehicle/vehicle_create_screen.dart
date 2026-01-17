@@ -31,7 +31,7 @@ class _VehicleCreateScreenState extends ConsumerState<VehicleCreateScreen> {
   Future<void> _pickImage() async {
     final picked = await _imagePicker.pickImage(
       source: ImageSource.camera,
-    ); // or gallery
+    ); 
     if (picked != null) {
       setState(() => _pickedImage = File(picked.path));
     }

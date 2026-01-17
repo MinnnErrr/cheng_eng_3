@@ -24,7 +24,6 @@ class VehicleScreen extends ConsumerWidget {
           return RefreshIndicator(
             onRefresh: () async => ref.refresh(customerVehicleProvider.future),
             child: vehicles.isEmpty
-                // FIX: Empty state must be scrollable to allow Refresh
                 ? ListView(
                     physics: const AlwaysScrollableScrollPhysics(),
                     children: [
@@ -34,7 +33,6 @@ class VehicleScreen extends ConsumerWidget {
                 : SafeArea(
                     child: ListView.separated(
                       padding: const EdgeInsets.fromLTRB(20, 20, 20, 80),
-                      // FIX: Ensure physics allows scrolling even if list is short
                       physics: const AlwaysScrollableScrollPhysics(),
                       itemCount: vehicles.length,
                       separatorBuilder: (context, index) =>

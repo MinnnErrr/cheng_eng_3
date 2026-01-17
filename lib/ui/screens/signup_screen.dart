@@ -35,13 +35,11 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
 
     return Scaffold(
       backgroundColor: Colors.black,
-      // 1. SingleChildScrollView wrapping a constrained Column fixes keyboard issues
       body: SingleChildScrollView(
         child: SizedBox(
-          height: screenSize.height, // Force full screen height
+          height: screenSize.height,
           child: Column(
             children: [
-              // --- TOP: Logo Section (30%) ---
               Expanded(
                 flex: 3,
                 child: Container(
@@ -53,7 +51,6 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                 ),
               ),
 
-              // --- BOTTOM: Form Section (70%) ---
               Expanded(
                 flex: 7,
                 child: Container(
@@ -122,82 +119,69 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
 
                           textInputAction: TextInputAction.done,
                           autofillHints: const [AutofillHints.newPassword],
-
-                          // 2. Fixed: Use suffixIcon for proper alignment
                         ),
 
                         const SizedBox(height: 40),
 
-                        // Sign Up Button (With Loading State inside)
-                        SizedBox(
-                          height: 50,
-                          child: FilledButton(
-                            onPressed: userState.isLoading
-                                ? null
-                                : () async {
-                                    if (!_formKey.currentState!.validate()){
-                                      return;
-                                    }
-                                      
+                        FilledButton(
+                          onPressed: userState.isLoading
+                              ? null
+                              : () async {
+                                  if (!_formKey.currentState!.validate()) {
+                                    return;
+                                  }
 
-                                    // Close keyboard
-                                    FocusScope.of(context).unfocus();
+                                  FocusScope.of(context).unfocus();
 
-                                    final res = await userNotifier.signUp(
-                                      _emailController.text.trim(),
-                                      _passwordController.text.trim(),
+                                  final res = await userNotifier.signUp(
+                                    _emailController.text.trim(),
+                                    _passwordController.text.trim(),
+                                  );
+
+                                  if (!context.mounted) return;
+
+                                  if (res == null) {
+                                    showAppSnackBar(
+                                      content:
+                                          'Account created. Please verify your email.',
+                                      isError: false,
+                                      context: context,
                                     );
 
-                                    if (!context.mounted) return;
-
-                                    if (res == null) {
-                                      // Success
-                                      showAppSnackBar(
-                                        content:
-                                            'Account created. Please verify your email.',
-                                        isError: false,
-                                        context: context,
-                                      );
-
-                                      Navigator.of(context).pushReplacement(
-                                        MaterialPageRoute(
-                                          builder: (context) =>
-                                              VerifyEmailScreen(
-                                                email: _emailController.text
-                                                    .trim(),
-                                              ),
+                                    Navigator.of(context).pushReplacement(
+                                      MaterialPageRoute(
+                                        builder: (context) => VerifyEmailScreen(
+                                          email: _emailController.text.trim(),
                                         ),
-                                      );
-                                    } else {
-                                      // Error
-                                      showAppSnackBar(
-                                        content: res,
-                                        isError: true,
-                                        context: context,
-                                      );
-                                    }
-                                  },
-                            child: userState.isLoading
-                                ? const SizedBox(
-                                    width: 24,
-                                    height: 24,
-                                    child: CircularProgressIndicator(
-                                      color: Colors.white,
-                                      strokeWidth: 2,
-                                    ),
-                                  )
-                                : const Text(
-                                    'SIGN UP',
-                                    style: TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                    ),
+                                      ),
+                                    );
+                                  } else {
+                                    showAppSnackBar(
+                                      content: res,
+                                      isError: true,
+                                      context: context,
+                                    );
+                                  }
+                                },
+                          child: userState.isLoading
+                              ? const SizedBox(
+                                  width: 24,
+                                  height: 24,
+                                  child: CircularProgressIndicator(
+                                    color: Colors.white,
+                                    strokeWidth: 2,
                                   ),
-                          ),
+                                )
+                              : const Text(
+                                  'SIGN UP',
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
                         ),
 
                         const Spacer(),
 
-                        // Login Link
                         Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [

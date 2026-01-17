@@ -18,7 +18,6 @@ class TowingMapScreen extends ConsumerStatefulWidget {
 
 class _TowingMapScreenState extends ConsumerState<TowingMapScreen>
     with WidgetsBindingObserver {
-  // ✅ HMS Location Client
   final hms_loc.FusedLocationProviderClient _locationService =
       hms_loc.FusedLocationProviderClient();
 
@@ -58,7 +57,6 @@ class _TowingMapScreenState extends ConsumerState<TowingMapScreen>
       _checkPermission(silent: true).then((isReady) {
         if (isReady) {
           setState(() => _hasLocationPermission = true);
-          // If we didn't have location before, initialize it now
           _locationService.initFusedLocationService().then((_) {
             _getUserLocation();
           });
@@ -69,23 +67,20 @@ class _TowingMapScreenState extends ConsumerState<TowingMapScreen>
 
   Future<void> _initMapAndLocation() async {
     try {
-      // 1. Initialize Map
       HuaweiMapInitializer.initializeMap();
 
-      // 2. Check Permissions
       final bool isLocationReady = await _checkPermission();
 
       setState(() {
         _hasLocationPermission = isLocationReady;
         _showMapLayer =
-            true; // Show map regardless, so they see the map even without location
+            true; 
       });
 
-      // 3. Initialize Location Service (If permission granted)
       if (isLocationReady) {
         try {
           await _locationService.initFusedLocationService();
-          _getUserLocation(); // Fetch initial location
+          _getUserLocation(); 
         } catch (e) {
           debugPrint("Location Service Init Error: $e");
         }
@@ -166,7 +161,6 @@ class _TowingMapScreenState extends ConsumerState<TowingMapScreen>
     );
   }
 
-  // ✅ Updated to use HMS Location Service
   Future<void> _getUserLocation() async {
     if (!_hasLocationPermission) {
       final isReady = await _checkPermission(silent: false);
@@ -174,14 +168,13 @@ class _TowingMapScreenState extends ConsumerState<TowingMapScreen>
         setState(() => _hasLocationPermission = true);
         await _locationService.initFusedLocationService();
       } else {
-        return; // Still no permission, stop here
+        return;
       }
     }
 
     try {
       setState(() => _gettingLocation = true);
 
-      // Use HMS getLastLocation
       final loc = await _locationService.getLastLocation();
 
       final pos = LatLng(loc.latitude!, loc.longitude!);
@@ -207,7 +200,6 @@ class _TowingMapScreenState extends ConsumerState<TowingMapScreen>
         Marker(
           markerId: const MarkerId('selected_location'),
           position: coordinate,
-          // Custom red pin for visibility
           icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRed),
         ),
       );
@@ -219,7 +211,7 @@ class _TowingMapScreenState extends ConsumerState<TowingMapScreen>
   }
 
   Future<void> _getAddressFromCoordinates(LatLng pos) async {
-    _updateMarkerPosition(pos); // Move pin instantly
+    _updateMarkerPosition(pos);
 
     try {
       List<geo.Placemark> placemarks = await geo.placemarkFromCoordinates(
@@ -307,20 +299,17 @@ class _TowingMapScreenState extends ConsumerState<TowingMapScreen>
       resizeToAvoidBottomInset: false,
       body: Stack(
         children: [
-          // 1. FULL SCREEN MAP
           Positioned.fill(
             child: _showMapLayer
-                // ✅ FIX 1: RepaintBoundary prevents Samsung Overlap
                 ? RepaintBoundary(
                     child: HuaweiMap(
                       initialCameraPosition: CameraPosition(
                         target: (_selectedLat != null && _selectedLng != null)
                             ? LatLng(_selectedLat!, _selectedLng!)
-                            : const LatLng(3.1466, 101.6958), // Default KL
+                            : const LatLng(3.1466, 101.6958), 
                         zoom: 15,
                       ),
                       markers: _markers,
-                      // ✅ FIX 2: Disable Native Blue Dot to prevent Xiaomi Crash
                       myLocationEnabled: false,
                       myLocationButtonEnabled: false,
                       zoomControlsEnabled: false,
@@ -345,7 +334,7 @@ class _TowingMapScreenState extends ConsumerState<TowingMapScreen>
                   ),
           ),
 
-          // 2. FLOATING SEARCH BAR (Top)
+          // FLOATING SEARCH BAR (Top)
           Positioned(
             top: MediaQuery.of(context).padding.top + 60,
             left: 20,
@@ -384,7 +373,7 @@ class _TowingMapScreenState extends ConsumerState<TowingMapScreen>
             ),
           ),
 
-          // 3. BOTTOM SHEET DETAILS
+          // BOTTOM SHEET DETAILS
           Positioned(
             bottom: 0,
             left: 0,
@@ -435,7 +424,7 @@ class _TowingMapScreenState extends ConsumerState<TowingMapScreen>
 
                   Row(
                     children: [
-                      // My Location Button (Square)
+                      // My Location Button 
                       SizedBox(
                         height: 50,
                         width: 50,
@@ -459,7 +448,7 @@ class _TowingMapScreenState extends ConsumerState<TowingMapScreen>
                         ),
                       ),
                       const SizedBox(width: 12),
-                      // Confirm Button (Expanded)
+                      // Confirm Button
                       Expanded(
                         child: FilledButton(
                           onPressed: () {

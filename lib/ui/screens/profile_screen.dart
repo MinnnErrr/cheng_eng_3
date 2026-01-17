@@ -44,7 +44,7 @@ class ProfileScreen extends ConsumerWidget {
           if (profile == null) return _buildNoProfileView(context);
 
           return SingleChildScrollView(
-            padding: const EdgeInsets.all(20), // Reduced padding
+            padding: const EdgeInsets.all(20), 
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
@@ -83,7 +83,7 @@ class ProfileScreen extends ConsumerWidget {
                       ),
                     ),
                     SizedBox(
-                      height: 32, // Smaller button area
+                      height: 32, 
                       child: TextButton.icon(
                         onPressed: () {
                           Navigator.of(context).push(
@@ -114,7 +114,7 @@ class ProfileScreen extends ConsumerWidget {
 
                 // --- Sign Out Button ---
                 SizedBox(
-                  height: 48, // Standard height, not too bulky
+                  height: 48, 
                   child: OutlinedButton.icon(
                     style: OutlinedButton.styleFrom(
                       foregroundColor: Theme.of(context).colorScheme.error,
@@ -218,8 +218,6 @@ class ProfileScreen extends ConsumerWidget {
   }
 }
 
-// --- Compact Helper Widgets ---
-
 class _PointsCard extends StatelessWidget {
   final int totalPoints;
   final String? expiryText;
@@ -261,7 +259,7 @@ class _PointsCard extends StatelessWidget {
                 style: TextStyle(
                   color: colorScheme.onPrimary.withValues(alpha: 0.9),
                   fontWeight: FontWeight.w500,
-                  fontSize: 13, // Smaller label
+                  fontSize: 13, 
                 ),
               ),
               InkWell(
@@ -291,7 +289,6 @@ class _PointsCard extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 4),
-          // Reduced font size for points
           Text(
             '$totalPoints pts',
             style: theme.textTheme.headlineMedium!.copyWith(
@@ -314,7 +311,7 @@ class _PointsCard extends StatelessWidget {
                   color: colorScheme.onPrimary,
                   fontSize: 11,
                   fontWeight: FontWeight.bold,
-                ), // Smaller text
+                ), 
               ),
             ),
           ],
@@ -338,7 +335,6 @@ class _ProfileRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      // Tighter padding for list items
       padding: EdgeInsets.only(top: 12, bottom: 12),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -357,7 +353,7 @@ class _ProfileRow extends StatelessWidget {
               value,
               style: const TextStyle(
                 fontWeight: FontWeight.w600,
-                fontSize: 14, // Standard body size
+                fontSize: 14, 
               ),
               textAlign: TextAlign.end,
             ),

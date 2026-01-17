@@ -46,7 +46,7 @@ class CustomerPointsHistoryScreen extends ConsumerWidget {
             children: [
               const SizedBox(height: 20),
 
-              // --- 1. MODERN HEADER (Refined Size) ---
+              // --- 1. HEADER  ---
               Center(
                 child: Column(
                   children: [
@@ -58,8 +58,7 @@ class CustomerPointsHistoryScreen extends ConsumerWidget {
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-                    const SizedBox(height: 8), // Little more breathing room
-                    // The Big Number (Scaled Down)
+                    const SizedBox(height: 8), 
                     totalPointsAsync.when(
                       data: (points) => RichText(
                         text: TextSpan(

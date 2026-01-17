@@ -47,7 +47,7 @@ class _CustomerTowingDetailsScreenState
 
               const SizedBox(height: 30),
 
-              // 3. ACTION SECTION
+              // ACTION SECTION
               if (isPending)
                 SizedBox(
                   width: double.infinity,
@@ -86,7 +86,6 @@ class _CustomerTowingDetailsScreenState
                   ),
                 )
               else
-                // ✅ UX FIX: Show Status Banner if not actionable
                 Container(
                   width: double.infinity,
                   padding: const EdgeInsets.symmetric(vertical: 16),

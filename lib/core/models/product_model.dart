@@ -8,6 +8,16 @@ enum ProductAvailability {
   preorder,
 }
 
+enum ProductSorting {
+  newest('Newest'),
+  oldest('Oldest'),
+  highestPrice('Highest Price'),
+  lowestPrice('Lowest Price');
+
+  const ProductSorting(this.title);
+  final String title;
+} 
+
 @freezed
 sealed class Product with _$Product {
   const factory Product({
@@ -34,16 +44,3 @@ sealed class Product with _$Product {
   factory Product.fromJson(Map<String, dynamic> json) =>
       _$ProductFromJson(json);
 }
-
-// @freezed
-// sealed class ProductSearchSortFilter with _$ProductSearchSortFilter {
-//   const factory ProductSearchSortFilter({
-//     required String search,
-//     String? categoryFilter,
-//     ProductAvailability? availabilityFilter,
-//     bool? activeFilter,
-//     required ProductSorting sort,
-//     required List<Product> original,
-//     required List<Product> filtered,
-//   }) = _ProductSearchSortFilter;
-// }

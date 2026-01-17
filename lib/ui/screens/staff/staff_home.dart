@@ -10,12 +10,11 @@ import 'package:cheng_eng_3/ui/screens/staff/towing/staff_towing_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-// Data Class to organize the buttons
 class _StaffMenuItem {
   final String label;
   final IconData icon;
   final Widget screen;
-  final Color? color; // Optional override color for high-priority items
+  final Color? color; 
 
   _StaffMenuItem({
     required this.label,
@@ -38,16 +37,14 @@ class StaffHome extends ConsumerWidget {
               ? 'Hello! User'
               : 'Hello! ${profileState.value!.name}');
 
-    // Access theme colors
     final colorScheme = Theme.of(context).colorScheme;
 
-    // Define the menu items here to keep the build method clean
     final List<_StaffMenuItem> menuItems = [
       _StaffMenuItem(
         label: 'Bookings',
         icon: Icons.calendar_month_outlined,
         screen: const StaffBookingScreen(),
-        color: Colors.blueAccent, // Optional: Color coding for urgency
+        color: Colors.blueAccent, 
       ),
       _StaffMenuItem(
         label: 'Orders',
@@ -101,7 +98,7 @@ class StaffHome extends ConsumerWidget {
                     Text(
                       name,
                       style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        color: colorScheme.onSurfaceVariant, // Grey Text
+                        color: colorScheme.onSurfaceVariant, 
                         fontWeight: FontWeight.w500,
                       ),
                     ),
@@ -110,10 +107,10 @@ class StaffHome extends ConsumerWidget {
                       'Staff Dashboard',
                       style: Theme.of(context).textTheme.headlineSmall
                           ?.copyWith(
-                            fontWeight: FontWeight.w800, // Bold and Thick
-                            color: colorScheme.onSurface, // Black Text
+                            fontWeight: FontWeight.w800, 
+                            color: colorScheme.onSurface,
                             letterSpacing:
-                                -0.5, // Tighter letters for modern look
+                                -0.5, 
                           ),
                     ),
                   ],
@@ -129,14 +126,13 @@ class StaffHome extends ConsumerWidget {
               ),
               const SizedBox(height: 15),
 
-              // THE GRID DASHBOARD
               Expanded(
                 child: GridView.builder(
                   gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 2, // 2 Columns
+                    crossAxisCount: 2, 
                     crossAxisSpacing: 16,
                     mainAxisSpacing: 16,
-                    childAspectRatio: 1.1, // Wider than tall cards
+                    childAspectRatio: 1.1,
                   ),
                   itemCount: menuItems.length,
                   itemBuilder: (context, index) {
@@ -156,7 +152,7 @@ class StaffHome extends ConsumerWidget {
     final theme = Theme.of(context);
 
     return Material(
-      color: theme.colorScheme.surfaceContainerHigh, // Light Grey Background
+      color: theme.colorScheme.surfaceContainerHigh, 
       borderRadius: BorderRadius.circular(16),
       clipBehavior: Clip.hardEdge,
       child: InkWell(
@@ -170,7 +166,6 @@ class StaffHome extends ConsumerWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              // Icon Circle
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
@@ -184,11 +179,10 @@ class StaffHome extends ConsumerWidget {
                   size: 32,
                   color:
                       item.color ??
-                      theme.colorScheme.primary, // Custom color or Brand Yellow
+                      theme.colorScheme.primary, 
                 ),
               ),
               const SizedBox(height: 12),
-              // Label
               Text(
                 item.label,
                 textAlign: TextAlign.center,

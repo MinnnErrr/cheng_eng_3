@@ -7,13 +7,11 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'booking_state_notifier.g.dart';
 
-// explicit 'keepAlive: true' ensures data isn't lost
-// if the user navigates back and forth between screens.
 @Riverpod(keepAlive: true)
 class BookingStateNotifier extends _$BookingStateNotifier {
   @override
   BookingState build() {
-    return const BookingState(); // Initial empty state
+    return const BookingState();
   }
 
   void selectVehicle(Vehicle vehicle) {
@@ -21,15 +19,13 @@ class BookingStateNotifier extends _$BookingStateNotifier {
   }
 
   void selectService(BookingServiceType service) {
-    final currentList = state.services ?? []; // Handle null safety
+    final currentList = state.services ?? []; 
   
   if (currentList.contains(service)) {
-    // If exists, remove it
     state = state.copyWith(
       services: currentList.where((s) => s != service).toList(),
     );
   } else {
-    // If not exists, add it
     state = state.copyWith(
       services: [...currentList, service],
     );
@@ -48,7 +44,6 @@ class BookingStateNotifier extends _$BookingStateNotifier {
     state = state.copyWith(remarks: remarks);
   }
 
-  // Call this after successful submission to clear the form
   void reset() {
     state = const BookingState();
   }

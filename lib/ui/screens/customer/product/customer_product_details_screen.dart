@@ -4,6 +4,7 @@ import 'package:cheng_eng_3/core/controllers/product/product_by_id_provider.dart
 import 'package:cheng_eng_3/core/controllers/realtime_provider.dart';
 import 'package:cheng_eng_3/core/models/product_model.dart';
 import 'package:cheng_eng_3/core/services/image_service.dart';
+import 'package:cheng_eng_3/ui/extensions/product_extension.dart';
 import 'package:cheng_eng_3/ui/screens/customer/cart/cart_screen.dart';
 import 'package:cheng_eng_3/ui/widgets/cart_icon.dart';
 import 'package:cheng_eng_3/ui/widgets/snackbar.dart';
@@ -37,10 +38,7 @@ class _CustomerProductDetailsScreenState
     final product = productAsync.value ?? widget.product;
     final cartNotifier = ref.read(cartProvider.notifier);
     final theme = Theme.of(context);
-
-    // Logic to check if item can be bought
     final isSoldOut = product.quantity != null && product.quantity! <= 0;
-    // final isPreorder = product.availability == ProductAvailability.preorder;
 
     return Scaffold(
       appBar: AppBar(
@@ -80,26 +78,18 @@ class _CustomerProductDetailsScreenState
                         vertical: 4,
                       ),
                       decoration: BoxDecoration(
-                        color: getProductAvailabilityColor(
-                          product.availability,
-                          product.quantity,
-                          context,
-                        ).withValues(alpha: 0.1),
+                        color: product.availability
+                            .getcolor(product.quantity)
+                            .withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(6),
                       ),
                       child: Text(
-                        getProductAvailabilityName(
-                          product.availability,
-                          product.quantity,
-                          context,
-                        ),
+                        product.availability.getlabel(product.quantity),
                         style: TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.bold,
-                          color: getProductAvailabilityColor(
-                            product.availability,
+                          color: product.availability.getcolor(
                             product.quantity,
-                            context,
                           ),
                         ),
                       ),
@@ -128,7 +118,7 @@ class _CustomerProductDetailsScreenState
 
                     const SizedBox(height: 20),
 
-                    // Price (Moved Below Title)
+                    // Price
                     Text(
                       'RM ${product.price.toStringAsFixed(2)}',
                       style: theme.textTheme.headlineSmall?.copyWith(
@@ -137,7 +127,7 @@ class _CustomerProductDetailsScreenState
                       ),
                     ),
 
-                    // --- 3. INSTALLATION OPTION (Improved UI) ---
+                    // --- 3. INSTALLATION OPTION ---
                     if (product.installation == true) ...[
                       const SizedBox(height: 30),
                       Container(
@@ -182,7 +172,6 @@ class _CustomerProductDetailsScreenState
                               ],
                             ),
                             const SizedBox(height: 12),
-                            // Using ChoiceChips for standard selection
                             Row(
                               children: [
                                 ChoiceChip(
@@ -263,7 +252,7 @@ class _CustomerProductDetailsScreenState
                         ),
                       ),
 
-                    const SizedBox(height: 20), // Bottom padding
+                    const SizedBox(height: 20),
                   ],
                 ),
               ),
@@ -274,7 +263,7 @@ class _CustomerProductDetailsScreenState
 
       // --- BOTTOM BAR ---
       bottomNavigationBar: BottomAppBar(
-        height: 100, // Fixed safe height
+        height: 100,
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
         color: theme.colorScheme.surface,
         child: isSoldOut
@@ -294,7 +283,7 @@ class _CustomerProductDetailsScreenState
                     height: 50,
                     decoration: BoxDecoration(
                       color: theme.colorScheme.surfaceContainerHigh,
-                      borderRadius: BorderRadius.circular(25), // Pill shape
+                      borderRadius: BorderRadius.circular(25),
                     ),
                     child: Row(
                       children: [
@@ -316,7 +305,6 @@ class _CustomerProductDetailsScreenState
                         ),
                         IconButton(
                           onPressed: () {
-                            // Optional: Check against product.quantity max limit
                             setState(() => _selectedQuantity++);
                           },
                           icon: const Icon(Icons.add, size: 18),
@@ -377,11 +365,10 @@ class _CustomerProductDetailsScreenState
     );
   }
 
-  // Helper: Image Slider with Gradient
   Widget _buildImageSlider(Product product, ThemeData theme) {
     if (product.photoPaths.isEmpty) {
       return Container(
-        height: 300, // Taller hero image
+        height: 300,
         width: double.infinity,
         color: theme.colorScheme.surfaceContainerHighest,
         child: Column(

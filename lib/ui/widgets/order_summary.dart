@@ -98,7 +98,7 @@ class OrderSummary extends ConsumerWidget {
                   ],
                 ),
 
-                // 4. POINTS EARNED (Badge Style)
+                // 4. POINTS EARNED 
                 if (points != null && points! > 0) ...[
                   const SizedBox(height: 10),
                   Align(
@@ -142,7 +142,6 @@ class OrderSummary extends ConsumerWidget {
     );
   }
 
-  // Helper Widget for consistent styling
   Widget _buildDetailRow(BuildContext context, String label, String value) {
     final theme = Theme.of(context);
     return Padding(
@@ -153,14 +152,14 @@ class OrderSummary extends ConsumerWidget {
           Text(
             label,
             style: theme.textTheme.bodyMedium?.copyWith(
-              color: theme.colorScheme.onSurface, // Dark Grey in light mode
+              color: theme.colorScheme.onSurface, 
             ),
           ),
           Text(
             value,
             style: theme.textTheme.bodyMedium?.copyWith(
               fontWeight: FontWeight.w600,
-              color: theme.colorScheme.onSurface, // Black/White
+              color: theme.colorScheme.onSurface, 
             ),
           ),
         ],

@@ -25,7 +25,6 @@ class _MaintenanceDetailsScreenState
 
   @override
   Widget build(BuildContext context) {
-    // Optimistic UI
     final maintenanceAsync = ref.watch(
       maintenanceByIdProvider(widget.maintenance.id),
     );
@@ -56,7 +55,6 @@ class _MaintenanceDetailsScreenState
       appBar: AppBar(
         title: const Text('Maintenance Details'),
         actions: [
-          // Moved Edit to AppBar for consistency
           IconButton(
             onPressed: () => Navigator.of(context).push(
               MaterialPageRoute(
@@ -105,7 +103,6 @@ class _MaintenanceDetailsScreenState
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Title & Status Row
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -141,7 +138,6 @@ class _MaintenanceDetailsScreenState
 
                       const SizedBox(height: 30),
 
-                      // Details List
                       _buildDetailsList(context, maintenance),
                     ],
                   ),
@@ -198,10 +194,7 @@ class _MaintenanceDetailsScreenState
                 child: OutlinedButton(
                   style: OutlinedButton.styleFrom(
                     foregroundColor: Colors.red,
-
-                    // ✅ 2. Define Border Color here
                     side: const BorderSide(color: Colors.red),
-
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
@@ -226,7 +219,7 @@ class _MaintenanceDetailsScreenState
 
   Widget _buildDetailsList(BuildContext context, Maintenance maintenance) {
     final dateFormatter = DateFormat('dd/MM/yyyy');
-    final timeFormatter = DateFormat('dd/MM/yyyy h:mm a'); // 12hr format
+    final timeFormatter = DateFormat('dd/MM/yyyy h:mm a'); 
 
     return Column(
       children: [
@@ -254,7 +247,6 @@ class _MaintenanceDetailsScreenState
 
         const SizedBox(height: 20),
 
-        // ✅ IMPROVED REMARKS BOX
         if (maintenance.remarks?.isNotEmpty == true)
           Container(
             width: double.infinity,
@@ -304,13 +296,12 @@ class _MaintenanceDetailsScreenState
     );
   }
 
-  // ✅ ALIGNED ROW HELPER
   Widget _detailRow(BuildContext context, String label, String value) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         SizedBox(
-          width: 120, // Fixed width ensures alignment
+          width: 120, 
           child: Text(
             label,
             style: TextStyle(
@@ -358,7 +349,7 @@ class _MaintenanceDetailsScreenState
     if (confirm == true) {
       final success = await notifier.deleteMaintenance(id);
       if (context.mounted) {
-        if (success) Navigator.pop(context); // Go back after delete
+        if (success) Navigator.pop(context);
         showAppSnackBar(
           context: context,
           content: success ? 'Record deleted' : 'Failed to delete record',
@@ -369,7 +360,6 @@ class _MaintenanceDetailsScreenState
   }
 }
 
-// Extracted Vehicle Widget to keep build method clean
 class _VehicleInfoSection extends ConsumerWidget {
   final String vehicleId;
   const _VehicleInfoSection({required this.vehicleId});

@@ -59,7 +59,7 @@ class TowingDetailsWidget extends ConsumerWidget {
                             ),
                           ),
 
-                          // --- EMERGENCY CONTACT (ADDED) ---
+                          // --- EMERGENCY CONTACT ---
                           const SizedBox(height: 8),
                           Row(
                             mainAxisSize: MainAxisSize.min,
@@ -71,7 +71,7 @@ class TowingDetailsWidget extends ConsumerWidget {
                               ),
                               const SizedBox(width: 6),
                               SelectableText(
-                                '${towing.dialCode} ${towing.phoneNum}', // Assuming field is phoneNum
+                                '${towing.dialCode} ${towing.phoneNum}',
                                 style: TextStyle(
                                   fontWeight: FontWeight.bold,
                                   color: textYellow,

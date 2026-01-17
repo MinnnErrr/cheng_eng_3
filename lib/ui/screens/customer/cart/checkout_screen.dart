@@ -25,7 +25,6 @@ class CheckoutScreen extends ConsumerStatefulWidget {
 class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
   final _formKey = GlobalKey<FormState>();
 
-  // Controllers
   final _firstNameCtrl = TextEditingController();
   final _lastNameCtrl = TextEditingController();
   final _address1Ctrl = TextEditingController();
@@ -53,10 +52,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
     super.dispose();
   }
 
-  // ... (Keep _handlePlaceOrder exactly the same logic) ...
   Future<void> _handlePlaceOrder(dynamic checkout) async {
-    // ... [Your existing logic implementation] ...
-    // For brevity in UI review, assuming this logic is unchanged.
     if (!_formKey.currentState!.validate()) return;
 
     setState(() => _isProcessing = true);
@@ -143,7 +139,6 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
     final bool isLoading = placeOrderState.isLoading || paymentState.isLoading;
     final theme = Theme.of(context);
 
-    // Listeners
     ref.listen(placeOrderProvider, (previous, next) {
       if (next.hasError && !next.isLoading) {
         showAppSnackBar(
@@ -217,7 +212,6 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                               TextButton(
                                 style: TextButton.styleFrom(
                                   visualDensity: VisualDensity.compact,
-                                  // Matches the icon color to the text automatically
                                   backgroundColor: Theme.of(
                                     context,
                                   ).colorScheme.primary,
@@ -277,7 +271,6 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                     ),
                     const SizedBox(height: 12),
 
-                    // Improved Selection UI
                     if (checkout.hasInstallation)
                       Container(
                         padding: const EdgeInsets.all(12),
@@ -386,7 +379,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                       ),
                     ),
 
-                    const SizedBox(height: 20), // Bottom padding
+                    const SizedBox(height: 20), 
                   ],
                 ),
               ),
@@ -398,8 +391,6 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
       ),
     );
   }
-
-  // --- Widgets ---
 
   Widget _buildTotalRow(String label, String value) {
     return Padding(
@@ -452,7 +443,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
               borderRadius: BorderRadius.circular(12),
               borderSide: BorderSide.none,
             ),
-            counterText: "", // Hide character counter
+            counterText: "", 
           ),
           onChanged: (value) {
             _dialCode = value.countryCode;
@@ -534,7 +525,6 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
     );
   }
 
-  // ... (Keep _showOrderSummarySheet as is) ...
   void _showOrderSummarySheet(BuildContext context, List<CartEntry> items) {
     showModalBottomSheet(
       context: context,
@@ -592,7 +582,6 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
   }
 }
 
-// Helper Widget for Selectable Cards
 class _DeliveryOptionCard extends StatelessWidget {
   const _DeliveryOptionCard({
     required this.label,
@@ -612,22 +601,20 @@ class _DeliveryOptionCard extends StatelessWidget {
     final bgColor = isSelected
         ? theme
               .colorScheme
-              .secondaryContainer // Darker/Distinct background for selection
+              .secondaryContainer 
         : theme.colorScheme.surface;
 
-    // 2. Border
     final borderColor = isSelected
         ? theme
               .colorScheme
-              .onSecondaryContainer // Dark border when selected
-        : theme.colorScheme.outline; // ✅ Your 0xFFBDBDBD grey
+              .onSecondaryContainer 
+        : theme.colorScheme.outline; 
 
-    // 3. Icon & Text
     final contentColor = isSelected
         ? theme
               .colorScheme
-              .onSecondaryContainer // Dark text on selected (High Contrast)
-        : theme.colorScheme.onSurfaceVariant; // Grey text when unselected
+              .onSecondaryContainer 
+        : theme.colorScheme.onSurfaceVariant; 
 
     return InkWell(
       onTap: onTap,

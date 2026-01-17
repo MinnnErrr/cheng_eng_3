@@ -21,7 +21,6 @@ class StaffProductUpdateScreen extends ConsumerStatefulWidget {
 }
 
 class _StaffProductUpdateState extends ConsumerState<StaffProductUpdateScreen> {
-  // Controllers
   final _nameCtrl = TextEditingController();
   final _categoryCtrl = TextEditingController();
   final _brandCtrl = TextEditingController();
@@ -33,14 +32,10 @@ class _StaffProductUpdateState extends ConsumerState<StaffProductUpdateScreen> {
   final _installFeeCtrl = TextEditingController();
   final _remarksCtrl = TextEditingController();
 
-  // State Variables
   bool _hasInstallation = false;
   ProductAvailability _availability = ProductAvailability.ready;
   bool _isLoading = false;
-
-  // Mixed list: Can contain Strings (URLs) or Files (New photos)
   final List<dynamic> _photos = [];
-
   final _formKey = GlobalKey<FormState>();
 
   @override
@@ -63,7 +58,6 @@ class _StaffProductUpdateState extends ConsumerState<StaffProductUpdateScreen> {
     _installFeeCtrl.text = product.installationFee?.toString() ?? '';
     _remarksCtrl.text = product.remarks ?? '';
 
-    // Update state variables
     setState(() {
       _hasInstallation = product.installation;
       _availability = product.availability;
@@ -113,19 +107,14 @@ class _StaffProductUpdateState extends ConsumerState<StaffProductUpdateScreen> {
     super.dispose();
   }
 
-  // --- ACTIONS ---
-
   Future<void> _submitUpdate() async {
     if (!_formKey.currentState!.validate()) return;
 
     setState(() => _isLoading = true);
 
     final notifier = ref.read(staffProductProvider.notifier);
-
-    // Safe parsing
     final quantity = int.tryParse(_quantityCtrl.text.trim()) ?? 0;
     final price = double.tryParse(_priceCtrl.text.trim()) ?? 0.0;
-
     final installFee = _hasInstallation
         ? double.tryParse(_installFeeCtrl.text.trim())
         : null;
@@ -163,8 +152,6 @@ class _StaffProductUpdateState extends ConsumerState<StaffProductUpdateScreen> {
       }
     }
   }
-
-  // --- UI BUILD ---
 
   @override
   Widget build(BuildContext context) {
@@ -254,7 +241,7 @@ class _StaffProductUpdateState extends ConsumerState<StaffProductUpdateScreen> {
                       .map(
                         (availability) => DropdownMenuItem(
                           value: availability,
-                          child: Text(availability.label),
+                          child: Text(availability.dropDownOption),
                         ),
                       )
                       .toList(),
@@ -361,8 +348,6 @@ class _StaffProductUpdateState extends ConsumerState<StaffProductUpdateScreen> {
     );
   }
 
-  // --- WIDGETS ---
-
   Widget _photoSection(ThemeData theme) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -385,7 +370,6 @@ class _StaffProductUpdateState extends ConsumerState<StaffProductUpdateScreen> {
             childAspectRatio: 1.0,
           ),
           itemBuilder: (context, index) {
-            // Upload Button
             if (index == _photos.length) {
               return InkWell(
                 onTap: _pickPhoto,
@@ -468,7 +452,6 @@ class _StaffProductUpdateState extends ConsumerState<StaffProductUpdateScreen> {
   }
 }
 
-// Reusable Header
 class _SectionHeader extends StatelessWidget {
   final String title;
   final double padding;

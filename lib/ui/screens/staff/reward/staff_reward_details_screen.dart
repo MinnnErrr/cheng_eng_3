@@ -33,10 +33,8 @@ class _StaffRewardDetailsScreenState
 
   @override
   Widget build(BuildContext context) {
-    // Keep real-time listener active
     ref.watch(rewardRealTimeProvider);
 
-    // Watch specific ID
     final rewardAsync = ref.watch(rewardByIdProvider(widget.reward.id));
     final Reward displayedReward = rewardAsync.value ?? widget.reward;
     final bool isActive = displayedReward.status;
@@ -246,7 +244,6 @@ class _StaffRewardDetailsScreenState
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          // Header
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
@@ -273,21 +270,20 @@ class _StaffRewardDetailsScreenState
                                   ],
                                 ),
                               ),
-                              // Points Badge
                               Container(
                                 padding: const EdgeInsets.symmetric(
                                   horizontal: 12,
                                   vertical: 6,
                                 ),
                                 decoration: BoxDecoration(
-                                  color: theme.colorScheme.primary, // Yellow
+                                  color: theme.colorScheme.primary, 
                                   borderRadius: BorderRadius.circular(20),
                                 ),
                                 child: Text(
                                   "${displayedReward.points} PTS",
                                   style: TextStyle(
                                     fontWeight: FontWeight.w900,
-                                    color: theme.colorScheme.onPrimary, // Black
+                                    color: theme.colorScheme.onPrimary,
                                   ),
                                 ),
                               ),
@@ -296,7 +292,6 @@ class _StaffRewardDetailsScreenState
 
                           const SizedBox(height: 30),
 
-                          // Specs Grid
                           _buildDetailRow(
                             context,
                             'Quantity Available',
@@ -325,7 +320,6 @@ class _StaffRewardDetailsScreenState
                           const Divider(),
                           const SizedBox(height: 16),
 
-                          // Metadata
                           _buildDetailRow(
                             context,
                             'Created On',
@@ -348,7 +342,6 @@ class _StaffRewardDetailsScreenState
                           const Divider(),
                           const SizedBox(height: 16),
 
-                          // Long Text
                           _buildLongTextSection(
                             context,
                             "Description",
@@ -433,7 +426,6 @@ class _StaffRewardDetailsScreenState
     );
   }
 
-  // Helper for single line details
   Widget _buildDetailRow(
     BuildContext context,
     String label,
@@ -464,7 +456,6 @@ class _StaffRewardDetailsScreenState
     );
   }
 
-  // Helper for long text blocks
   Widget _buildLongTextSection(
     BuildContext context,
     String title,

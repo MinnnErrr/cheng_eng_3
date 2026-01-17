@@ -2,25 +2,19 @@ import 'package:cheng_eng_3/core/models/order_model.dart';
 
 class StaffOrderDetailState {
   final Order order;
-  // final bool isUpdating; // Tracks if we are currently calling API
 
   const StaffOrderDetailState({
     required this.order,
-    // this.isUpdating = false,
   });
 
-  // --- LOGIC HELPERS (Moved from View) ---
-
-  /// Is the order Cancelled or Completed? (Hide Bottom Bar)
   bool get isTerminal =>
       order.status == OrderStatus.cancelled ||
       order.status == OrderStatus.completed;
 
-  /// Logic for the Main Action Button Label
   String get primaryButtonLabel {
     switch (order.status) {
       case OrderStatus.unpaid:
-        return 'Mark Paid'; // Scenario B implementation
+        return 'Mark Paid'; 
       case OrderStatus.pending:
         return 'Accept Order';
       case OrderStatus.processing:
@@ -36,15 +30,14 @@ class StaffOrderDetailState {
     }
   }
 
-  /// Logic for enabling/disabling the Main Action Button
   bool get canProceed {
     switch (order.status) {
       case OrderStatus.unpaid:
-        return true; // Staff can always manually mark as paid
+        return true; 
       case OrderStatus.pending:
-        return true; // Staff can always accept
+        return true;
       case OrderStatus.processing:
-        return order.isFullyReady; // Only if checklist complete
+        return order.isFullyReady; 
       case OrderStatus.ready:
         return true;
       case OrderStatus.delivered:
@@ -54,11 +47,10 @@ class StaffOrderDetailState {
     }
   }
 
-  /// Helper to calculate the NEXT status automatically
   OrderStatus get nextStatus {
     switch (order.status) {
       case OrderStatus.unpaid:
-        return OrderStatus.pending; // Unpaid -> Pending
+        return OrderStatus.pending; 
       case OrderStatus.pending:
         return OrderStatus.processing;
       case OrderStatus.processing:
@@ -70,14 +62,13 @@ class StaffOrderDetailState {
       case OrderStatus.delivered:
         return OrderStatus.completed;
       default:
-        return order.status; // No change
+        return order.status; 
     }
   }
 
   StaffOrderDetailState copyWith({Order? order, bool? isUpdating}) {
     return StaffOrderDetailState(
       order: order ?? this.order,
-      // isUpdating: isUpdating ?? this.isUpdating,
     );
   }
 }

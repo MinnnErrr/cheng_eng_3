@@ -27,7 +27,7 @@ class PointHistoryListitem extends ConsumerWidget {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 4),
       child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center, // Center vertically
+        crossAxisAlignment: CrossAxisAlignment.center, 
         children: [
           // Details
           Expanded(

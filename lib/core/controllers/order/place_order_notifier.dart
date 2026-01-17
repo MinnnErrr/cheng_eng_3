@@ -49,7 +49,6 @@ class PlaceOrderNotifier extends _$PlaceOrderNotifier {
 
       final newOrderId = const Uuid().v4();
 
-      // --- STEP 3: CREATE ORDER OBJECT ---
       final newOrder = Order(
         id: newOrderId,
         userId: userId,
@@ -77,7 +76,6 @@ class PlaceOrderNotifier extends _$PlaceOrderNotifier {
         deliveryCountry: address?.country,
       );
 
-      // --- STEP 4: MAP CART TO ORDER ITEM ---
       final List<OrderItem> orderItems = [];
 
       for (final cartEntry in cartState.entries) {
@@ -111,10 +109,8 @@ class PlaceOrderNotifier extends _$PlaceOrderNotifier {
         );
       }
 
-      // --- STEP 5: SAVE TO DB ---
       await _orderService.createOrder(newOrder, orderItems);
 
-      //reduce each of the product quantity
       await Future.wait(
         cartState.entries.map((cartEntry) async {
           final product = cartEntry.product!;
@@ -129,7 +125,6 @@ class PlaceOrderNotifier extends _$PlaceOrderNotifier {
         }),
       );
 
-      //clear cart
       await _cartService.clearCart(userId);
       ref.invalidate(cartProvider);
 

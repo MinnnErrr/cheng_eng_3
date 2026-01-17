@@ -20,8 +20,6 @@ class _ProfileUpdateScreenState extends ConsumerState<ProfileUpdateScreen> {
   final List<String> _genderSelection = ['Male', 'Female'];
   final _birthdayFormatter = DateFormat('dd/MM/yyyy');
   final _formKey = GlobalKey<FormState>();
-
-  // Flag to ensure we only pre-fill data once
   bool _initialized = false;
   bool _isSubmitting = false;
 
@@ -48,7 +46,6 @@ class _ProfileUpdateScreenState extends ConsumerState<ProfileUpdateScreen> {
     final profileNotifier = ref.read(profileProvider.notifier);
     final theme = Theme.of(context);
 
-    // Standardized Input Decoration
     final inputDecoration = InputDecoration(
       filled: true,
       fillColor: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
@@ -76,9 +73,7 @@ class _ProfileUpdateScreenState extends ConsumerState<ProfileUpdateScreen> {
         body: Center(child: Text('Error: $error')),
       ),
       data: (profile) {
-        // --- 1. PRE-FILL LOGIC ---
         if (!_initialized && profile != null) {
-          // Defer the update to next frame to avoid "setState during build" errors
           WidgetsBinding.instance.addPostFrameCallback((_) {
             if (mounted) {
               setState(() {
@@ -196,7 +191,6 @@ class _ProfileUpdateScreenState extends ConsumerState<ProfileUpdateScreen> {
                           : () async {
                               if (!_formKey.currentState!.validate()) return;
 
-                              // Manual Checks
                               if (_phoneNum == null || _phoneNum!.isEmpty) {
                                 showAppSnackBar(
                                   context: context,
@@ -210,7 +204,6 @@ class _ProfileUpdateScreenState extends ConsumerState<ProfileUpdateScreen> {
 
                               bool success;
                               if (profile == null) {
-                                // Create
                                 success = await profileNotifier.createProfile(
                                   name: _nameController.text.trim(),
                                   email: user.value?.email ?? '',
@@ -221,7 +214,6 @@ class _ProfileUpdateScreenState extends ConsumerState<ProfileUpdateScreen> {
                                   birthday: _birthday,
                                 );
                               } else {
-                                // Update
                                 success = await profileNotifier.updateProfile(
                                   name: _nameController.text.trim(),
                                   phoneNum: _phoneNum!,

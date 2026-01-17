@@ -12,7 +12,6 @@ final bookingPerSlotProvider =
 
       final slots = generateTimeSlots();
 
-      //initialize each with 0
       final Map<TimeOfDay, int> slotCounts = {for (var slot in slots) slot: 0};
 
       for (var booking in bookings) {

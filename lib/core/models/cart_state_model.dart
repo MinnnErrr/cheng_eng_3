@@ -18,8 +18,7 @@ sealed class CartState with _$CartState {
 
   bool get isValid {
     if (entries.isEmpty) return false;
-    // Returns false if ANY entry has an issue
-    return entries.every((e) => e.isProductExist && !e.isSoldOut);
+    return entries.every((e) => e.isProductExist && !e.isSoldOut && e.isProductActive);
   }
 
   int get itemCount {

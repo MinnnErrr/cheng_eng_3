@@ -41,7 +41,6 @@ class CustomerBookingScreen extends ConsumerWidget {
                         const SizedBox(height: 16),
                     itemBuilder: (context, index) {
                       final booking = bookings[index];
-                      // Ensure BookingListitem is also styled well or wrapped in a card
                       return BookingListitem(
                         booking: booking,
                         onTap: () => Navigator.of(context).push(
@@ -87,7 +86,6 @@ class CustomerBookingScreen extends ConsumerWidget {
     );
   }
 
-  // A nicer empty state encouraging action
   Widget _buildEmptyState(BuildContext context) {
     return ListView(
       physics: const AlwaysScrollableScrollPhysics(),

@@ -15,10 +15,8 @@ part 'redeemed_reward_notifier.g.dart';
 class RedeemedRewardNotifier extends _$RedeemedRewardNotifier {
   RedeemedRewardService get _redeemedRewardService =>
       ref.read(redeemedRewardServiceProvider);
-  // 1. Inject RewardService to handle stock updates
   RewardService get _rewardService => ref.read(rewardServiceProvider);
 
-  // 2. Inject PointHistoryService to handle point deduction
   PointHistoryService get _pointHistoryService =>
       ref.read(pointHistoryServiceProvider);
 
@@ -27,14 +25,11 @@ class RedeemedRewardNotifier extends _$RedeemedRewardNotifier {
     return await _redeemedRewardService.getbyUser(userId);
   }
 
-  // void refresh() => ref.invalidateSelf();
-
   Future<Message> addRedeemedReward({
     required Reward reward,
     required int currentPoints,
     required String userId,
   }) async {
-    // 2. Check Stock (New Logic)
     if (reward.quantity <= 0) {
       return Message(
         isSuccess: false,
@@ -42,7 +37,6 @@ class RedeemedRewardNotifier extends _$RedeemedRewardNotifier {
       );
     }
 
-    // 3. Check Points Balance
     if (currentPoints < reward.points) {
       return Message(
         isSuccess: false,
@@ -50,14 +44,11 @@ class RedeemedRewardNotifier extends _$RedeemedRewardNotifier {
       );
     }
 
-    // --- Prepare Data Objects ---
     final redeemedId = const Uuid().v4();
     final now = DateTime.now();
 
-    // Validity Logic
     DateTime? expiryDate;
     if (reward.validityWeeks != null) {
-      // Cleaner DateTime calculation
       expiryDate = now.add(Duration(days: reward.validityWeeks! * 7));
     }
 
@@ -77,15 +68,11 @@ class RedeemedRewardNotifier extends _$RedeemedRewardNotifier {
       updatedAt: null,
     );
 
-    // --- Execute Transaction ---
     try {
-      // A. Create the "Voucher"
       await _redeemedRewardService.create(redeemedReward);
 
-      // B. Deduct the Stock (RPC Call)
       await _rewardService.decreaseQuantity(reward.id);
 
-      // C. Deduct the Points (Wallet Update)
       await _pointHistoryService.deductPoints(
         userId,
         reward.points,

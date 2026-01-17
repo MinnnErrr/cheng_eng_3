@@ -6,8 +6,6 @@ import 'package:cheng_eng_3/utils/search_sort_filter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-// ... imports ...
-
 class CustomerRedeemedRewardScreen extends ConsumerStatefulWidget {
   const CustomerRedeemedRewardScreen({super.key});
 
@@ -53,7 +51,7 @@ class _CustomerRedeemedRewardScreenState
               children: [
                 const SizedBox(height: 10),
 
-                // --- SEARCH BAR (Improved) ---
+                // --- SEARCH BAR ---
                 TextField(
                   controller: _searchCtrl,
                   onChanged: (v) => setState(() => _search = v),

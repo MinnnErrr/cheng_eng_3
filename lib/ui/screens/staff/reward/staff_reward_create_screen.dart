@@ -18,7 +18,6 @@ class StaffRewardCreateScreen extends ConsumerStatefulWidget {
 }
 
 class _StaffRewardCreateState extends ConsumerState<StaffRewardCreateScreen> {
-  // Controllers
   final _codeCtrl = TextEditingController();
   final _nameCtrl = TextEditingController();
   final _descCtrl = TextEditingController();
@@ -28,7 +27,6 @@ class _StaffRewardCreateState extends ConsumerState<StaffRewardCreateScreen> {
   final _availableDateCtrl = TextEditingController();
   final _validityCtrl = TextEditingController();
 
-  // State Variables
   bool _limitedPeriod = false;
   DateTime? _availableUntil;
   bool _isActive = true;
@@ -51,8 +49,6 @@ class _StaffRewardCreateState extends ConsumerState<StaffRewardCreateScreen> {
     _validityCtrl.dispose();
     super.dispose();
   }
-
-  // --- ACTIONS ---
 
   Future<void> _pickPhoto() async {
     final picker = ImagePicker();
@@ -126,8 +122,6 @@ class _StaffRewardCreateState extends ConsumerState<StaffRewardCreateScreen> {
     }
   }
 
-  // --- UI BUILD ---
-
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -183,7 +177,6 @@ class _StaffRewardCreateState extends ConsumerState<StaffRewardCreateScreen> {
                 const SizedBox(height: 30),
                 _SectionHeader(title: "Availability"),
 
-                // Limited Period Toggle
                 DropdownButtonFormField<bool>(
                   initialValue: _limitedPeriod,
                   decoration: InputDecoration(
@@ -221,9 +214,8 @@ class _StaffRewardCreateState extends ConsumerState<StaffRewardCreateScreen> {
                 if (_limitedPeriod) ...[
                   const SizedBox(height: 20),
                   GestureDetector(
-                    onTap: _handleDateSelection, // Tap anywhere on field
+                    onTap: _handleDateSelection, 
                     child: AbsorbPointer(
-                      // Prevents keyboard from showing
                       child: textFormField(
                         controller: _availableDateCtrl,
                         label: 'Available Until',
@@ -235,7 +227,6 @@ class _StaffRewardCreateState extends ConsumerState<StaffRewardCreateScreen> {
 
                 const SizedBox(height: 20),
 
-                // Validity Period Toggle
                 DropdownButtonFormField<bool>(
                   initialValue: _hasValidity,
                   decoration: InputDecoration(
@@ -291,7 +282,6 @@ class _StaffRewardCreateState extends ConsumerState<StaffRewardCreateScreen> {
 
                 const SizedBox(height: 30),
 
-                // Status Toggle
                 DropdownButtonFormField<bool>(
                   initialValue: _isActive,
                   decoration: InputDecoration(
@@ -328,7 +318,6 @@ class _StaffRewardCreateState extends ConsumerState<StaffRewardCreateScreen> {
 
                 const SizedBox(height: 40),
 
-                // Submit Button
                 FilledButton(
                   onPressed: _isLoading ? null : _submitForm,
 
@@ -349,7 +338,7 @@ class _StaffRewardCreateState extends ConsumerState<StaffRewardCreateScreen> {
                         ),
                 ),
 
-                const SizedBox(height: 40), // Bottom padding
+                const SizedBox(height: 40),
               ],
             ),
           ),
@@ -357,8 +346,6 @@ class _StaffRewardCreateState extends ConsumerState<StaffRewardCreateScreen> {
       ),
     );
   }
-
-  // --- SUB WIDGETS ---
 
   Widget _photoSection(ThemeData theme) {
     return Column(
@@ -375,7 +362,7 @@ class _StaffRewardCreateState extends ConsumerState<StaffRewardCreateScreen> {
         GridView.builder(
           physics: const NeverScrollableScrollPhysics(),
           shrinkWrap: true,
-          itemCount: _photos.length + 1, // +1 for the "Add" button card
+          itemCount: _photos.length + 1,
           gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
             crossAxisCount: 3,
             crossAxisSpacing: 12,
@@ -383,7 +370,6 @@ class _StaffRewardCreateState extends ConsumerState<StaffRewardCreateScreen> {
             childAspectRatio: 1.0,
           ),
           itemBuilder: (context, index) {
-            // "Add Photo" Button as the last item (or first if you prefer)
             if (index == _photos.length) {
               return InkWell(
                 onTap: _pickPhoto,
@@ -460,7 +446,6 @@ class _StaffRewardCreateState extends ConsumerState<StaffRewardCreateScreen> {
   }
 }
 
-// Simple Header Helper
 class _SectionHeader extends StatelessWidget {
   final String title;
   final double padding;
@@ -476,7 +461,7 @@ class _SectionHeader extends StatelessWidget {
           fontWeight: FontWeight.bold,
           color: Theme.of(
             context,
-          ).colorScheme.onSurfaceVariant, // Highlight headers
+          ).colorScheme.onSurfaceVariant, 
         ),
       ),
     );

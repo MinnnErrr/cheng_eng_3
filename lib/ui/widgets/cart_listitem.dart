@@ -26,8 +26,7 @@ class CartListitem extends ConsumerWidget {
     final product = entry.product;
     final item = entry.item;
 
-    // --- 1. HANDLE DELETED/INVALID PRODUCT ---
-    if (product == null) {
+    if (product == null || product.status == false) {
       return Card(
         color: theme.colorScheme.errorContainer,
         child: Padding(
@@ -41,7 +40,7 @@ class CartListitem extends ConsumerWidget {
               const SizedBox(width: 12),
               Expanded(
                 child: Text(
-                  'Item unavailable',
+                  'Item unavailable. Please remove it',
                   style: TextStyle(
                     color: theme.colorScheme.onErrorContainer,
                     fontWeight: FontWeight.bold,
@@ -61,7 +60,6 @@ class CartListitem extends ConsumerWidget {
       );
     }
 
-    // --- 2. NORMAL PRODUCT ---
     final isSoldOut = entry.isSoldOut;
     final isMaxStock = entry.isMaxStock;
 
@@ -72,178 +70,214 @@ class CartListitem extends ConsumerWidget {
           // CONTENT
           Padding(
             padding: const EdgeInsets.all(12),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
+            child: Column(
               children: [
-                // A. Image (Square)
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(8),
-                  child: imageBuilder(
-                    url: product.photoPaths.isNotEmpty
-                        ? imageService.retrieveImageUrl(
-                            product.photoPaths.first,
-                          )
-                        : null,
-                    containerWidth: 90,
-                    containerHeight: 90,
-                    noImageContent: Container(
-                      width: 90,
-                      height: 90,
-                      color: theme.colorScheme.surfaceContainerHighest,
-                      child: Icon(
-                        Icons.shopping_bag_outlined,
-                        color: theme.colorScheme.onSurfaceVariant,
+                if (isSoldOut) ...[
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 4,
+                    ),
+                    decoration: BoxDecoration(
+                      color: theme
+                          .colorScheme
+                          .errorContainer,
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          Icons.error_outline,
+                          size: 14,
+                          color: theme.colorScheme.onErrorContainer,
+                        ),
+                        const SizedBox(width: 6),
+                        Text(
+                          'Sold out. Please remove this item.',
+                          style: theme.textTheme.labelSmall!.copyWith(
+                            fontWeight: FontWeight.bold,
+                            color: theme.colorScheme.onPrimaryContainer,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                ],
+
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // A. Image 
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(8),
+                      child: imageBuilder(
+                        url: product.photoPaths.isNotEmpty
+                            ? imageService.retrieveImageUrl(
+                                product.photoPaths.first,
+                              )
+                            : null,
+                        containerWidth: 90,
+                        containerHeight: 90,
+                        noImageContent: Container(
+                          width: 90,
+                          height: 90,
+                          color: theme.colorScheme.surfaceContainerHighest,
+                          child: Icon(
+                            Icons.shopping_bag_outlined,
+                            color: theme.colorScheme.onSurfaceVariant,
+                          ),
+                        ),
+                        context: context,
                       ),
                     ),
-                    context: context,
-                  ),
-                ),
-                const SizedBox(width: 12),
+                    const SizedBox(width: 12),
 
-                // B. Details Column
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Header Row (Name + Delete)
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    // B. Details Column
+                    Expanded(
+                      child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Expanded(
-                            child: Text(
-                              '${product.brand} ${product.name} ${product.model ?? ''}',
-                              maxLines: 3,
-                              overflow: TextOverflow.ellipsis,
-                              style: theme.textTheme.titleSmall?.copyWith(
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ),
-                          InkWell(
-                            onTap: deleteAction,
-                            borderRadius: BorderRadius.circular(20),
-                            child: Padding(
-                              padding: const EdgeInsets.all(4),
-                              child: Icon(
-                                Icons.close,
-                                size: 18,
-                                color: Colors.grey.shade500,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-
-                      // Attributes (Color / Install Tag)
-                      Wrap(
-                        spacing: 8,
-                        children: [
-                          if (product.colour != null)
-                            Text(
-                              product.colour!,
-                              style: theme.textTheme.bodySmall?.copyWith(
-                                color: Colors.grey.shade600,
-                              ),
-                            ),
-                          if (entry.hasInstallation)
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 6,
-                                vertical: 2,
-                              ),
-                              decoration: BoxDecoration(
-                                color: theme.colorScheme.primaryContainer,
-                                borderRadius: BorderRadius.circular(4),
-                              ),
-                              child: Text(
-                                "+ Installation",
-                                style: TextStyle(
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.bold,
-                                  color: theme.colorScheme.onPrimaryContainer,
-                                ),
-                              ),
-                            ),
-                        ],
-                      ),
-
-                      const SizedBox(height: 20),
-
-                      // Footer Row (Pricing + Stepper)
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          // Price Breakdown
-                          Column(
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(
-                                'RM ${entry.priceTotal.toStringAsFixed(2)}',
-                                style: theme.textTheme.titleMedium?.copyWith(
-                                  fontWeight: FontWeight.bold,
+                              Expanded(
+                                child: Text(
+                                  '${product.brand} ${product.name} ${product.model ?? ''}',
+                                  maxLines: 3,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: theme.textTheme.titleSmall?.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                  ),
                                 ),
                               ),
-                              // ✅ INSTALLATION PRICE DISPLAY (Requested Feature)
-                              if (entry.installationTotal > 0)
+                              InkWell(
+                                onTap: deleteAction,
+                                borderRadius: BorderRadius.circular(20),
+                                child: Padding(
+                                  padding: const EdgeInsets.all(4),
+                                  child: Icon(
+                                    Icons.close,
+                                    size: 18,
+                                    color: Colors.grey.shade500,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+
+                          Wrap(
+                            spacing: 8,
+                            children: [
+                              if (product.colour != null)
                                 Text(
-                                  '+ Install: RM ${entry.installationTotal.toStringAsFixed(2)}',
-                                  style: TextStyle(
-                                    fontSize: 11,
-                                    fontWeight: FontWeight.bold,
-                                    color: textYellow,
+                                  product.colour!,
+                                  style: theme.textTheme.bodySmall?.copyWith(
+                                    color: Colors.grey.shade600,
+                                  ),
+                                ),
+                              if (entry.hasInstallation)
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 6,
+                                    vertical: 2,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: theme.colorScheme.primaryContainer,
+                                    borderRadius: BorderRadius.circular(4),
+                                  ),
+                                  child: Text(
+                                    "+ Installation",
+                                    style: TextStyle(
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.bold,
+                                      color:
+                                          theme.colorScheme.onPrimaryContainer,
+                                    ),
                                   ),
                                 ),
                             ],
                           ),
 
-                          // Quantity Stepper
-                          Container(
-                            height: 32,
-                            decoration: BoxDecoration(
-                              color: theme.colorScheme.surface,
-                              borderRadius: BorderRadius.circular(8),
-                              border: Border.all(color: Colors.grey.shade300),
-                            ),
-                            child: Row(
-                              children: [
-                                _StepperButton(
-                                  icon: Icons.remove,
-                                  onTap: decrementAction,
-                                ),
-                                Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 8,
+                          const SizedBox(height: 20),
+
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'RM ${entry.priceTotal.toStringAsFixed(2)}',
+                                    style: theme.textTheme.titleMedium
+                                        ?.copyWith(
+                                          fontWeight: FontWeight.bold,
+                                        ),
                                   ),
-                                  child: Text(
-                                    item.quantity.toString(),
-                                    style: const TextStyle(
-                                      fontWeight: FontWeight.bold,
+                                  if (entry.installationTotal > 0)
+                                    Text(
+                                      '+ Install: RM ${entry.installationTotal.toStringAsFixed(2)}',
+                                      style: TextStyle(
+                                        fontSize: 11,
+                                        fontWeight: FontWeight.bold,
+                                        color: textYellow,
+                                      ),
                                     ),
+                                ],
+                              ),
+
+                              Container(
+                                height: 32,
+                                decoration: BoxDecoration(
+                                  color: theme.colorScheme.surface,
+                                  borderRadius: BorderRadius.circular(8),
+                                  border: Border.all(
+                                    color: Colors.grey.shade300,
                                   ),
                                 ),
-                                _StepperButton(
-                                  icon: Icons.add,
-                                  onTap: (isSoldOut || isMaxStock)
-                                      ? null
-                                      : incrementAction,
-                                  color: (isSoldOut || isMaxStock)
-                                      ? Colors.grey
-                                      : null,
+                                child: Row(
+                                  children: [
+                                    _StepperButton(
+                                      icon: Icons.remove,
+                                      onTap: decrementAction,
+                                    ),
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 8,
+                                      ),
+                                      child: Text(
+                                        item.quantity.toString(),
+                                        style: const TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ),
+                                    _StepperButton(
+                                      icon: Icons.add,
+                                      onTap: (isSoldOut || isMaxStock)
+                                          ? null
+                                          : incrementAction,
+                                      color: (isSoldOut || isMaxStock)
+                                          ? Colors.grey
+                                          : null,
+                                    ),
+                                  ],
                                 ),
-                              ],
-                            ),
+                              ),
+                            ],
                           ),
                         ],
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
               ],
             ),
           ),
 
-          // C. Sold Out Overlay
+          // Sold Out Overlay
           if (isSoldOut)
             Positioned.fill(
               child: Container(
@@ -275,7 +309,6 @@ class CartListitem extends ConsumerWidget {
   }
 }
 
-// Small helper for the stepper buttons
 class _StepperButton extends StatelessWidget {
   const _StepperButton({required this.icon, this.onTap, this.color});
   final IconData icon;

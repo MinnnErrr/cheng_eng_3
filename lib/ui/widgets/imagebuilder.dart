@@ -42,10 +42,6 @@ Widget imageBuilder({
     child: SizedBox(
       height: containerHeight,
       width: containerWidth,
-      // decoration: BoxDecoration(
-      //   color: Theme.of(context).colorScheme.surfaceContainerHigh,
-      //   borderRadius: BorderRadius.circular(borderRadius ?? 10),
-      // ),
       child: imageContent,
     ),
   );

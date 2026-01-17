@@ -15,7 +15,6 @@ class CartScreen extends ConsumerWidget {
     final cartAsync = ref.watch(cartProvider);
     final cartNotifier = ref.read(cartProvider.notifier);
 
-    // Helper: Check strictly for "Initial Loading" (No data yet)
     final isInitialLoading = cartAsync.isLoading && !cartAsync.hasValue;
     final isInitialError = cartAsync.hasError && !cartAsync.hasValue;
 
@@ -23,21 +22,17 @@ class CartScreen extends ConsumerWidget {
       appBar: AppBar(title: const Text('My Cart')),
       body: Builder(
         builder: (context) {
-          // A. First Load Spinner
           if (isInitialLoading) {
             return const Center(child: CircularProgressIndicator());
           }
 
-          // B. Fatal Error
           if (isInitialError) {
             return Center(child: Text('Error: ${cartAsync.error}'));
           }
 
-          // C. Data State
           final cartState = cartAsync.value;
           final entries = cartState?.entries ?? [];
 
-          // Empty State
           if (entries.isEmpty) {
             return Center(
               child: Column(
@@ -55,7 +50,6 @@ class CartScreen extends ConsumerWidget {
                   ),
                   const SizedBox(height: 30),
                   TextButton(
-                    // ✅ FIX: Use button for better UX
                     onPressed: () => Navigator.of(context).push(
                       MaterialPageRoute(
                         builder: (context) => const CustomerProductScreen(),
@@ -71,11 +65,9 @@ class CartScreen extends ConsumerWidget {
             );
           }
 
-          // List State
           return ListView.separated(
             padding: const EdgeInsets.all(20),
             itemCount: entries.length,
-            // Space items out cleanly
             separatorBuilder: (_, __) => const SizedBox(height: 16),
             itemBuilder: (context, index) {
               final entry = entries[index];
@@ -102,7 +94,6 @@ class CartScreen extends ConsumerWidget {
         },
       ),
 
-      // 3. BOTTOM BAR (Refactored)
       bottomNavigationBar: Builder(
         builder: (context) {
           final cartState = cartAsync.value;
@@ -120,7 +111,6 @@ class CartScreen extends ConsumerWidget {
   }
 }
 
-// Pure UI Bottom Bar
 class _CartBottomBar extends StatelessWidget {
   const _CartBottomBar({
     required this.subtotal,
@@ -134,7 +124,6 @@ class _CartBottomBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Using Container + SafeArea handles iPhone notches better than BottomAppBar
     return Container(
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surface,
@@ -152,7 +141,6 @@ class _CartBottomBar extends StatelessWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              // Subtotal Row
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -171,7 +159,6 @@ class _CartBottomBar extends StatelessWidget {
               ),
               const SizedBox(height: 16),
 
-              // Checkout Button
               SizedBox(
                 width: double.infinity,
                 height: 50,

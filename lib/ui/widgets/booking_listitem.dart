@@ -9,7 +9,7 @@ class BookingListitem extends ConsumerWidget {
   const BookingListitem({
     super.key,
     required this.booking,
-    this.onTap, // Add optional callback
+    this.onTap, 
   });
 
   final Booking booking;
@@ -19,8 +19,6 @@ class BookingListitem extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final dateFormatter = DateFormat('dd MMM yyyy');
     final theme = Theme.of(context);
-
-    // Join services
     final serviceNames = booking.services.isEmpty
         ? 'No Service Selected'
         : booking.services.map((s) => s.serviceName).join(', ');
@@ -28,7 +26,7 @@ class BookingListitem extends ConsumerWidget {
     return Card(
       clipBehavior: Clip.antiAlias,
       child: InkWell(
-        onTap: onTap, // Ripple effect happens here
+        onTap: onTap,
         child: Padding(
           padding: const EdgeInsets.all(12),
           child: Row(
@@ -39,7 +37,7 @@ class BookingListitem extends ConsumerWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // 1. Service Names (Highlight)
+                    // 1. Service Names 
                     Text(
                       serviceNames,
                       maxLines: 2,
@@ -120,7 +118,7 @@ class BookingListitem extends ConsumerWidget {
                 child: Text(
                   booking
                       .status
-                      .label, // Ensure this handles capitalizing (e.g., "Pending")
+                      .label, 
                   style: theme.textTheme.labelSmall!.copyWith(
                     fontWeight: FontWeight.bold,
                     color: booking.status.color,

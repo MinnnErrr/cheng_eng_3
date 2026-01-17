@@ -71,7 +71,7 @@ class TowingListItem extends ConsumerWidget {
 
               const SizedBox(height: 10),
 
-              // --- ROW 3: Emergency Contact (ADDED) ---
+              // --- ROW 3: Emergency Contact ---
               Row(
                 children: [
                   Icon(
@@ -81,7 +81,7 @@ class TowingListItem extends ConsumerWidget {
                   ),
                   const SizedBox(width: 6),
                   Text(
-                    '${towing.dialCode} ${towing.phoneNum}', // Assuming field is phoneNum
+                    '${towing.dialCode} ${towing.phoneNum}',
                     style: theme.textTheme.bodySmall?.copyWith(
                       color: textYellow,
                       fontWeight: FontWeight.bold,

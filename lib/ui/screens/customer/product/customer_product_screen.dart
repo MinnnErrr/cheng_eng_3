@@ -1,5 +1,4 @@
 import 'package:cheng_eng_3/core/controllers/product/customer_product_notifier.dart';
-import 'package:cheng_eng_3/core/enums/sorting_enum.dart';
 import 'package:cheng_eng_3/core/models/product_model.dart';
 import 'package:cheng_eng_3/ui/extensions/product_extension.dart';
 import 'package:cheng_eng_3/ui/screens/customer/product/customer_product_details_screen.dart';
@@ -7,8 +6,6 @@ import 'package:cheng_eng_3/ui/widgets/customer_product_listitem.dart';
 import 'package:cheng_eng_3/utils/search_sort_filter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
-// ... imports ...
 
 class CustomerProductScreen extends ConsumerStatefulWidget {
   const CustomerProductScreen({super.key});
@@ -71,7 +68,6 @@ class _CustomerProductScreenState extends ConsumerState<CustomerProductScreen> {
                   isActive: null,
                 );
 
-                // Extract categories for filter
                 _categories = products.map((p) => p.category).toSet().toList()
                   ..sort();
 
@@ -90,12 +86,11 @@ class _CustomerProductScreenState extends ConsumerState<CustomerProductScreen> {
                           crossAxisCount: 2,
                           crossAxisSpacing: 12,
                           mainAxisSpacing: 12,
-                          childAspectRatio: 0.7, // ✅ Slightly wider cards
+                          childAspectRatio: 0.7, 
                         ),
                     itemCount: filtered.length,
                     itemBuilder: (context, index) {
                       final product = filtered[index];
-                      // Use logic to disable click if needed
                       final isSoldOut =
                           product.quantity != null && product.quantity! <= 0;
                       return CustomerProductListitem(
@@ -159,7 +154,6 @@ class _CustomerProductScreenState extends ConsumerState<CustomerProductScreen> {
               onChanged: (v) => setState(() => _search = v),
               leading: const Icon(Icons.search),
               trailing: [
-                // Only show clear button if text exists
                 if (_search.isNotEmpty)
                   IconButton(
                     icon: const Icon(Icons.clear),
@@ -173,9 +167,8 @@ class _CustomerProductScreenState extends ConsumerState<CustomerProductScreen> {
           ),
           const SizedBox(width: 10),
 
-          // ✅ Filter Button (Matched Style)
           SizedBox(
-            height: 50, // Matches standard TextField height
+            height: 50, 
             width: 50,
             child: IconButton(
               style: IconButton.styleFrom(
@@ -187,13 +180,12 @@ class _CustomerProductScreenState extends ConsumerState<CustomerProductScreen> {
               onPressed: _openFilterSheet,
               icon: const Icon(
                 Icons.tune,
-              ), // 'tune' often looks better for filters
+              ), 
             ),
           ),
 
           const SizedBox(width: 10),
 
-          // ✅ Sort Button (Matched Style)
           SizedBox(
             height: 50,
             width: 50,
@@ -213,10 +205,8 @@ class _CustomerProductScreenState extends ConsumerState<CustomerProductScreen> {
     );
   }
 
-  // --- FILTER SHEET (Unchanged logic, kept consistent) ---
+  // --- FILTER SHEET ---
   void _openFilterSheet() {
-    // ... [Your existing filter sheet code logic] ...
-    // Just ensure you use the same style/imports
     String? sheetCategory = _category;
     ProductAvailability? sheetAvailability = _availability;
 
@@ -267,7 +257,7 @@ class _CustomerProductScreenState extends ConsumerState<CustomerProductScreen> {
                     items: ProductAvailability.values
                         .map(
                           (a) =>
-                              DropdownMenuItem(value: a, child: Text(a.label)),
+                              DropdownMenuItem(value: a, child: Text(a.dropDownOption)),
                         )
                         .toList(),
                     onChanged: (v) =>
@@ -321,7 +311,7 @@ class _CustomerProductScreenState extends ConsumerState<CustomerProductScreen> {
     );
   }
 
-  // --- SORT SHEET (Fixed Radio Logic) ---
+  // --- SORT SHEET ---
   void _openSortSheet() {
     showModalBottomSheet(
       context: context,
@@ -342,7 +332,6 @@ class _CustomerProductScreenState extends ConsumerState<CustomerProductScreen> {
                 ).textTheme.titleLarge!.copyWith(fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 10),
-              // ✅ FIX: Use Standard Column + RadioListTile
               RadioGroup<ProductSorting>(
                 groupValue: _sorting,
 

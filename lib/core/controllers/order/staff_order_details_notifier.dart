@@ -26,7 +26,6 @@ class StaffOrderDetailNotifier extends _$StaffOrderDetailNotifier {
       return const Message(isSuccess: false, message: 'Data not loaded');
     }
 
-    // ✅ SAFETY CHECK: Track if this provider is still alive
     bool isMounted = true;
     ref.onDispose(() => isMounted = false);
 
@@ -38,11 +37,8 @@ class StaffOrderDetailNotifier extends _$StaffOrderDetailNotifier {
         currentStateData.order.id,
       );
 
-      // We don't touch state on success (Realtime handles it),
-      // so we just return.
       return const Message(isSuccess: true, message: 'Status updated');
     } catch (e) {
-      // ✅ SAFETY CHECK: Only revert state if we are still on the screen
       if (isMounted) {
         state = previousState;
       }
@@ -61,7 +57,6 @@ class StaffOrderDetailNotifier extends _$StaffOrderDetailNotifier {
       return const Message(isSuccess: false, message: 'Data not loaded');
     }
 
-    // ✅ SAFETY CHECK
     bool isMounted = true;
     ref.onDispose(() => isMounted = false);
 
@@ -75,7 +70,6 @@ class StaffOrderDetailNotifier extends _$StaffOrderDetailNotifier {
 
       return const Message(isSuccess: true, message: 'Order cancelled');
     } catch (e) {
-      // ✅ SAFETY CHECK
       if (isMounted) {
         state = previousState;
       }

@@ -28,11 +28,9 @@ class _StaffRewardScreenState extends ConsumerState<StaffRewardScreen> {
 
     return Scaffold(
       appBar: AppBar(title: const Text('Rewards')),
-      // 1. Allow tapping background to dismiss keyboard
       body: GestureDetector(
         onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
         child: RefreshIndicator(
-          // 2. Add Pull-to-Refresh capability
           onRefresh: () => ref.refresh(staffRewardsProvider.future),
           child: rewardState.when(
             data: (rewards) {
@@ -48,8 +46,6 @@ class _StaffRewardScreenState extends ConsumerState<StaffRewardScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      // Search Bar
-                      // Removed redundant Row/Expanded
                       SearchBar(
                         controller: _searchCtrl,
                         hintText: "Search Reward Name or Code",
@@ -109,7 +105,6 @@ class _StaffRewardScreenState extends ConsumerState<StaffRewardScreen> {
                                 },
                               )
                             : ListView.separated(
-                                // Allow dismissing keyboard on scroll
                                 keyboardDismissBehavior:
                                     ScrollViewKeyboardDismissBehavior.onDrag,
                                 itemCount: searched.length,
@@ -117,9 +112,6 @@ class _StaffRewardScreenState extends ConsumerState<StaffRewardScreen> {
                                     const SizedBox(height: 10),
                                 itemBuilder: (_, i) {
                                   final r = searched[i];
-
-                                  // Better to pass tap action into the widget if possible
-                                  // to ensure ripples respect card border radius
                                   return RewardListitem(
                                     reward: r,
                                     isStaff: true,

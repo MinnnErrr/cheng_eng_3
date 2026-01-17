@@ -29,7 +29,6 @@ class CustomerOrderScreen extends ConsumerWidget {
             onRefresh: () async =>
                 ref.refresh(customerOrdersProvider(user.id).future),
             child: orders.isEmpty
-                // ✅ FIX: Better Empty State Layout
                 ? LayoutBuilder(
                     builder: (context, constraints) => ListView(
                       physics: const AlwaysScrollableScrollPhysics(),
@@ -37,7 +36,7 @@ class CustomerOrderScreen extends ConsumerWidget {
                         SizedBox(
                           height:
                               constraints.maxHeight *
-                              0.8, // Centered vertically
+                              0.8, 
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [

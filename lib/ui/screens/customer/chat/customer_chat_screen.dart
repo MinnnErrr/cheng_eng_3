@@ -40,7 +40,6 @@ class _CustomerChatScreenState extends ConsumerState<CustomerChatScreen> {
     final theme = Theme.of(context);
     final messages = ref.watch(chatProvider);
 
-    // Auto-scroll on new message
     ref.listen(chatProvider, (prev, next) {
       if (next.length > (prev?.length ?? 0)) {
         _scrollToBottom();
@@ -53,7 +52,7 @@ class _CustomerChatScreenState extends ConsumerState<CustomerChatScreen> {
         title: const Text('Support Assistant'),
       ),
       body: GestureDetector(
-        onTap: () => FocusScope.of(context).unfocus(), // Dismiss keyboard
+        onTap: () => FocusScope.of(context).unfocus(), 
         child: Column(
           children: [
             Expanded(
@@ -100,7 +99,6 @@ class _CustomerChatScreenState extends ConsumerState<CustomerChatScreen> {
                     color: theme.colorScheme.onSurfaceVariant,
                   ),
                   filled: true,
-                  // Use standardized input color
                   fillColor: theme.colorScheme.surfaceContainerHigh,
                   contentPadding: const EdgeInsets.symmetric(
                     horizontal: 20,
@@ -116,18 +114,17 @@ class _CustomerChatScreenState extends ConsumerState<CustomerChatScreen> {
             ),
             const SizedBox(width: 12),
 
-            // Send Button
             IconButton.filled(
               style: IconButton.styleFrom(
-                backgroundColor: theme.colorScheme.primary, // Yellow
-                foregroundColor: theme.colorScheme.onPrimary, // Black
+                backgroundColor: theme.colorScheme.primary, 
+                foregroundColor: theme.colorScheme.onPrimary, 
                 shape: const CircleBorder(),
                 padding: const EdgeInsets.all(12),
               ),
               onPressed: _sendMessage,
               icon: const Icon(
                 Icons.arrow_upward_rounded,
-              ), // Modern "Send" icon
+              ), 
             ),
           ],
         ),

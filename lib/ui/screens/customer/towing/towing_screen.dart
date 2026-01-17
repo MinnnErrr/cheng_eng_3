@@ -55,7 +55,7 @@ class TowingScreen extends ConsumerWidget {
                       physics: const AlwaysScrollableScrollPhysics(),
                       itemCount: towings.length,
                       separatorBuilder: (context, index) =>
-                          const SizedBox(height: 12), // Increased spacing
+                          const SizedBox(height: 12), 
                       itemBuilder: (context, index) {
                         final towing = towings[index];
                         return TowingListItem(

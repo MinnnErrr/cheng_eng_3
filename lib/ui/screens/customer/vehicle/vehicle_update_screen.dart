@@ -28,7 +28,7 @@ class _VehicleUpdateScreenState extends ConsumerState<VehicleUpdateScreen> {
 
   late int _year;
   File? _pickedImage;
-  String? _imageUrl; // To store existing image URL
+  String? _imageUrl; 
 
   final _imagePicker = ImagePicker();
   final _formKey = GlobalKey<FormState>();
@@ -89,7 +89,6 @@ class _VehicleUpdateScreenState extends ConsumerState<VehicleUpdateScreen> {
           child: ListView(
             padding: const EdgeInsets.all(20),
             children: [
-              // ✅ IMPROVED IMAGE PICKER (Matches Create Screen)
               _buildImagePicker(),
               const SizedBox(height: 30),
 
@@ -97,7 +96,6 @@ class _VehicleUpdateScreenState extends ConsumerState<VehicleUpdateScreen> {
                 "Vehicle Details",
                 style: Theme.of(context).textTheme.titleMedium?.copyWith(
                   fontWeight: FontWeight.bold,
-                  // Use Black/Grey for readability on white
                   color: Theme.of(context).colorScheme.onSurfaceVariant,
                 ),
               ),
@@ -255,14 +253,12 @@ class _VehicleUpdateScreenState extends ConsumerState<VehicleUpdateScreen> {
         child: Stack(
           fit: StackFit.expand,
           children: [
-            // 1. Show New Image (If picked)
             if (_pickedImage != null)
               Image.file(
                 _pickedImage!,
                 fit: BoxFit.cover,
                 width: double.infinity,
               )
-            // 2. Show Existing Image (If available)
             else if (_imageUrl != null)
               Image.network(
                 _imageUrl!,
@@ -273,11 +269,9 @@ class _VehicleUpdateScreenState extends ConsumerState<VehicleUpdateScreen> {
                   return const Center(child: CircularProgressIndicator());
                 },
               )
-            // 3. Show Placeholder
             else
               _buildPlaceholder(theme),
 
-            // Edit Icon Overlay
             if (_pickedImage != null || _imageUrl != null)
               Positioned(
                 right: 12,

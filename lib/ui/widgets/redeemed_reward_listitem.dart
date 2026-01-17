@@ -1,5 +1,6 @@
 import 'package:cheng_eng_3/core/models/redeemed_reward_model.dart';
 import 'package:cheng_eng_3/core/services/image_service.dart';
+import 'package:cheng_eng_3/ui/extensions/redeemed_reward_extension.dart';
 import 'package:cheng_eng_3/ui/widgets/imagebuilder.dart';
 import 'package:cheng_eng_3/utils/status_colour.dart';
 import 'package:flutter/material.dart';
@@ -28,12 +29,6 @@ class RedeemedRewardListitem extends ConsumerWidget {
         redeemedReward.expiryDate!.isBefore(now);
 
     final theme = Theme.of(context);
-
-    // Get Status Color Helper
-    final statusColor = getRedeemedRewardStatusColor(
-      redeemedReward.isClaimed,
-      context,
-    );
 
     return Card(
       clipBehavior: Clip.antiAlias,
@@ -77,12 +72,11 @@ class RedeemedRewardListitem extends ConsumerWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // Name (with padding to avoid chip overlap)
                         Padding(
                           padding: const EdgeInsets.only(right: 70), //
                           child: Text(
                             redeemedReward.name,
-                            maxLines: 2, // Allow 2 lines
+                            maxLines: 2, 
                             overflow: TextOverflow.ellipsis,
                             style: theme.textTheme.titleMedium?.copyWith(
                               fontWeight: FontWeight.bold,
@@ -98,13 +92,13 @@ class RedeemedRewardListitem extends ConsumerWidget {
                           style: theme.textTheme.bodySmall?.copyWith(
                             color: theme.colorScheme.onSurfaceVariant,
                             fontFamily:
-                                'monospace', // Makes code look technical
+                                'monospace', 
                           ),
                         ),
 
                         const SizedBox(height: 12),
 
-                        // Expiry Date (Now alone at bottom)
+                        // Expiry Date 
                         if (redeemedReward.expiryDate != null)
                           Row(
                             children: [
@@ -130,7 +124,7 @@ class RedeemedRewardListitem extends ConsumerWidget {
               ),
             ),
 
-            // 3. STATUS CHIP (Top Right)
+            // 3. STATUS CHIP 
             Positioned(
               top: 12,
               right: 12,
@@ -140,14 +134,14 @@ class RedeemedRewardListitem extends ConsumerWidget {
                   vertical: 4,
                 ),
                 decoration: BoxDecoration(
-                  color: statusColor.withValues(alpha: 0.1),
+                  color:redeemedReward.statusColor.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(6),
                 ),
                 child: Text(
                   redeemedReward.isClaimed ? 'Used' : 'Active',
                   style: theme.textTheme.labelSmall?.copyWith(
                     fontWeight: FontWeight.bold,
-                    color: statusColor,
+                    color: redeemedReward.statusColor,
                   ),
                 ),
               ),

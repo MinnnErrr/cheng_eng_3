@@ -32,14 +32,13 @@ class CustomerProductListitem extends ConsumerWidget {
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // 1. IMAGE AREA (Fixed aspect ratio)
                 AspectRatio(
-                  aspectRatio: 1.2, // Square-ish image area
+                  aspectRatio: 1.2, 
                   child: imageBuilder(
                     url: url,
                     containerWidth: double.infinity,
                     containerHeight:
-                        double.infinity, // Let AspectRatio control size
+                        double.infinity, 
                     noImageContent: Container(
                       color: theme.colorScheme.surfaceContainerHighest,
                       child: Icon(
@@ -52,7 +51,6 @@ class CustomerProductListitem extends ConsumerWidget {
                   ),
                 ),
 
-                // 2. DETAILS AREA
                 Expanded(
                   child: Padding(
                     padding: const EdgeInsets.all(10.0),
@@ -106,11 +104,11 @@ class CustomerProductListitem extends ConsumerWidget {
                   ),
                   decoration: BoxDecoration(
                     color: 
-                      product.availability.color,
+                      product.availability.getcolor(product.quantity),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Text(
-                    product.availability.label,
+                    product.availability.getlabel(product.quantity),
                     style: TextStyle(
                       color: Colors.white,
                       fontWeight: FontWeight.bold,
@@ -120,7 +118,6 @@ class CustomerProductListitem extends ConsumerWidget {
                 ),
               ),
 
-            // 3. OUT OF STOCK OVERLAY
             if (isOutOfStock)
               Positioned.fill(
                 child: Container(

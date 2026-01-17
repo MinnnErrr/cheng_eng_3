@@ -15,7 +15,6 @@ class StaffClaimRewardScannerScreen extends StatefulWidget {
 
 class _StaffClaimRewardScannerScreenState
     extends State<StaffClaimRewardScannerScreen> {
-  // MobileScannerController allows you to control torch, camera facing, etc.
   final MobileScannerController _controller = MobileScannerController(
     detectionSpeed: DetectionSpeed.noDuplicates,
     returnImage: false,
@@ -30,7 +29,6 @@ class _StaffClaimRewardScannerScreenState
   }
 
   void _handleBarcode(BarcodeCapture capture) {
-    // 1. Prevent double-processing
     if (_isProcessing) return;
 
     final barcode = capture.barcodes.first;
@@ -42,7 +40,6 @@ class _StaffClaimRewardScannerScreenState
       final String raw = barcode.rawValue!;
       final Map<String, dynamic> data = jsonDecode(raw);
 
-      // 2. Validate Data Integrity
       if (!data.containsKey("userId") ||
           !data.containsKey("redeemedRewardId")) {
         throw const FormatException("Missing required data fields");
@@ -51,7 +48,6 @@ class _StaffClaimRewardScannerScreenState
       final userId = data["userId"];
       final redeemedRewardId = data["redeemedRewardId"];
 
-      // 3. Success: Vibrate (optional) and Pop
       if (mounted) {
         Navigator.pop(context, {
           "userId": userId,
@@ -59,7 +55,6 @@ class _StaffClaimRewardScannerScreenState
         });
       }
     } catch (e) {
-      // 4. Error Handling: Show error and allow Retry
       if (mounted) {
         showAppSnackBar(
           context: context,
@@ -67,7 +62,6 @@ class _StaffClaimRewardScannerScreenState
           isError: true,
         );
 
-        // 5. Critical Fix: Reset the flag after 2 seconds to allow re-scanning
         Future.delayed(const Duration(seconds: 2), () {
           if (mounted) {
             setState(() => _isProcessing = false);
@@ -79,7 +73,6 @@ class _StaffClaimRewardScannerScreenState
 
   @override
   Widget build(BuildContext context) {
-    // Define a scan window size
     final scanWindow = Rect.fromCenter(
       center: MediaQuery.sizeOf(context).center(Offset.zero),
       width: 250,
@@ -97,12 +90,10 @@ class _StaffClaimRewardScannerScreenState
             scanWindow: scanWindow,
             onDetect: _handleBarcode,
           ),
-          // Visual Overlay: Darkens the area outside the scan window
           CustomPaint(
             painter: ScannerOverlay(scanWindow),
             child: const SizedBox.expand(),
           ),
-          // Instructions text
           Positioned(
             bottom: 100,
             left: 0,
@@ -132,7 +123,6 @@ class _StaffClaimRewardScannerScreenState
   }
 }
 
-// Simple Painter to create the dark overlay with a cutout
 class ScannerOverlay extends CustomPainter {
   ScannerOverlay(this.scanWindow);
 
@@ -157,7 +147,6 @@ class ScannerOverlay extends CustomPainter {
       ..style = PaintingStyle.stroke
       ..strokeWidth = 3.0;
 
-    // Create the cutout effect
     canvas.saveLayer(
       Rect.fromLTWH(0, 0, size.width, size.height),
       Paint(),
@@ -166,7 +155,6 @@ class ScannerOverlay extends CustomPainter {
     canvas.drawPath(cutoutPath, backgroundPaint);
     canvas.restore();
 
-    // Draw the white border around the cutout
     canvas.drawRRect(
       RRect.fromRectAndRadius(scanWindow, const Radius.circular(12)),
       borderPaint,

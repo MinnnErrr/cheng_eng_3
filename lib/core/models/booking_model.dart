@@ -19,7 +19,6 @@ class TimeOfDayConverter implements JsonConverter<TimeOfDay, String> {
 
   @override
   String toJson(TimeOfDay object) {
-    // Converts to format "HH:mm"
     final hour = object.hour.toString().padLeft(2, '0');
     final minute = object.minute.toString().padLeft(2, '0');
     return '$hour:$minute';

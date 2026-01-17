@@ -24,7 +24,6 @@ class _StaffBookingScreenState extends ConsumerState<StaffBookingScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // 1. WATCH REALTIME
     ref.watch(bookingRealTimeProvider);
 
     final bookingList = ref.watch(staffBookingProvider);
@@ -37,7 +36,7 @@ class _StaffBookingScreenState extends ConsumerState<StaffBookingScreen> {
         padding: const EdgeInsets.all(20.0),
         child: Column(
           children: [
-            // --- 1. SEARCH BAR (Now in Body) ---
+            // --- 1. SEARCH BAR ---
             SearchBar(
               controller: _searchCtrl,
               hintText: "Search Plate No. (e.g., ABC1234)",
@@ -70,14 +69,12 @@ class _StaffBookingScreenState extends ConsumerState<StaffBookingScreen> {
                 },
                 child: bookingList.when(
                   data: (bookings) {
-                    // Client-side filtering
                     final filteredBookings = bookings.where((b) {
                       final q = _searchQuery.toLowerCase();
                       return b.vehicleRegNum.toLowerCase().contains(q) ||
                           b.vehicleModel.toLowerCase().contains(q);
                     }).toList();
 
-                    // Empty State (No records or No search results)
                     if (filteredBookings.isEmpty) {
                       return LayoutBuilder(
                         builder: (context, constraints) =>
@@ -110,7 +107,6 @@ class _StaffBookingScreenState extends ConsumerState<StaffBookingScreen> {
                       );
                     }
 
-                    // List State
                     return ListView.separated(
                       itemCount: filteredBookings.length,
                       separatorBuilder: (context, index) =>
@@ -118,7 +114,6 @@ class _StaffBookingScreenState extends ConsumerState<StaffBookingScreen> {
                       itemBuilder: (context, index) {
                         final booking = filteredBookings[index];
 
-                        // Pass onTap to the widget so the InkWell inside the Card works
                         return BookingListitem(
                           booking: booking,
                           onTap: () => Navigator.of(context).push(

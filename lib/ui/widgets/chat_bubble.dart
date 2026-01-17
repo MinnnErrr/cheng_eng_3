@@ -12,15 +12,11 @@ class ChatBubble extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final isUser = message.isUser;
-
-    // --- LIGHT THEME / INDUSTRIAL COLORS ---
     final backgroundColor = isUser
         ? theme
               .colorScheme
               .primary // Yellow
-        : theme.colorScheme.surfaceContainerHigh; // Light Grey
-
-    // Always Black text for high contrast in Light Theme
+        : theme.colorScheme.surfaceContainerHigh;
     final textColor = Colors.black;
 
     return Align(
@@ -39,7 +35,6 @@ class ChatBubble extends ConsumerWidget {
             bottomLeft: Radius.circular(isUser ? 16 : 4),
             bottomRight: Radius.circular(isUser ? 4 : 16),
           ),
-          // Subtle shadow for depth
           boxShadow: [
             BoxShadow(
               color: Colors.black.withValues(alpha: 0.05),
@@ -62,16 +57,14 @@ class ChatBubble extends ConsumerWidget {
                 data: message.text,
                 config: MarkdownConfig.defaultConfig.copy(
                   configs: [
-                    // Force Paragraph text to be Black
                     PConfig(
                       textStyle:
                           theme.textTheme.bodyLarge?.copyWith(
-                            color: Colors.black87, // Dark text for reading
+                            color: Colors.black87, 
                             height: 1.5,
                           ) ??
                           const TextStyle(color: Colors.black87),
                     ),
-                    // Style Code Blocks (White bg with border)
                     PreConfig(
                       decoration: BoxDecoration(
                         color: Colors.white,
@@ -85,7 +78,6 @@ class ChatBubble extends ConsumerWidget {
                         fontFamily: 'monospace',
                       ),
                     ),
-                    // Style Lists
                     ListConfig(
                       marker: (isOrdered, depth, index) {
                         return Container(
@@ -115,7 +107,7 @@ class ChatBubble extends ConsumerWidget {
           height: 14,
           child: CircularProgressIndicator(
             strokeWidth: 2,
-            color: Colors.black54, // Neutral loading color
+            color: Colors.black54, 
           ),
         ),
         const SizedBox(width: 10),

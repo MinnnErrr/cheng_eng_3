@@ -12,7 +12,6 @@ class MaintenanceCarousel extends StatefulWidget {
 }
 
 class _MaintenanceCarouselState extends State<MaintenanceCarousel> {
-  // 1. Track the active page index
   int _activeIndex = 0;
 
   @override
@@ -32,9 +31,8 @@ class _MaintenanceCarouselState extends State<MaintenanceCarousel> {
 
     return Column(
       children: [
-        // 2. The PageView (Swipeable Cards)
         SizedBox(
-          height: 145, // Fixed height for the card area
+          height: 145,
           child: PageView.builder(
             itemCount: widget.maintenanceList.length,
             controller: PageController(
@@ -48,7 +46,6 @@ class _MaintenanceCarouselState extends State<MaintenanceCarousel> {
             itemBuilder: (context, index) {
               final m = widget.maintenanceList[index];
 
-              // Add padding so cards don't touch edges
               return Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 5),
                 child: MaintenanceListItem(
@@ -67,7 +64,6 @@ class _MaintenanceCarouselState extends State<MaintenanceCarousel> {
 
         const SizedBox(height: 10),
 
-        // 3. The Dots Indicator
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: List.generate(
@@ -76,13 +72,13 @@ class _MaintenanceCarouselState extends State<MaintenanceCarousel> {
               duration: const Duration(milliseconds: 300),
               margin: const EdgeInsets.symmetric(horizontal: 4),
               height: 8,
-              width: _activeIndex == index ? 24 : 8, // Active dot is wider
+              width: _activeIndex == index ? 24 : 8, 
               decoration: BoxDecoration(
                 color: _activeIndex == index
                     ? Theme.of(context)
                           .colorScheme
-                          .primary // Active Color (Yellow)
-                    : Colors.grey.withValues(alpha: 0.5), // Inactive Color
+                          .primary 
+                    : Colors.grey.withValues(alpha: 0.5), 
                 borderRadius: BorderRadius.circular(4),
               ),
             ),

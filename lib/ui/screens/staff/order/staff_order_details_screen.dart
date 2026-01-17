@@ -25,8 +25,6 @@ class StaffOrderDetailsScreen extends ConsumerWidget {
     final currentOrder = viewState.order;
     final items = currentOrder.items;
     final theme = Theme.of(context);
-
-    // Item Action Notifiers
     final itemNotifier = ref.read(orderItemProvider.notifier);
     final itemState = ref.watch(orderItemProvider);
 
@@ -48,12 +46,10 @@ class StaffOrderDetailsScreen extends ConsumerWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // --- 1. STATUS CARD (Light Theme) ---
             Container(
               width: double.infinity,
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
-                // Use light background tint based on status color
                 color: currentOrder.status.color.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(16),
                 border: Border.all(
@@ -68,7 +64,6 @@ class StaffOrderDetailsScreen extends ConsumerWidget {
                     style: TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.bold,
-                      // Use status color for text to make it pop
                       color: currentOrder.status.color,
                       letterSpacing: 1.2,
                     ),
@@ -82,7 +77,6 @@ class StaffOrderDetailsScreen extends ConsumerWidget {
                     ),
                   ),
                   const SizedBox(height: 12),
-                  // Order ID Chip
                   Container(
                     padding: const EdgeInsets.symmetric(
                       horizontal: 5,
@@ -299,7 +293,7 @@ class StaffOrderDetailsScreen extends ConsumerWidget {
               ),
             ],
 
-            const SizedBox(height: 50), // Space for bottom bar
+            const SizedBox(height: 50), 
           ],
         ),
       ),
@@ -322,7 +316,6 @@ class StaffOrderDetailsScreen extends ConsumerWidget {
               child: SafeArea(
                 child: Row(
                   children: [
-                    // Cancel Button
                     Expanded(
                       flex: 1,
                       child: SizedBox(
@@ -387,7 +380,6 @@ class StaffOrderDetailsScreen extends ConsumerWidget {
                     ),
                     const SizedBox(width: 12),
 
-                    // Advance Button (Yellow Primary)
                     Expanded(
                       child: FilledButton(
                         onPressed: stateAsync.isLoading || !viewState.canProceed
@@ -411,7 +403,7 @@ class StaffOrderDetailsScreen extends ConsumerWidget {
                                 height: 24,
                                 width: 24,
                                 child: CircularProgressIndicator(
-                                  color: Colors.black, // Contrast on Yellow
+                                  color: Colors.black, 
                                   strokeWidth: 2,
                                 ),
                               )

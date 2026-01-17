@@ -54,7 +54,7 @@ class _StaffTowingDetailsScreenState
       ),
       body: Column(
         children: [
-          // --- 1. FIXED STATUS SECTION (Separated) ---
+          // --- 1. FIXED STATUS SECTION  ---
           if (canUpdate)
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
@@ -63,10 +63,10 @@ class _StaffTowingDetailsScreenState
               ),
               child: Row(
                 children: [
-                  // A. STATUS SELECTOR BOX (Expanded)
+                  // A. STATUS SELECTOR BOX 
                   Expanded(
                     child: Container(
-                      height: 50, // Fixed height for alignment
+                      height: 50,
                       padding: const EdgeInsets.symmetric(horizontal: 12),
                       decoration: BoxDecoration(
                         color: theme.colorScheme.surfaceContainerLow,
@@ -83,7 +83,6 @@ class _StaffTowingDetailsScreenState
                             size: 20,
                           ),
                           const SizedBox(width: 8),
-                          // Dropdown
                           Expanded(
                             child: DropdownMenu<TowingStatus>(
                               key: ValueKey(currentTowing.status),
@@ -94,7 +93,6 @@ class _StaffTowingDetailsScreenState
                                 fontWeight: FontWeight.bold,
                                 fontSize: 14,
                               ),
-                              // Invisible border inside the container
                               inputDecorationTheme: const InputDecorationTheme(
                                 filled: false,
                                 border: InputBorder.none,
@@ -120,7 +118,6 @@ class _StaffTowingDetailsScreenState
                     style: IconButton.styleFrom(
                       backgroundColor: theme.colorScheme.primary,
                       foregroundColor: theme.colorScheme.onPrimary,
-                      // Grey out when disabled
                       disabledBackgroundColor:
                           theme.colorScheme.surfaceContainerHighest,
                       disabledForegroundColor: theme
@@ -130,7 +127,7 @@ class _StaffTowingDetailsScreenState
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
-                      fixedSize: const Size(50, 50), // Matches input height
+                      fixedSize: const Size(50, 50), 
                     ),
                     onPressed: isChanged
                         ? () => _updateStatus(
@@ -138,7 +135,7 @@ class _StaffTowingDetailsScreenState
                             towingNotifier,
                             currentTowing.id,
                           )
-                        : null, // Disabled if no change
+                        : null, 
                     icon: const Icon(Icons.check, size: 24),
                     tooltip: "Confirm Update",
                   ),

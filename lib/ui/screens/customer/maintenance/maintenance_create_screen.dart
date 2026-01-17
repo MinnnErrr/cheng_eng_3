@@ -88,7 +88,7 @@ class _MaintenanceCreateScreenState
     return Scaffold(
       appBar: AppBar(title: const Text('Add Maintenance')),
       backgroundColor:
-          theme.colorScheme.surface, // Light Grey Background usually
+          theme.colorScheme.surface, 
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(20),
@@ -154,7 +154,7 @@ class _MaintenanceCreateScreenState
                       child: textFormField(
                         controller: _currentDist,
                         label: 'Mileage',
-                        suffix: Text('km'), // ✅ Professional look
+                        suffix: Text('km'), 
                         keyboardType: const TextInputType.numberWithOptions(
                           decimal: true,
                         ),
@@ -168,7 +168,7 @@ class _MaintenanceCreateScreenState
                   height: 30,
                 ),
 
-                // --- SECTION 3: NEXT SERVICE (Highlight) ---
+                // --- SECTION 3: NEXT SERVICE ---
                 _buildSectionHeader("Next Service", theme),
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -180,7 +180,6 @@ class _MaintenanceCreateScreenState
                         readOnly: true,
                         suffix: const Icon(Icons.event, size: 20),
                         onTap: () async {
-                          // UX: Start picking from current date if available
                           final initialDate = _currentDate ?? DateTime.now();
                           final date = await datePicker(
                             _nextDate ?? initialDate,

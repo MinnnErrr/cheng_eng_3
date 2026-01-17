@@ -27,14 +27,13 @@ class _CustomerBookingSubmitScreenState
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final bookingState = ref.watch(bookingStateProvider);
-    final dateFormatter = DateFormat('dd MMM yyyy'); // Nice format: 12 Oct 2023
+    final dateFormatter = DateFormat('dd MMM yyyy'); 
 
     final user = ref.watch(authProvider).value;
     if (user == null) {
       return const Scaffold(body: Center(child: Text('No user found')));
     }
 
-    // Prepare Data
     final servicesList = bookingState.services ?? [];
     final servicesString = servicesList.isEmpty
         ? 'None'
@@ -52,7 +51,7 @@ class _CustomerBookingSubmitScreenState
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // --- SECTION 1: VEHICLE ---
+            // --- VEHICLE ---
             _SectionHeader(title: "Vehicle"),
             const SizedBox(height: 12),
             vehicle != null
@@ -89,7 +88,7 @@ class _CustomerBookingSubmitScreenState
 
             const SizedBox(height: 30),
 
-            // --- SECTION 2: BOOKING INFO ---
+            // --- BOOKING INFO ---
             _SectionHeader(title: "Appointment Details"),
             const SizedBox(height: 12),
             Container(
@@ -137,7 +136,7 @@ class _CustomerBookingSubmitScreenState
 
             const SizedBox(height: 30),
 
-            // --- SECTION 3: REMARKS ---
+            // --- REMARKS ---
             _SectionHeader(title: "Additional Notes"),
             const SizedBox(height: 12),
             textFormField(
@@ -164,7 +163,7 @@ class _CustomerBookingSubmitScreenState
                         height: 24,
                         child: CircularProgressIndicator(
                           strokeWidth: 2,
-                          color: Colors.black, // Contrast on Yellow
+                          color: Colors.black, 
                         ),
                       )
                     : const Text(
@@ -183,7 +182,6 @@ class _CustomerBookingSubmitScreenState
   Future<void> _submitBooking(String userId) async {
     final bookingState = ref.read(bookingStateProvider);
 
-    // Guard Clause
     if (bookingState.vehicle == null ||
         bookingState.services == null ||
         bookingState.services!.isEmpty ||
@@ -199,7 +197,6 @@ class _CustomerBookingSubmitScreenState
 
     setState(() => _isLoading = true);
 
-    // 2. Safe access to provider (Consider using watch in build if this crashes)
     final notifier = ref.read(customerBookingProvider(userId).notifier);
 
     final message = await notifier.addBooking(
@@ -223,10 +220,8 @@ class _CustomerBookingSubmitScreenState
     );
 
     if (message.isSuccess) {
-      // 3. Reset & Navigate
       ref.read(bookingStateProvider.notifier).reset();
 
-      // Clear stack back to Home, then open My Bookings
       Navigator.of(context).popUntil((route) => route.isFirst);
 
       Navigator.of(context).push(
@@ -275,7 +270,6 @@ class _CustomerBookingSubmitScreenState
   }
 }
 
-// Simple Header Component
 class _SectionHeader extends StatelessWidget {
   final String title;
   const _SectionHeader({required this.title});

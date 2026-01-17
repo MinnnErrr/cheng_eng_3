@@ -12,7 +12,6 @@ class StaffClaimRewardScreen extends StatefulWidget {
 class _StaffClaimRewardScreenState extends State<StaffClaimRewardScreen> {
   final TextEditingController _searchController = TextEditingController();
 
-  // _userId can be null if we search manually (we get it from the reward data later)
   String? _userId;
   String? _redeemedId;
 
@@ -31,13 +30,13 @@ class _StaffClaimRewardScreenState extends State<StaffClaimRewardScreen> {
   }
 
   void _onManualSearch() {
-    FocusScope.of(context).unfocus(); // Hide keyboard
+    FocusScope.of(context).unfocus(); 
     final text = _searchController.text.trim();
 
     if (text.isNotEmpty) {
       setState(() {
         _redeemedId = text;
-        _userId = null; // Reset user ID, let the content widget fetch it
+        _userId = null; 
       });
     }
   }
@@ -45,8 +44,6 @@ class _StaffClaimRewardScreenState extends State<StaffClaimRewardScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-
-    // Show content if we have a Reward ID (User ID is optional at this stage)
     final bool showContent = _redeemedId != null && _redeemedId!.isNotEmpty;
 
     return Scaffold(
@@ -60,23 +57,16 @@ class _StaffClaimRewardScreenState extends State<StaffClaimRewardScreen> {
           padding: const EdgeInsets.all(20),
           child: Column(
             children: [
-              // --- 1. Search / Scan Section ---
               Row(
                 children: [
-                  // Text Input
                   Expanded(
                     child: SearchBar(
                       controller: _searchController,
                       hintText: "Enter Reward ID",
                       textInputAction: TextInputAction.search,
                       onSubmitted: (_) => _onManualSearch(),
-
-                      // Leading Icon: Search
                       leading: const Icon(Icons.search),
-
-                      // Trailing Icons: Clear & Scan
                       trailing: [
-                        // Clear Button (Only show if text exists)
                         if (_searchController.text.isNotEmpty)
                           IconButton(
                             icon: const Icon(Icons.clear),
@@ -95,7 +85,6 @@ class _StaffClaimRewardScreenState extends State<StaffClaimRewardScreen> {
 
                   const SizedBox(width: 12),
 
-                  // Scan Button
                   IconButton.filled(
                     style: IconButton.styleFrom(
                       backgroundColor: theme.colorScheme.primary,
@@ -125,7 +114,6 @@ class _StaffClaimRewardScreenState extends State<StaffClaimRewardScreen> {
 
               const SizedBox(height: 30),
 
-              // --- 2. Results or Empty State ---
               if (showContent)
                 RewardClaimContent(
                   userId: _userId,

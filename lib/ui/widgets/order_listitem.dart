@@ -1,7 +1,7 @@
 import 'package:cheng_eng_3/colorscheme/colorscheme.dart';
 import 'package:cheng_eng_3/core/models/order_model.dart';
 import 'package:cheng_eng_3/core/services/image_service.dart';
-import 'package:cheng_eng_3/ui/extensions/order_extension.dart'; // Ensure correct import
+import 'package:cheng_eng_3/ui/extensions/order_extension.dart'; 
 import 'package:cheng_eng_3/ui/widgets/imagebuilder.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -26,13 +26,11 @@ class OrderListitem extends ConsumerWidget {
     final imageService = ref.read(imageServiceProvider);
     final theme = Theme.of(context);
 
-    // Get lead item for display
     final leadItem = (order.items != null && order.items!.isNotEmpty)
         ? order.items!.first
         : null;
     final otherItemCount = (order.items?.length ?? 0) - 1;
 
-    // Helper to get image URL safely
     String? getLeadImageUrl() {
       if (leadItem != null && leadItem.photoPaths.isNotEmpty) {
         return imageService.retrieveImageUrl(leadItem.photoPaths.first);
@@ -59,7 +57,6 @@ class OrderListitem extends ConsumerWidget {
                       color: theme.colorScheme.onSurfaceVariant,
                     ),
                   ),
-                  // Custom Status Chip (Cleaner than Material Chip)
                   Container(
                     padding: const EdgeInsets.symmetric(
                       horizontal: 8,
@@ -74,7 +71,7 @@ class OrderListitem extends ConsumerWidget {
                       style: TextStyle(
                         fontSize: 11,
                         fontWeight: FontWeight.bold,
-                        color: order.status.color, // Darker text for contrast
+                        color: order.status.color, 
                       ),
                     ),
                   ),

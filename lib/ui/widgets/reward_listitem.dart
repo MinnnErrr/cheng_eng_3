@@ -33,7 +33,7 @@ class RewardListitem extends ConsumerWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // --- 1. EXPIRY DATE BADGE (Above Content) ---
+              // --- 1. EXPIRY DATE BADGE ---
               if (reward.availableUntil != null) ...[
                 Container(
                   padding: const EdgeInsets.symmetric(
@@ -42,7 +42,7 @@ class RewardListitem extends ConsumerWidget {
                   ),
                   decoration: BoxDecoration(
                     color:
-                        theme.colorScheme.primaryContainer, // Yellow background
+                        theme.colorScheme.primaryContainer,
                     borderRadius: BorderRadius.circular(6),
                   ),
                   child: Row(
@@ -64,7 +64,7 @@ class RewardListitem extends ConsumerWidget {
                     ],
                   ),
                 ),
-                const SizedBox(height: 12), // Spacing between date and content
+                const SizedBox(height: 12), 
               ],
 
               // --- 2. MAIN CONTENT ROW ---
@@ -116,7 +116,7 @@ class RewardListitem extends ConsumerWidget {
                           style: theme.textTheme.bodySmall?.copyWith(
                             color: theme.colorScheme.onSurfaceVariant,
                             fontFamily:
-                                'monospace', // Makes code look technical
+                                'monospace', 
                           ),
                         ),
                         const SizedBox(height: 10),
@@ -124,7 +124,7 @@ class RewardListitem extends ConsumerWidget {
                           '${reward.points} pts',
                           style: theme.textTheme.titleMedium?.copyWith(
                             fontWeight: FontWeight.w800,
-                            color: const Color(0xFF9E7C00), // Gold/Yellow
+                            color: const Color(0xFF9E7C00),
                           ),
                         ),
                       ],

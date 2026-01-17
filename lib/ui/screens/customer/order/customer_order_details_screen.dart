@@ -68,7 +68,6 @@ class _CustomerOrderDetailsScreenState
 
     final orderAsync = ref.watch(orderByIdProvider(effectiveId));
 
-    // Optimistic / Fallback logic
     Order? currentOrder;
     if (orderAsync.hasValue) {
       currentOrder = orderAsync.value;
@@ -105,7 +104,6 @@ class _CustomerOrderDetailsScreenState
                 width: double.infinity,
                 padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
-                  // Use Status Color for background with low opacity
                   color: currentOrder.status.color.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(16),
                   border: Border.all(
@@ -182,7 +180,6 @@ class _CustomerOrderDetailsScreenState
               ),
               const SizedBox(height: 12),
 
-              // Ensure OrderSummary handles its own styling, but we wrap it for consistency
               OrderSummary(
                 subtotal: currentOrder.subtotal,
                 total: currentOrder.total,

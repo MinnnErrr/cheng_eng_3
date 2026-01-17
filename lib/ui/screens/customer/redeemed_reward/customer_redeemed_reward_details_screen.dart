@@ -5,6 +5,7 @@ import 'package:cheng_eng_3/core/controllers/realtime_provider.dart';
 import 'package:cheng_eng_3/core/controllers/redeem_reward/redeemed_reward_by_id_provider.dart';
 import 'package:cheng_eng_3/core/models/redeemed_reward_model.dart';
 import 'package:cheng_eng_3/core/services/image_service.dart';
+import 'package:cheng_eng_3/ui/extensions/redeemed_reward_extension.dart';
 import 'package:cheng_eng_3/utils/status_colour.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -28,7 +29,7 @@ class CustomerRedeemedRewardDetailsScreen extends ConsumerStatefulWidget {
 class _CustomerRedeemedRewardDetailsScreenState
     extends ConsumerState<CustomerRedeemedRewardDetailsScreen> {
   final PageController _pageController = PageController();
-  final _dateFormatter = DateFormat('dd MMM yyyy, h:mm a'); // More readable
+  final _dateFormatter = DateFormat('dd MMM yyyy, h:mm a');
 
   @override
   Widget build(BuildContext context) {
@@ -64,7 +65,7 @@ class _CustomerRedeemedRewardDetailsScreenState
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // 1. HERO IMAGE SLIDER (Fixed Layout)
+              // 1. HERO IMAGE SLIDER
               _buildImageSlider(displayReward, theme),
 
               Padding(
@@ -80,12 +81,8 @@ class _CustomerRedeemedRewardDetailsScreenState
                         padding: const EdgeInsets.all(12),
                         decoration: BoxDecoration(
                           color: displayReward.isClaimed
-                              ? Colors
-                                    .grey
-                                    .shade200 // Grey if used
-                              : theme
-                                    .colorScheme
-                                    .errorContainer, // Red if active/expiring
+                              ? Colors.grey.shade200
+                              : theme.colorScheme.errorContainer,
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: Row(
@@ -143,7 +140,6 @@ class _CustomerRedeemedRewardDetailsScreenState
                       decoration: BoxDecoration(
                         color: theme.colorScheme.surfaceContainer,
                         borderRadius: BorderRadius.circular(12),
-                        // Add subtle border to match app theme
                         border: Border.all(
                           color: theme.colorScheme.outlineVariant.withValues(
                             alpha: 0.6,
@@ -156,10 +152,7 @@ class _CustomerRedeemedRewardDetailsScreenState
                             context,
                             'Status',
                             displayReward.isClaimed ? 'USED' : 'ACTIVE',
-                            valueColor: getRedeemedRewardStatusColor(
-                              displayReward.isClaimed,
-                              context,
-                            ),
+                            valueColor: displayReward.statusColor
                           ),
                           const Divider(height: 24),
                           _buildMetaRow(
@@ -199,7 +192,7 @@ class _CustomerRedeemedRewardDetailsScreenState
 
                     const SizedBox(height: 30),
 
-                    // 6. REMARKS (Friendly Style)
+                    // 6. REMARKS
                     if (displayReward.conditions?.isNotEmpty == true)
                       Container(
                         width: double.infinity,
@@ -242,7 +235,6 @@ class _CustomerRedeemedRewardDetailsScreenState
                         ),
                       ),
 
-                    // Bottom Padding
                     const SizedBox(height: 40),
                   ],
                 ),
@@ -254,7 +246,6 @@ class _CustomerRedeemedRewardDetailsScreenState
     );
   }
 
-  // ✅ Fixed Image Slider (No Expanded issue)
   Widget _buildImageSlider(RedeemedReward reward, ThemeData theme) {
     if (reward.photoPaths.isEmpty) {
       return Container(
@@ -307,7 +298,6 @@ class _CustomerRedeemedRewardDetailsScreenState
             },
           ),
 
-          // Gradient
           Positioned(
             bottom: 0,
             left: 0,
@@ -404,7 +394,6 @@ class _CustomerRedeemedRewardDetailsScreenState
               ),
               const SizedBox(height: 24),
 
-              // White container ensures high contrast for scanning
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(

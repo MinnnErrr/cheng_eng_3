@@ -92,7 +92,7 @@ class VehicleListitem extends ConsumerWidget {
                       style: textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.bold,
                         letterSpacing: 0.5,
-                        color: theme.onSurface, // Black
+                        color: theme.onSurface, 
                       ),
                     ),
 
@@ -100,7 +100,7 @@ class VehicleListitem extends ConsumerWidget {
                     Text(
                       '$make $model',
                       style: textTheme.bodyMedium?.copyWith(
-                        color: theme.onSurface, // Black
+                        color: theme.onSurface, 
                       ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
@@ -111,7 +111,7 @@ class VehicleListitem extends ConsumerWidget {
                       Text(
                         footerText,
                         style: textTheme.labelMedium?.copyWith(
-                          color: theme.onSurfaceVariant, // Grey Text
+                          color: theme.onSurfaceVariant, 
                         ),
                       ),
                     ],

@@ -31,7 +31,7 @@ class _InitialProfileScreenState extends ConsumerState<InitialProfileScreen> {
   String? _gender;
   DateTime? _birthday;
 
-  bool _isSubmitting = false; // Local loading state for the button
+  bool _isSubmitting = false;
 
   @override
   void dispose() {
@@ -47,7 +47,6 @@ class _InitialProfileScreenState extends ConsumerState<InitialProfileScreen> {
     final profileNotifier = ref.read(profileProvider.notifier);
     final theme = Theme.of(context);
 
-    // Common Input Decoration to match your 'textFormField' widget style
     final inputDecoration = InputDecoration(
       filled: true,
       fillColor: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
@@ -72,9 +71,6 @@ class _InitialProfileScreenState extends ConsumerState<InitialProfileScreen> {
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (error, stack) => Center(child: Text('Error: $error')),
         data: (profile) {
-          // Pre-fill logic if editing (Optional)
-          // if (profile != null && _nameController.text.isEmpty) { ... }
-
           return SafeArea(
             child: SingleChildScrollView(
               padding: const EdgeInsets.all(24),
@@ -83,7 +79,6 @@ class _InitialProfileScreenState extends ConsumerState<InitialProfileScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    // Header
                     const SizedBox(height: 20),
                     Text(
                       'Create Profile',
@@ -101,7 +96,6 @@ class _InitialProfileScreenState extends ConsumerState<InitialProfileScreen> {
                     ),
                     const SizedBox(height: 40),
 
-                    // Read-only Email
                     textFormField(
                       label: 'Email',
                       initialValue: user.value?.email ?? '',
@@ -111,7 +105,6 @@ class _InitialProfileScreenState extends ConsumerState<InitialProfileScreen> {
                     ),
                     const SizedBox(height: 20),
 
-                    // Name
                     textFormField(
                       label: 'Full Name',
                       controller: _nameController,
@@ -120,7 +113,6 @@ class _InitialProfileScreenState extends ConsumerState<InitialProfileScreen> {
                     ),
                     const SizedBox(height: 20),
 
-                    // Phone Field
                     IntlPhoneField(
                       initialCountryCode: _countryCode,
                       decoration: inputDecoration.copyWith(
@@ -136,7 +128,6 @@ class _InitialProfileScreenState extends ConsumerState<InitialProfileScreen> {
                     ),
                     const SizedBox(height: 20),
 
-                    // Gender Dropdown
                     DropdownButtonFormField<String>(
                       decoration: inputDecoration.copyWith(
                         labelText: 'Gender',
@@ -156,7 +147,6 @@ class _InitialProfileScreenState extends ConsumerState<InitialProfileScreen> {
                     ),
                     const SizedBox(height: 20),
 
-                    // Birthday Picker
                     textFormField(
                       validationRequired: false,
                       controller: _dateController,
@@ -179,7 +169,6 @@ class _InitialProfileScreenState extends ConsumerState<InitialProfileScreen> {
 
                     const SizedBox(height: 40),
 
-                    // Submit Button
                     FilledButton(
                       onPressed: _isSubmitting
                           ? null
@@ -188,17 +177,14 @@ class _InitialProfileScreenState extends ConsumerState<InitialProfileScreen> {
 
                               setState(() => _isSubmitting = true);
 
-                              // Construct full phone number usually required by backend
-                              // final fullPhone = '$_dialCode$_phoneNum';
-
                               final success = await profileNotifier.createProfile(
                                 name: _nameController.text.trim(),
                                 email: user.value?.email ?? '',
                                 phoneNum:
-                                    _phoneNum!, // Safe now due to check above
+                                    _phoneNum!, 
                                 countryCode: _countryCode,
                                 dialCode: _dialCode,
-                                gender: _gender!, // Safe due to validator
+                                gender: _gender!, 
                                 birthday: _birthday,
                               );
 

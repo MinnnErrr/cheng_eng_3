@@ -18,8 +18,6 @@ class CustomerBookingNotifier extends _$CustomerBookingNotifier {
     return await _bookingService.getByUser(userId);
   }
 
-  // void refresh() => ref.invalidateSelf();
-
   Future<Message> addBooking({
     required List<BookingServiceType> services,
     required DateTime date,

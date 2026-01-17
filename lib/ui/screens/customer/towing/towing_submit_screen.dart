@@ -404,7 +404,6 @@ class _TowingSubmitScreenState extends ConsumerState<TowingSubmitScreen> {
                             });
                             Navigator.pop(context);
                           },
-                          // ✅ FIXED: Passing individual fields as requested
                           child: VehicleListitem(
                             make: vehicle.make,
                             model: vehicle.model,
@@ -412,8 +411,6 @@ class _TowingSubmitScreenState extends ConsumerState<TowingSubmitScreen> {
                             photoPath: vehicle.photoPath,
                             colour: vehicle.colour,
                             year: vehicle.year,
-                            // Ensure descriptionRequired/etc are handled if your widget needs them
-                            // descriptionRequired: false,
                           ),
                         );
                       },

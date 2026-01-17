@@ -39,14 +39,11 @@ class _CustomerRewardDetailsScreenState
       return const Scaffold(body: Center(child: Text('No user found')));
     }
 
-    // Optimistic UI
     final rewardAsync = ref.watch(rewardByIdProvider(widget.reward.id));
     final currentReward = rewardAsync.value ?? widget.reward;
 
-    // Points
     final totalPointsAsync = ref.watch(totalPointsProvider(user.id));
 
-    // Notifier
     final redeemedRewardNotifier = ref.watch(
       redeemedRewardProvider(user.id).notifier,
     );
@@ -122,9 +119,9 @@ class _CustomerRewardDetailsScreenState
                         ),
                       ),
                       child: Text(
-                        '#${currentReward.code}', // The ID
+                        '#${currentReward.code}',
                         style: theme.textTheme.bodySmall?.copyWith(
-                          fontFamily: 'monospace', // <--- MONOSPACE FONT
+                          fontFamily: 'monospace', 
                           fontWeight: FontWeight.bold,
                           letterSpacing: 1.0,
                           color: theme.colorScheme.onSurfaceVariant,
@@ -139,7 +136,6 @@ class _CustomerRewardDetailsScreenState
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
-                        // Points (Left)
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
@@ -152,14 +148,12 @@ class _CustomerRewardDetailsScreenState
                             const SizedBox(height: 4),
                             Row(
                               crossAxisAlignment: CrossAxisAlignment.baseline,
-                              // 2. Specify which baseline to use (Alphabetic is standard for text)
                               textBaseline: TextBaseline.alphabetic,
                               children: [
                                 Text(
                                   '${currentReward.points}',
                                   style: theme.textTheme.headlineSmall
                                       ?.copyWith(
-                                        // Large & Standardized
                                         fontWeight: FontWeight.bold,
                                         color: textYellow,
                                       ),
@@ -178,7 +172,6 @@ class _CustomerRewardDetailsScreenState
                           ],
                         ),
 
-                        // Stock Pill (Right)
                         Container(
                           margin: const EdgeInsets.only(bottom: 6),
                           padding: const EdgeInsets.symmetric(

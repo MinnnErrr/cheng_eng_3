@@ -19,8 +19,6 @@ class StaffProductNotifier extends _$StaffProductNotifier {
     return await _productService.getAllProducts();
   }
 
-  // void refresh() => ref.invalidateSelf();
-
   Future<Message> addProduct({
     required String name,
     required String category,

@@ -20,12 +20,10 @@ final maintenanceByNearestDateProvider =
 
   if (upcoming.isEmpty) return MaintenanceList(maintenances: []);
 
-  // Sort by nearest date
   upcoming.sort((a, b) => a.nextServDate.compareTo(b.nextServDate));
 
   final nearestDate = upcoming.first.nextServDate;
 
-  // Select only maintenance tasks with the same nearest date
   final filtered = upcoming.where((m) {
     return m.nextServDate.year == nearestDate.year &&
         m.nextServDate.month == nearestDate.month &&

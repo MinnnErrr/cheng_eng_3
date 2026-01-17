@@ -18,11 +18,10 @@ class PointHistoryNotifier extends _$PointHistoryNotifier {
     return records;
   }
 
-  // void refresh() => ref.invalidateSelf();
 
   Future<Message> addPoints({
     required String userId,
-    required int points, // e.g. 100
+    required int points,
     required String reason,
     required bool isIssuedByStaff,
   }) async {
@@ -46,7 +45,7 @@ class PointHistoryNotifier extends _$PointHistoryNotifier {
 
   Future<Message> deductPoints({
     required String userId,
-    required int pointsToDeduct, // e.g. 50 (Positive input)
+    required int pointsToDeduct,
     required String reason,
     required bool isIssuedByStaff,
   }) async {
@@ -54,10 +53,8 @@ class PointHistoryNotifier extends _$PointHistoryNotifier {
       return Message(isSuccess: false, message: "Amount must be positive");
     }
 
-    // 1. Get current list from state
     final currentHistory = state.value ?? [];
 
-    // 2. Calculate sum locally
     final currentBalance = currentHistory.fold<int>(
       0,
       (sum, item) => sum + item.points,

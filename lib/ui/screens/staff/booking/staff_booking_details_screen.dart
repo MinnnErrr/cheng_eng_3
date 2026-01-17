@@ -25,17 +25,14 @@ class _StaffBookingDetailsScreenState
 
   @override
   Widget build(BuildContext context) {
-    // Watch for live updates
     final bookingAsync = ref.watch(bookingByIdProvider(widget.booking.id));
     final currentBooking = bookingAsync.value ?? widget.booking;
     final notifier = ref.read(staffBookingProvider.notifier);
 
-    // Status Logic
     final bool isCancelled = currentBooking.status == BookingStatus.cancelled;
     final bool isCompleted = currentBooking.status == BookingStatus.completed;
     final bool canUpdate = !isCancelled && !isCompleted;
 
-    // Check for changes
     final bool isChanged =
         _selectedStatus != null && _selectedStatus != currentBooking.status;
 
@@ -161,7 +158,7 @@ class _StaffBookingDetailsScreenState
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  // --- HERO STATUS CARD (Without Vehicle Image) ---
+                  // --- HERO STATUS CARD ---
                   Container(
                     padding: const EdgeInsets.all(20),
                     decoration: BoxDecoration(
@@ -183,7 +180,6 @@ class _StaffBookingDetailsScreenState
                           style: TextStyle(
                             fontSize: 12,
                             fontWeight: FontWeight.bold,
-                            // Use status color for text to make it pop
                             color: currentBooking.status.color,
                             letterSpacing: 1.2,
                           ),
@@ -197,7 +193,6 @@ class _StaffBookingDetailsScreenState
                           ),
                         ),
                         const SizedBox(height: 12),
-                        // Date & Time
                         Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
@@ -222,7 +217,7 @@ class _StaffBookingDetailsScreenState
 
                   const SizedBox(height: 30),
 
-                  // --- VEHICLE INFO (Using Reusable Widget) ---
+                  // --- VEHICLE INFO ---
                   Text(
                     'Vehicle Information',
                     style: theme.textTheme.titleMedium!.copyWith(
@@ -240,7 +235,7 @@ class _StaffBookingDetailsScreenState
 
                   const SizedBox(height: 30),
 
-                  // --- BOOKING DETAILS (Services, Remarks, etc.) ---
+                  // --- BOOKING DETAILS ---
                   Text(
                     'Service Details',
                     style: theme.textTheme.titleMedium!.copyWith(

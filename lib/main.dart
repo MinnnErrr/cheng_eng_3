@@ -38,27 +38,11 @@ Future<void> main() async {
 class MyApp extends ConsumerWidget {
   const MyApp({super.key});
 
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return MaterialApp(
       title: 'Cheng Eng Auto Accessories',
       theme: ThemeData(
-        // This is the theme of your application.
-        //
-        // TRY THIS: Try running your application with "flutter run". You'll see
-        // the application has a purple toolbar. Then, without quitting the app,
-        // try changing the seedColor in the colorScheme below to Colors.green
-        // and then invoke "hot reload" (save your changes or press the "hot
-        // reload" button in a Flutter-supported IDE, or press "r" if you used
-        // the command line to start the app).
-        //
-        // Notice that the counter didn't reset back to zero; the application
-        // state is not lost during the reload. To reset the state, use hot
-        // restart instead.
-        //
-        // This works for code too, not just values: Most code changes can be
-        // tested with just a hot reload.
         colorScheme: chengEngCustomScheme,
         scaffoldBackgroundColor: chengEngCustomScheme.surface,
         appBarTheme: AppBarTheme(
@@ -93,11 +77,8 @@ class MyApp extends ConsumerWidget {
         ),
 
         textSelectionTheme: TextSelectionThemeData(
-          cursorColor: chengEngCustomScheme.onSurface, // Black
-          // 2. The Color of the "Teardrop" handles when you select text
-          selectionHandleColor: chengEngCustomScheme.onSurface, // Black
-          // 3. The Highlight color when you drag-select text
-          // We use your Primary Yellow but with low opacity so you can read the text through it
+          cursorColor: chengEngCustomScheme.onSurface, 
+          selectionHandleColor: chengEngCustomScheme.onSurface 
           selectionColor: chengEngCustomScheme.primary.withValues(alpha: 0.4),
         ),
 
@@ -105,9 +86,6 @@ class MyApp extends ConsumerWidget {
           color: chengEngCustomScheme.surfaceContainer,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
-            // side: BorderSide(
-            //   color: chengEngCustomScheme.outlineVariant.withValues(alpha: 0.8),
-            // ), // Subtle border
           ),
           elevation: 0.3,
           margin: EdgeInsets.zero,
@@ -150,7 +128,6 @@ class GlobalListenerWrapper extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // Keep these providers alive!
     ref.watch(towingRealtimeProvider);
     ref.watch(productRealTimeProvider);
     ref.watch(rewardRealTimeProvider);
@@ -168,10 +145,6 @@ class Main extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // --- 1. LISTENERS (Side Effects) ---
-    // Handle events like Password Recovery here.
-    // Note: We don't need to handle 'signedIn' or 'signedOut' navigation here
-    // because the 'watch' logic below handles the screen switching automatically.
     ref.listen(authStateStreamProvider, (previous, next) {
       next.whenData((authState) {
         if (authState.event == AuthChangeEvent.passwordRecovery) {
@@ -184,36 +157,28 @@ class Main extends ConsumerWidget {
       });
     });
 
-    // --- 2. STATE WATCHERS ---
     final userAsync = ref.watch(authProvider);
-
-    // --- 3. UI DECISION TREE ---
+--
     return userAsync.when(
       loading: () =>
           const Scaffold(body: Center(child: CircularProgressIndicator())),
       error: (e, _) => const Scaffold(body: Center(child: Text("Auth Error"))),
       data: (user) {
-        // [State A]: User is NOT logged in
         if (user == null) {
           return const LoginScreen();
         }
 
-        // [State B]: User IS logged in -> Now check Profile/Role
-        // We watch the profile provider here because we know we have a user.
         final profileAsync = ref.watch(profileProvider);
-
         return profileAsync.when(
           loading: () =>
               const Scaffold(body: Center(child: CircularProgressIndicator())),
           error: (e, _) =>
               Scaffold(body: Center(child: Text("Profile Error: $e"))),
           data: (profile) {
-            // [State B1]: Profile not created yet
             if (profile == null) {
               return const InitialProfileScreen();
             }
 
-            // [State B2]: Profile exists -> Check Role
             if (profile.role.toLowerCase() == 'staff') {
               return const StaffMainWrapper();
             } else {

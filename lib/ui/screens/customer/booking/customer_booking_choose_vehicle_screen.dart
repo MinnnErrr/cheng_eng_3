@@ -58,10 +58,8 @@ class _CustomerBookingChooseVehicleScreenState
 
               return InkWell(
                 onTap: () {
-                  // 1. Update State
                   ref.read(bookingStateProvider.notifier).selectVehicle(v);
 
-                  // 2. Navigate Next
                   Navigator.push(
                     context,
                     MaterialPageRoute(
@@ -86,7 +84,7 @@ class _CustomerBookingChooseVehicleScreenState
                   ),
                   child: Stack(
                     children: [
-                      // The List Item
+                      // List Item
                       VehicleListitem(
                         make: v.make,
                         model: v.model,
@@ -95,7 +93,7 @@ class _CustomerBookingChooseVehicleScreenState
                         description: v.description,
                       ),
 
-                      // The Selection Checkmark (Top Right)
+                      // Selection Checkmark
                       if (isSelected)
                         Positioned(
                           top: 8,
@@ -121,7 +119,6 @@ class _CustomerBookingChooseVehicleScreenState
           );
         },
       ),
-      // Always allow adding a new vehicle
       floatingActionButton: FloatingActionButton.extended(
         backgroundColor: theme.colorScheme.primary,
         foregroundColor: theme.colorScheme.onPrimary,
@@ -168,8 +165,6 @@ class _CustomerBookingChooseVehicleScreenState
             "Add a vehicle to proceed with booking",
             style: TextStyle(color: Colors.grey),
           ),
-          // Note: FAB handles the action, so no button needed here,
-          // or you can keep a button if you prefer central action.
         ],
       ),
     );

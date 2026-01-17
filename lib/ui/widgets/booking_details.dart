@@ -14,7 +14,6 @@ class BookingDetailsWidget extends ConsumerWidget {
     final theme = Theme.of(context);
     final metaDateFormatter = DateFormat('dd/MM/yyyy h:mm a');
 
-    // Combine services for display
     final servicesString = booking.services.isEmpty
         ? 'None'
         : booking.services.map((s) => s.serviceName).join(', ');
@@ -29,7 +28,6 @@ class BookingDetailsWidget extends ConsumerWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Services
           _buildSectionHeader(context, "Services"),
           const SizedBox(height: 8),
           Text(
@@ -46,7 +44,6 @@ class BookingDetailsWidget extends ConsumerWidget {
             child: Divider(),
           ),
 
-          // Remarks
           if (booking.remarks != null) ...[
             _buildSectionHeader(context, "Customer Remarks"),
             const SizedBox(height: 8),
@@ -64,7 +61,6 @@ class BookingDetailsWidget extends ConsumerWidget {
             ),
           ],
 
-          // --- 3. METADATA ---
           _buildMetaRow(
             context,
             "Created At",
@@ -96,7 +92,6 @@ class BookingDetailsWidget extends ConsumerWidget {
     );
   }
 
-  // Updated to handle long text wrapping safely
   Widget _buildMetaRow(
     BuildContext context,
     String label,
@@ -105,10 +100,10 @@ class BookingDetailsWidget extends ConsumerWidget {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       crossAxisAlignment:
-          CrossAxisAlignment.start, // Aligns label to top if value wraps
+          CrossAxisAlignment.start, 
       children: [
         SizedBox(
-          width: 120, // Ensures consistent label width
+          width: 120,
           child: Text(
             label,
             style: TextStyle(
@@ -126,7 +121,7 @@ class BookingDetailsWidget extends ConsumerWidget {
               color: Theme.of(context).colorScheme.onSurface,
               fontSize: 14,
               fontWeight: FontWeight.w600,
-              height: 1.3, // Improved line height for wrapped text
+              height: 1.3, 
             ),
           ),
         ),

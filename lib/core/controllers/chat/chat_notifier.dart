@@ -22,10 +22,8 @@ class ChatNotifier extends _$ChatNotifier {
 
   @override
   List<ChatMessage> build() {
-    // Initialize the service when the provider is built
     _chatService.init();
 
-    // Return initial welcome message
     return [
       ChatMessage(
         text: "Hello! How can I help you?",
@@ -43,23 +41,20 @@ class ChatNotifier extends _$ChatNotifier {
       ChatMessage(
         text: "",
         isUser: false,
-        isLoading: true, // ✅ Show spinner immediately
+        isLoading: true, 
       ),
     ];
 
     try {
-      // 3. Stream the response
       final response = await _chatService.sendMessage(text);
 
       final responseText = response.text ?? "Couldn't generate a response.";
 
-      // Update the last message (AI) with the accumulating text
       state = [
         ...state.sublist(0, state.length - 1),
         ChatMessage(text: responseText, isUser: false, isLoading: false),
       ];
     } catch (e) {
-      // Handle Error
       state = [
         ...state.sublist(0, state.length - 1),
         ChatMessage(

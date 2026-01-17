@@ -22,7 +22,6 @@ class StaffPointsHistoryScreen extends ConsumerWidget {
         data: (records) {
           return SafeArea(
             child: RefreshIndicator(
-              // Allows user to pull down to refresh the list
               onRefresh: () async {
                 return ref.refresh(staffPointHistoryProvider.future);
               },

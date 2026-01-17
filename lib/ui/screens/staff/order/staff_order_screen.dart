@@ -17,11 +17,9 @@ class StaffOrderScreen extends ConsumerWidget {
       ),
       body: orderList.when(
         data: (orders) {
-          // FIX 2: Add RefreshIndicator
           return RefreshIndicator(
             onRefresh: () async => ref.refresh(staffOrdersProvider.future),
             child: orders.isEmpty
-                // FIX 3: Empty state must be scrollable to allow Refresh
                 ? ListView(
                     physics: const AlwaysScrollableScrollPhysics(),
                     children: [
@@ -56,7 +54,6 @@ class StaffOrderScreen extends ConsumerWidget {
                   ),
           );
         },
-        // Error handling with Retry button
         error: (error, stackTrace) => Center(
           child: Text('Error: $error'),
         ),

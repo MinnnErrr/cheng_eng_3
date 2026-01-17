@@ -1,7 +1,7 @@
 import 'package:cheng_eng_3/core/models/product_model.dart';
 import 'package:cheng_eng_3/core/services/image_service.dart';
+import 'package:cheng_eng_3/ui/extensions/product_extension.dart';
 import 'package:cheng_eng_3/ui/widgets/imagebuilder.dart';
-import 'package:cheng_eng_3/utils/status_colour.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -31,7 +31,6 @@ class StaffProductListitem extends ConsumerWidget {
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // --- 4. IMAGE ---
             SizedBox(
               width: 100,
               height: 100,
@@ -53,21 +52,18 @@ class StaffProductListitem extends ConsumerWidget {
               ),
             ),
 
-            // --- 5. DETAILS (Left Side) ---
             Expanded(
               child: Padding(
                 padding: const EdgeInsets.all(12),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Brand & Name
                     Text(
                       '${product.brand} ${product.name} ${product.model ?? ''}',
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                       style: theme.textTheme.bodyMedium?.copyWith(
                         fontWeight: FontWeight.bold,
-                        // Grey out title if inactive
                         color: isActive
                             ? theme.colorScheme.onSurface
                             : theme.colorScheme.onSurface.withValues(
@@ -85,14 +81,13 @@ class StaffProductListitem extends ConsumerWidget {
 
                     const SizedBox(height: 10),
 
-                    // Price
                     Text(
                       'RM ${product.price.toStringAsFixed(2)}',
                       style: theme.textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.bold,
                         color: isActive
-                            ? const Color(0xFF9E7C00) // Gold/Yellow
-                            : Colors.grey, // Grey if inactive
+                            ? const Color(0xFF9E7C00) 
+                            : Colors.grey, 
                       ),
                     ),
                   ],
@@ -100,26 +95,24 @@ class StaffProductListitem extends ConsumerWidget {
               ),
             ),
 
-            // --- 6. STATUS & CHIPS (Right Side) ---
             Padding(
               padding: const EdgeInsets.all(12),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
-                  // B. Availability Chip
                   Container(
                     padding: const EdgeInsets.symmetric(
                       horizontal: 8,
                       vertical: 4,
                     ),
                     decoration: BoxDecoration(
-                      color: getProductAvailabilityColor(product.availability, product.quantity, context).withValues(alpha: 0.1),
+                      color: product.availability.getcolor(product.quantity).withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(6),
                     ),
                     child: Text(
-                      getProductAvailabilityName(product.availability, product.quantity, context),
+                     product.availability.getlabel(product.quantity),
                       style: theme.textTheme.labelSmall?.copyWith(
-                        color: getProductAvailabilityColor(product.availability, product.quantity, context),
+                        color: product.availability.getcolor(product.quantity),
                         fontWeight: FontWeight.bold,
                       ),
                     ),
@@ -127,7 +120,6 @@ class StaffProductListitem extends ConsumerWidget {
 
                   const SizedBox(height: 8),
 
-                  // C. Stock Count
                   if (product.quantity != null)
                     Text(
                       'Qty: ${product.quantity}',

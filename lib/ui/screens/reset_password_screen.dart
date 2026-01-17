@@ -32,13 +32,11 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
 
     return Scaffold(
       backgroundColor: Colors.black,
-      // 1. Safe Layout for Keyboard
       body: SingleChildScrollView(
         child: SizedBox(
           height: screenSize.height,
           child: Column(
             children: [
-              // --- TOP: Logo Section ---
               Expanded(
                 flex: 3,
                 child: Container(
@@ -50,7 +48,6 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
                 ),
               ),
 
-              // --- BOTTOM: Form Section ---
               Expanded(
                 flex: 7,
                 child: Container(
@@ -89,7 +86,6 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
 
                         const SizedBox(height: 30),
 
-                        // Password Input
                         TextFormField(
                           controller: _passwordCtrl,
                           decoration: InputDecoration(
@@ -113,13 +109,10 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
                           obscureText: _obscurePassword,
                           textInputAction: TextInputAction.done,
                           autofillHints: const [AutofillHints.newPassword],
-
-                          // Visibility Toggle
                         ),
 
                         const SizedBox(height: 40),
 
-                        // Update Button
                         FilledButton(
                           onPressed: userState.isLoading
                               ? null
@@ -128,12 +121,8 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
                                      return;
                                   }
                                    
-
-                                  // Hide Keyboard
                                   FocusScope.of(context).unfocus();
 
-                                  // 1. Update the password
-                                  // (Since we are authenticated via link, this works)
                                   final message = await userNotifier
                                       .resetPassword(
                                         _passwordCtrl.text.trim(),
@@ -148,12 +137,10 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
                                   );
 
                                   if (message.isSuccess) {
-                                    // 2. IMPORTANT: Sign out to kill the magic link session
                                     await userNotifier.signOut();
 
                                     if (!context.mounted) return;
 
-                                    // 3. Redirect to Login to force fresh authentication
                                     Navigator.of(context).pushAndRemoveUntil(
                                       MaterialPageRoute(
                                         builder: (_) => const LoginScreen(),
@@ -181,7 +168,6 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
 
                         const SizedBox(height: 16),
 
-                        // Cancel Button
                         SizedBox(
                           height: 50,
                           child: OutlinedButton(
@@ -201,8 +187,6 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
                               ),
                             ),
                             onPressed: () async {
-                              // If they cancel, we MUST sign them out so they
-                              // don't stay logged in via the temporary magic link.
                               await ref.read(authProvider.notifier).signOut();
 
                               if (!context.mounted) return;

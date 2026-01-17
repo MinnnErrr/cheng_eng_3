@@ -19,7 +19,7 @@ class _CustomerBookingChooseDatetimeScreenState
     extends ConsumerState<CustomerBookingChooseDatetimeScreen> {
   final _dateFormatter = DateFormat(
     'dd MMM yyyy, EEEE',
-  ); // Example: 12 Oct 2023, Thursday
+  ); 
   final slots = generateTimeSlots();
 
   DateTime? _selectedDate;
@@ -28,7 +28,6 @@ class _CustomerBookingChooseDatetimeScreenState
   @override
   void initState() {
     super.initState();
-    // 1. Restore State
     final currentBooking = ref.read(bookingStateProvider);
     if (currentBooking.date != null) {
       _selectedDate = currentBooking.date;
@@ -43,7 +42,7 @@ class _CustomerBookingChooseDatetimeScreenState
     if (date != null) {
       setState(() {
         _selectedDate = date;
-        _selectedTime = null; // Reset time if date changes
+        _selectedTime = null; 
       });
     }
   }
@@ -52,7 +51,6 @@ class _CustomerBookingChooseDatetimeScreenState
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    // 2. Fetch Availability
     final availabilityAsync = _selectedDate == null
         ? const AsyncValue.data({})
         : ref.watch(bookingPerSlotProvider(_selectedDate!));
@@ -181,7 +179,7 @@ class _CustomerBookingChooseDatetimeScreenState
                                 final isSelected = _selectedTime == time;
                                 final currentBookings = slotCounts[time] ?? 0;
                                 final isFull =
-                                    currentBookings >= 5; // Max Capacity
+                                    currentBookings >= 5; 
 
                                 return InkWell(
                                   onTap: isFull
@@ -194,7 +192,7 @@ class _CustomerBookingChooseDatetimeScreenState
                                     width:
                                         (MediaQuery.of(context).size.width -
                                             64) /
-                                        3, // 3 cols approx
+                                        3,
                                     padding: const EdgeInsets.symmetric(
                                       vertical: 12,
                                     ),
@@ -270,7 +268,6 @@ class _CustomerBookingChooseDatetimeScreenState
             onPressed: (_selectedDate == null || _selectedTime == null)
                 ? null
                 : () {
-                    // Update State
                     ref
                         .read(bookingStateProvider.notifier)
                         .selectDate(_selectedDate!);
@@ -278,7 +275,6 @@ class _CustomerBookingChooseDatetimeScreenState
                         .read(bookingStateProvider.notifier)
                         .selectTime(_selectedTime!);
 
-                    // Navigate
                     Navigator.push(
                       context,
                       MaterialPageRoute(

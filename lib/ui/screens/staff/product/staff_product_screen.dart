@@ -1,6 +1,5 @@
 
 import 'package:cheng_eng_3/core/controllers/product/staff_product_notifier.dart';
-import 'package:cheng_eng_3/core/enums/sorting_enum.dart';
 import 'package:cheng_eng_3/core/models/product_model.dart';
 import 'package:cheng_eng_3/ui/extensions/product_extension.dart';
 import 'package:cheng_eng_3/ui/screens/staff/product/staff_product_create_screen.dart';
@@ -47,11 +46,9 @@ class _StaffProductScreenState extends ConsumerState<StaffProductScreen> {
       ),
       body: productsAsync.when(
         data: (products) {
-          // 1. Extract Categories
           _filterCategories = products.map((p) => p.category).toSet().toList()
             ..sort();
 
-          // 2. Filter List
           final filtered = productSearchSortFilter(
             products: products,
             search: _search,
@@ -61,7 +58,6 @@ class _StaffProductScreenState extends ConsumerState<StaffProductScreen> {
             isActive: _isActive,
           );
 
-          // 3. Calc Stats
           int outOfStock = 0;
           int readyStock = 0;
           int preorder = 0;
@@ -126,16 +122,12 @@ class _StaffProductScreenState extends ConsumerState<StaffProductScreen> {
                           child: SearchBar(
                             hintText: "Search products...",
                             onChanged: (v) => setState(() => _search = v),
-
-                            // 1. Icons
                             leading: const Icon(Icons.search),
-                            // Optional: Add a clear button in the trailing list if text exists
                             trailing: _search.isNotEmpty
                                 ? [
                                     IconButton(
                                       icon: const Icon(Icons.clear),
                                       onPressed: () {
-                                        // If you have a controller, clear it here too
                                         setState(() => _search = "");
                                       },
                                     ),
@@ -240,8 +232,6 @@ class _StaffProductScreenState extends ConsumerState<StaffProductScreen> {
     );
   }
 
-  // --- SUB-WIDGETS & SHEETS ---
-
   void _openFilterSheet() {
     showModalBottomSheet(
       context: context,
@@ -290,7 +280,7 @@ class _StaffProductScreenState extends ConsumerState<StaffProductScreen> {
                     items: ProductAvailability.values
                         .map(
                           (a) =>
-                              DropdownMenuItem(value: a, child: Text(a.label)),
+                              DropdownMenuItem(value: a, child: Text(a.dropDownOption)),
                         )
                         .toList(),
                     onChanged: (v) => setSheetState(() => _availability = v),
@@ -337,7 +327,7 @@ class _StaffProductScreenState extends ConsumerState<StaffProductScreen> {
                       Expanded(
                         child: FilledButton(
                           onPressed: () {
-                            setState(() {}); // Trigger rebuild
+                            setState(() {});
                             Navigator.pop(context);
                           },
                           child: const Text("Apply Filters"),
@@ -404,7 +394,6 @@ class _StaffProductScreenState extends ConsumerState<StaffProductScreen> {
   }
 }
 
-// --- STAT CARD WIDGET ---
 class _StatCard extends StatelessWidget {
   final String label;
   final int value;
@@ -423,7 +412,6 @@ class _StatCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(12),
-        // border: Border.all(color: color.withValues(alpha: 0.3)),
         boxShadow: [
           BoxShadow(
             color: color.withValues(alpha: 0.05),
