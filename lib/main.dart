@@ -122,12 +122,46 @@ class MyApp extends ConsumerWidget {
   }
 }
 
-class GlobalListenerWrapper extends ConsumerWidget {
-  final Widget child;
+class GlobalListenerWrapper extends ConsumerStatefulWidget {
   const GlobalListenerWrapper({super.key, required this.child});
+  final Widget child;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<GlobalListenerWrapper> createState() =>
+      _GlobalListenerWrapperState();
+}
+
+class _GlobalListenerWrapperState extends ConsumerState<GlobalListenerWrapper>
+    with WidgetsBindingObserver {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      debugPrint("App Resumed: Restarting Realtime Listeners...");
+
+      ref.invalidate(towingRealtimeProvider);
+      ref.invalidate(productRealTimeProvider);
+      ref.invalidate(rewardRealTimeProvider);
+      ref.invalidate(pointHistoryRealTimeProvider);
+      ref.invalidate(redeemedRewardRealTimeProvider);
+      ref.invalidate(bookingRealTimeProvider);
+      ref.invalidate(orderRealTimeProvider);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     ref.watch(towingRealtimeProvider);
     ref.watch(productRealTimeProvider);
     ref.watch(rewardRealTimeProvider);
@@ -136,7 +170,7 @@ class GlobalListenerWrapper extends ConsumerWidget {
     ref.watch(bookingRealTimeProvider);
     ref.watch(orderRealTimeProvider);
 
-    return child;
+    return widget.child;
   }
 }
 
