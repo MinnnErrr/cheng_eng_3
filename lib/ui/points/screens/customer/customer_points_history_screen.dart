@@ -1,4 +1,3 @@
-
 import 'package:cheng_eng_3/ui/auth/notifiers/auth_notifier.dart';
 import 'package:cheng_eng_3/data/providers/point/nearest_expiry_point_provider.dart';
 import 'package:cheng_eng_3/ui/points/notifiers/point_history_notifier.dart';
@@ -58,7 +57,7 @@ class CustomerPointsHistoryScreen extends ConsumerWidget {
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-                    const SizedBox(height: 8), 
+                    const SizedBox(height: 8),
                     totalPointsAsync.when(
                       data: (points) => RichText(
                         text: TextSpan(
@@ -186,9 +185,10 @@ class CustomerPointsHistoryScreen extends ConsumerWidget {
                         ]);
                       },
                       child: ListView.separated(
+                        padding: const EdgeInsets.fromLTRB(0, 0, 0, 80),
                         itemCount: records.length,
                         physics: const AlwaysScrollableScrollPhysics(),
-                        separatorBuilder: (_, __) => const SizedBox(height: 8),
+                        separatorBuilder: (context, index) => const Divider(),
                         itemBuilder: (context, index) {
                           return PointHistoryListitem(
                             record: records[index],

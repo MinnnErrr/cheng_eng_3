@@ -27,7 +27,7 @@ class PointHistoryListitem extends ConsumerWidget {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 4),
       child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center, 
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           // Details
           Expanded(
@@ -38,7 +38,7 @@ class PointHistoryListitem extends ConsumerWidget {
                   record.reason,
                   style: const TextStyle(
                     fontWeight: FontWeight.w600,
-                    fontSize: 15,
+                    fontSize: 14,
                   ),
                 ),
                 const SizedBox(height: 4),
@@ -63,6 +63,10 @@ class PointHistoryListitem extends ConsumerWidget {
                 ],
               ],
             ),
+          ),
+
+          const SizedBox(
+            width: 5,
           ),
 
           // Points Value
