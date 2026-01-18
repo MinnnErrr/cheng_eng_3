@@ -86,7 +86,7 @@ class _CustomerProductScreenState extends ConsumerState<CustomerProductScreen> {
                           crossAxisCount: 2,
                           crossAxisSpacing: 12,
                           mainAxisSpacing: 12,
-                          childAspectRatio: 0.7, 
+                          childAspectRatio: 0.7,
                         ),
                     itemCount: filtered.length,
                     itemBuilder: (context, index) {
@@ -168,7 +168,7 @@ class _CustomerProductScreenState extends ConsumerState<CustomerProductScreen> {
           const SizedBox(width: 10),
 
           SizedBox(
-            height: 50, 
+            height: 50,
             width: 50,
             child: IconButton(
               style: IconButton.styleFrom(
@@ -180,7 +180,7 @@ class _CustomerProductScreenState extends ConsumerState<CustomerProductScreen> {
               onPressed: _openFilterSheet,
               icon: const Icon(
                 Icons.tune,
-              ), 
+              ),
             ),
           ),
 
@@ -256,8 +256,10 @@ class _CustomerProductScreenState extends ConsumerState<CustomerProductScreen> {
                     ),
                     items: ProductAvailability.values
                         .map(
-                          (a) =>
-                              DropdownMenuItem(value: a, child: Text(a.dropDownOption)),
+                          (a) => DropdownMenuItem(
+                            value: a,
+                            child: Text(a.dropDownOption),
+                          ),
                         )
                         .toList(),
                     onChanged: (v) =>

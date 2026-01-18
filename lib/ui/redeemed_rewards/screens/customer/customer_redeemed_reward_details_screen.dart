@@ -114,18 +114,32 @@ class _CustomerRedeemedRewardDetailsScreenState
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          '#${displayReward.code}',
-                          style: theme.textTheme.titleMedium!.copyWith(
+                          displayReward.name,
+                          style: theme.textTheme.titleLarge!.copyWith(
                             fontWeight: FontWeight.bold,
-                            color: Color(0xFF9E7C00),
-                            letterSpacing: 1.0,
                           ),
                         ),
                         const SizedBox(height: 4),
-                        Text(
-                          displayReward.name,
-                          style: theme.textTheme.headlineSmall!.copyWith(
-                            fontWeight: FontWeight.bold,
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 4,
+                          ),
+                          decoration: BoxDecoration(
+                            color: theme.colorScheme.surfaceContainerHigh,
+                            borderRadius: BorderRadius.circular(6),
+                            border: Border.all(
+                              color: theme.colorScheme.outlineVariant,
+                            ),
+                          ),
+                          child: Text(
+                            'ID: ${displayReward.id}',
+                            style: theme.textTheme.labelSmall?.copyWith(
+                              fontFamily: 'monospace',
+                              fontWeight: FontWeight.bold,
+                              letterSpacing: 1.0,
+                              color: theme.colorScheme.onSurfaceVariant,
+                            ),
                           ),
                         ),
                       ],

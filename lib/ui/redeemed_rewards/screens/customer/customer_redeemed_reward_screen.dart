@@ -52,34 +52,28 @@ class _CustomerRedeemedRewardScreenState
                 const SizedBox(height: 10),
 
                 // --- SEARCH BAR ---
-                TextField(
+                SearchBar(
                   controller: _searchCtrl,
-                  onChanged: (v) => setState(() => _search = v),
-                  decoration: InputDecoration(
-                    hintText: "Search my rewards...",
-                    prefixIcon: Icon(
-                      Icons.search,
-                      color: theme.colorScheme.onSurfaceVariant,
-                    ),
-                    filled: true,
-                    fillColor: theme.colorScheme.surfaceContainerHighest,
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide.none,
-                    ),
-                    contentPadding: const EdgeInsets.symmetric(vertical: 0),
-                    suffixIcon: _search.isNotEmpty
-                        ? IconButton(
+                  hintText: "Search Reward Name or Code",
+
+                  leading: Icon(
+                    Icons.search,
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
+                  onChanged: (val) => setState(() => _search = val),
+                  trailing: _search.isNotEmpty
+                      ? [
+                          IconButton(
                             icon: const Icon(Icons.clear),
                             onPressed: () {
                               _searchCtrl.clear();
                               setState(() => _search = "");
                             },
-                          )
-                        : null,
-                  ),
+                          ),
+                        ]
+                      : null,
                 ),
-
+                
                 const SizedBox(height: 20),
 
                 // --- LIST ---
@@ -129,14 +123,16 @@ class _CustomerRedeemedRewardScreenState
 
                               return RedeemedRewardListitem(
                                 redeemedReward: r,
-                                onTap: isExpired ? null : () => Navigator.of(context).push(
-                                  MaterialPageRoute(
-                                    builder: (context) =>
-                                        CustomerRedeemedRewardDetailsScreen(
-                                          reward: r,
+                                onTap: isExpired
+                                    ? null
+                                    : () => Navigator.of(context).push(
+                                        MaterialPageRoute(
+                                          builder: (context) =>
+                                              CustomerRedeemedRewardDetailsScreen(
+                                                reward: r,
+                                              ),
                                         ),
-                                  ),
-                                ),
+                                      ),
                               );
                             },
                           ),

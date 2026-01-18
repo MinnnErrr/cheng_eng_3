@@ -33,12 +33,11 @@ class CustomerProductListitem extends ConsumerWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 AspectRatio(
-                  aspectRatio: 1.2, 
+                  aspectRatio: 1.3,
                   child: ImageBuilder(
                     url: url,
                     width: double.infinity,
-                    height:
-                        double.infinity, 
+                    height: double.infinity,
                     noImageContent: Container(
                       color: theme.colorScheme.surfaceContainerHighest,
                       child: Icon(
@@ -53,7 +52,7 @@ class CustomerProductListitem extends ConsumerWidget {
 
                 Expanded(
                   child: Padding(
-                    padding: const EdgeInsets.all(10.0),
+                    padding: const EdgeInsets.all(8.0),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -63,25 +62,33 @@ class CustomerProductListitem extends ConsumerWidget {
                           children: [
                             Text(
                               '${product.brand} ${product.name} ${product.model ?? ''}',
-                              maxLines: 3,
+                              maxLines: 2,
                               overflow: TextOverflow.ellipsis,
                               style: theme.textTheme.titleSmall?.copyWith(
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
-                            if (product.colour != null)
+                            if (product.colour != null) ...[
                               Text(
                                 product.colour!,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
                                 style: theme.textTheme.bodySmall?.copyWith(
                                   color: theme.colorScheme.onSurfaceVariant,
                                 ),
                               ),
+                              const SizedBox(
+                                height: 5,
+                              ),
+                            ],
                           ],
                         ),
 
                         Text(
                           'RM ${product.price.toStringAsFixed(2)}',
-                          style: theme.textTheme.titleMedium?.copyWith(
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: theme.textTheme.titleSmall?.copyWith(
                             fontWeight: FontWeight.bold,
                             color: Color(0xFF9E7C00),
                           ),
@@ -103,8 +110,7 @@ class CustomerProductListitem extends ConsumerWidget {
                     vertical: 4,
                   ),
                   decoration: BoxDecoration(
-                    color: 
-                      product.availability.getcolor(product.quantity),
+                    color: product.availability.getcolor(product.quantity),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Text(

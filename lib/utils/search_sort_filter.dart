@@ -1,4 +1,3 @@
-
 import 'package:cheng_eng_3/domain/models/product_model.dart';
 import 'package:cheng_eng_3/domain/models/redeemed_reward_model.dart';
 
@@ -52,7 +51,6 @@ List<Product> productSearchSortFilter({
   return list;
 }
 
-
 List<RedeemedReward> searchRedeemedReward({
   required List<RedeemedReward> rewards,
   required String search,
@@ -61,7 +59,10 @@ List<RedeemedReward> searchRedeemedReward({
 
   if (search.trim().isNotEmpty) {
     final s = search.trim().toLowerCase();
-    list = list.where((r) => r.code.toLowerCase().contains(s)).toList();
+    list = list.where((r) {
+      return r.code.toLowerCase().contains(s) ||
+          r.name.toLowerCase().contains(s);
+    }).toList();
   }
 
   return list;

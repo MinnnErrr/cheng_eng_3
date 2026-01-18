@@ -121,7 +121,7 @@ class _CustomerProductDetailsScreenState
                     // Price
                     Text(
                       'RM ${product.price.toStringAsFixed(2)}',
-                      style: theme.textTheme.headlineSmall?.copyWith(
+                      style: theme.textTheme.titleLarge?.copyWith(
                         fontWeight: FontWeight.bold,
                         color: textYellow,
                       ),
