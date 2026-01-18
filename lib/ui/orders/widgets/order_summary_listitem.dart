@@ -45,10 +45,10 @@ class OrderSummaryListItem extends ConsumerWidget {
           // --- 1. IMAGE ---
           ClipRRect(
             borderRadius: BorderRadius.circular(8),
-            child: imageBuilder(
+            child: ImageBuilder(
               url: getUrl(),
-              containerWidth: 80,
-              containerHeight: 80,
+              width: 80,
+              height: 80,
               noImageContent: Container(
                 height: 80,
                 width: 80,
@@ -58,7 +58,7 @@ class OrderSummaryListItem extends ConsumerWidget {
                   color: theme.colorScheme.onSurfaceVariant,
                 ),
               ),
-              context: context,
+              enableZoom: false,
             ),
           ),
           const SizedBox(width: 16),

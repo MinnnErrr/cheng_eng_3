@@ -34,10 +34,10 @@ class CustomerProductListitem extends ConsumerWidget {
               children: [
                 AspectRatio(
                   aspectRatio: 1.2, 
-                  child: imageBuilder(
+                  child: ImageBuilder(
                     url: url,
-                    containerWidth: double.infinity,
-                    containerHeight:
+                    width: double.infinity,
+                    height:
                         double.infinity, 
                     noImageContent: Container(
                       color: theme.colorScheme.surfaceContainerHighest,
@@ -46,7 +46,7 @@ class CustomerProductListitem extends ConsumerWidget {
                         color: theme.colorScheme.onSurfaceVariant,
                       ),
                     ),
-                    context: context,
+                    enableZoom: false,
                     borderRadius: 0,
                   ),
                 ),

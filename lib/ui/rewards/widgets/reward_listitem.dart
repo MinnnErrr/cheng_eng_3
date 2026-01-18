@@ -74,14 +74,14 @@ class RewardListitem extends ConsumerWidget {
                   // A. Image
                   ClipRRect(
                     borderRadius: BorderRadius.circular(8),
-                    child: imageBuilder(
+                    child: ImageBuilder(
                       url: reward.photoPaths.isNotEmpty
                           ? imageService.retrieveImageUrl(
                               reward.photoPaths.first,
                             )
                           : null,
-                      containerWidth: 80,
-                      containerHeight: 80,
+                      width: 80,
+                      height: 80,
                       noImageContent: Container(
                         width: 80,
                         height: 80,
@@ -91,7 +91,7 @@ class RewardListitem extends ConsumerWidget {
                           color: theme.colorScheme.onSurfaceVariant,
                         ),
                       ),
-                      context: context,
+                      enableZoom: false,
                     ),
                   ),
 

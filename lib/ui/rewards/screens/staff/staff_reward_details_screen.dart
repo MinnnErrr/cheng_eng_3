@@ -1,6 +1,7 @@
 import 'package:cheng_eng_3/ui/core/theme/colorscheme.dart';
 import 'package:cheng_eng_3/data/providers/realtime_provider.dart';
 import 'package:cheng_eng_3/data/providers/reward/reward_by_id_provider.dart';
+import 'package:cheng_eng_3/ui/core/widgets/full_screen_image.dart';
 import 'package:cheng_eng_3/ui/rewards/notifiers/staff_rewards_notifier.dart';
 import 'package:cheng_eng_3/domain/models/reward_model.dart';
 import 'package:cheng_eng_3/data/services/image_service.dart';
@@ -194,18 +195,49 @@ class _StaffRewardDetailsScreenState
                                           displayedReward.photoPaths[index],
                                         );
 
-                                    return ClipRRect(
-                                      borderRadius: const BorderRadius.vertical(
-                                        top: Radius.circular(16),
-                                      ),
-                                      child: Image.network(
-                                        imageUrl,
-                                        width: double.infinity,
-                                        fit: BoxFit.cover,
-                                        errorBuilder: (_, __, ___) => Container(
-                                          color: Colors.grey.shade200,
-                                          child: const Center(
-                                            child: Icon(Icons.broken_image),
+                                    return GestureDetector(
+                                      onTap: () {
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (context) =>
+                                                FullScreenImageView(
+                                                  imageUrl: imageUrl,
+                                                ),
+                                          ),
+                                        );
+                                      },
+                                      child: Hero(
+                                        tag: imageUrl,
+                                        child: ClipRRect(
+                                          borderRadius:
+                                              const BorderRadius.vertical(
+                                                top: Radius.circular(16),
+                                              ),
+                                          child: Image.network(
+                                            imageUrl,
+                                            width: double.infinity,
+                                            fit: BoxFit.cover,
+                                            errorBuilder: (_, __, ___) =>
+                                                Container(
+                                                  color: Colors.grey.shade200,
+                                                  child: const Center(
+                                                    child: Icon(
+                                                      Icons.broken_image,
+                                                    ),
+                                                  ),
+                                                ),
+                                            loadingBuilder: (_, child, loading) {
+                                              if (loading == null) return child;
+                                              return Center(
+                                                child:
+                                                    CircularProgressIndicator(
+                                                      color: theme
+                                                          .colorScheme
+                                                          .primary,
+                                                    ),
+                                              );
+                                            },
                                           ),
                                         ),
                                       ),
@@ -276,7 +308,7 @@ class _StaffRewardDetailsScreenState
                                   vertical: 6,
                                 ),
                                 decoration: BoxDecoration(
-                                  color: theme.colorScheme.primary, 
+                                  color: theme.colorScheme.primary,
                                   borderRadius: BorderRadius.circular(20),
                                 ),
                                 child: Text(

@@ -2,6 +2,7 @@ import 'package:cheng_eng_3/ui/core/theme/colorscheme.dart';
 import 'package:cheng_eng_3/ui/auth/notifiers/auth_notifier.dart';
 import 'package:cheng_eng_3/data/providers/point/total_points_provider.dart';
 import 'package:cheng_eng_3/data/providers/realtime_provider.dart';
+import 'package:cheng_eng_3/ui/core/widgets/full_screen_image.dart';
 import 'package:cheng_eng_3/ui/redeemed_rewards/notifiers/redeemed_reward_notifier.dart';
 import 'package:cheng_eng_3/data/providers/reward/reward_by_id_provider.dart';
 import 'package:cheng_eng_3/domain/models/reward_model.dart';
@@ -413,22 +414,35 @@ class _CustomerRewardDetailsScreenState
               final imageUrl = imageService.retrieveImageUrl(
                 reward.photoPaths[index],
               );
-              return Image.network(
-                imageUrl,
-                fit: BoxFit.cover,
-                width: double.infinity,
-                errorBuilder: (_, __, ___) => Container(
-                  color: theme.colorScheme.surfaceContainer,
-                  child: const Center(child: Icon(Icons.broken_image)),
-                ),
-                loadingBuilder: (_, child, loading) {
-                  if (loading == null) return child;
-                  return Center(
-                    child: CircularProgressIndicator(
-                      color: theme.colorScheme.primary,
+              return GestureDetector(
+                onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => FullScreenImageView(imageUrl: imageUrl),
+                  ),
+                );
+              },
+                child: Hero(
+                  tag: imageUrl,
+                  child: Image.network(
+                    imageUrl,
+                    fit: BoxFit.cover,
+                    width: double.infinity,
+                    errorBuilder: (_, __, ___) => Container(
+                      color: theme.colorScheme.surfaceContainer,
+                      child: const Center(child: Icon(Icons.broken_image)),
                     ),
-                  );
-                },
+                    loadingBuilder: (_, child, loading) {
+                      if (loading == null) return child;
+                      return Center(
+                        child: CircularProgressIndicator(
+                          color: theme.colorScheme.primary,
+                        ),
+                      );
+                    },
+                  ),
+                ),
               );
             },
           ),

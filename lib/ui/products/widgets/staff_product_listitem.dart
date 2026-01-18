@@ -34,12 +34,12 @@ class StaffProductListitem extends ConsumerWidget {
             SizedBox(
               width: 100,
               height: 100,
-              child: imageBuilder(
+              child: ImageBuilder(
                 url: product.photoPaths.isNotEmpty
                     ? imageService.retrieveImageUrl(product.photoPaths.first)
                     : null,
-                containerWidth: 100,
-                containerHeight: 100,
+                width: 100,
+                height: 100,
                 noImageContent: Container(
                   color: theme.colorScheme.surfaceContainerHighest,
                   child: Icon(
@@ -47,7 +47,7 @@ class StaffProductListitem extends ConsumerWidget {
                     color: theme.colorScheme.onSurfaceVariant,
                   ),
                 ),
-                context: context,
+                enableZoom: false,
                 borderRadius: 0,
               ),
             ),

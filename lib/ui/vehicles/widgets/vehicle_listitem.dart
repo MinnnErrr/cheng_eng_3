@@ -47,12 +47,12 @@ class VehicleListitem extends ConsumerWidget {
           child: Row(
             children: [
               //picture
-              imageBuilder(
+              ImageBuilder(
                 url: photoPath != null
                     ? imageService.retrieveImageUrl(photoPath!)
                     : null,
-                containerWidth: 80,
-                containerHeight: 80,
+                width: 80,
+                height: 80,
                 noImageContent: Container(
                   color: theme.surfaceContainerHigh,
                   child: Icon(
@@ -61,7 +61,7 @@ class VehicleListitem extends ConsumerWidget {
                     size: 30,
                   ),
                 ),
-                context: context,
+                enableZoom: false,
               ),
 
               const SizedBox(

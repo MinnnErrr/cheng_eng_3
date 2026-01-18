@@ -132,12 +132,11 @@ class TowingDetailsWidget extends ConsumerWidget {
                           ],
                         ),
                       )
-                    : imageBuilder(
+                    : ImageBuilder(
                         url: imageService.retrieveImageUrl(towing.photoPath!),
-                        containerWidth: double.infinity,
-                        containerHeight: 220,
+                        width: double.infinity,
+                        height: 220,
                         noImageContent: const SizedBox(),
-                        context: context,
                         borderRadius: 0,
                       ),
               ),

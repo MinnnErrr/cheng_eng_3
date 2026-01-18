@@ -87,10 +87,10 @@ class OrderListitem extends ConsumerWidget {
                   // THUMBNAIL
                   ClipRRect(
                     borderRadius: BorderRadius.circular(8),
-                    child: imageBuilder(
+                    child: ImageBuilder(
                       url: getLeadImageUrl(),
-                      containerWidth: 64,
-                      containerHeight: 64,
+                      width: 64,
+                      height: 64,
                       noImageContent: Container(
                         width: 64,
                         height: 64,
@@ -100,7 +100,7 @@ class OrderListitem extends ConsumerWidget {
                           color: theme.colorScheme.onSurfaceVariant,
                         ),
                       ),
-                      context: context,
+                      enableZoom: false,
                     ),
                   ),
 

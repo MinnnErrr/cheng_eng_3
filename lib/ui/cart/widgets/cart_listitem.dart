@@ -112,14 +112,14 @@ class CartListitem extends ConsumerWidget {
                     // A. Image 
                     ClipRRect(
                       borderRadius: BorderRadius.circular(8),
-                      child: imageBuilder(
+                      child: ImageBuilder(
                         url: product.photoPaths.isNotEmpty
                             ? imageService.retrieveImageUrl(
                                 product.photoPaths.first,
                               )
                             : null,
-                        containerWidth: 90,
-                        containerHeight: 90,
+                        width: 90,
+                        height: 90,
                         noImageContent: Container(
                           width: 90,
                           height: 90,
@@ -129,7 +129,6 @@ class CartListitem extends ConsumerWidget {
                             color: theme.colorScheme.onSurfaceVariant,
                           ),
                         ),
-                        context: context,
                       ),
                     ),
                     const SizedBox(width: 12),

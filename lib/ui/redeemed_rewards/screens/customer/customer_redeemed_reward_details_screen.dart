@@ -5,6 +5,7 @@ import 'package:cheng_eng_3/data/providers/realtime_provider.dart';
 import 'package:cheng_eng_3/data/providers/redeem_reward/redeemed_reward_by_id_provider.dart';
 import 'package:cheng_eng_3/domain/models/redeemed_reward_model.dart';
 import 'package:cheng_eng_3/data/services/image_service.dart';
+import 'package:cheng_eng_3/ui/core/widgets/full_screen_image.dart';
 import 'package:cheng_eng_3/ui/redeemed_rewards/extensions/redeemed_reward_extension.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -151,7 +152,7 @@ class _CustomerRedeemedRewardDetailsScreenState
                             context,
                             'Status',
                             displayReward.isClaimed ? 'USED' : 'ACTIVE',
-                            valueColor: displayReward.statusColor
+                            valueColor: displayReward.statusColor,
                           ),
                           const Divider(height: 24),
                           _buildMetaRow(
@@ -283,16 +284,30 @@ class _CustomerRedeemedRewardDetailsScreenState
               final imageUrl = imageService.retrieveImageUrl(
                 reward.photoPaths[index],
               );
-              return Image.network(
-                imageUrl,
-                width: double.infinity,
-                fit: BoxFit.cover,
-                errorBuilder: (_, __, ___) =>
-                    Container(color: Colors.grey.shade200),
-                loadingBuilder: (_, child, loading) {
-                  if (loading == null) return child;
-                  return const Center(child: CircularProgressIndicator());
+              return GestureDetector(
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) =>
+                          FullScreenImageView(imageUrl: imageUrl),
+                    ),
+                  );
                 },
+                child: Hero(
+                  tag: imageUrl,
+                  child: Image.network(
+                    imageUrl,
+                    width: double.infinity,
+                    fit: BoxFit.cover,
+                    errorBuilder: (_, __, ___) =>
+                        Container(color: Colors.grey.shade200),
+                    loadingBuilder: (_, child, loading) {
+                      if (loading == null) return child;
+                      return const Center(child: CircularProgressIndicator());
+                    },
+                  ),
+                ),
               );
             },
           ),

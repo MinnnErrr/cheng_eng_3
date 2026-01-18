@@ -99,11 +99,13 @@ class CustomerVehicleNotifier extends _$CustomerVehicleNotifier {
 
     if (photo != null) {
       try {
-        photoPath = await _imageService.uploadImage(
+        final url = await _imageService.uploadImage(
           photoFile: photo,
           tableName: 'vehicle',
           id: id,
         );
+
+        photoPath = '$url?v=${DateTime.now().millisecondsSinceEpoch}';
       } catch (e) {
         return false;
       }
@@ -156,4 +158,3 @@ class CustomerVehicleNotifier extends _$CustomerVehicleNotifier {
     }
   }
 }
-

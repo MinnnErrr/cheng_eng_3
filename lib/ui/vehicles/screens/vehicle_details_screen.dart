@@ -106,13 +106,12 @@ class VehicleDetailsScreen extends ConsumerWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            imageBuilder(
+            ImageBuilder(
               url: vehicle.photoPath != null
                   ? imageService.retrieveImageUrl(vehicle.photoPath!)
                   : null,
-              containerWidth: double.infinity,
-              containerHeight: screenSize.height * 0.25,
-              context: context,
+              width: double.infinity,
+              height: screenSize.height * 0.25,
               noImageContent: Container(
                 height: screenSize.height * 0.25,
                 color: theme.surfaceContainerHighest,

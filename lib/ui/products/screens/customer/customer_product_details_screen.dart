@@ -4,6 +4,7 @@ import 'package:cheng_eng_3/data/providers/product/product_by_id_provider.dart';
 import 'package:cheng_eng_3/data/providers/realtime_provider.dart';
 import 'package:cheng_eng_3/domain/models/product_model.dart';
 import 'package:cheng_eng_3/data/services/image_service.dart';
+import 'package:cheng_eng_3/ui/core/widgets/full_screen_image.dart';
 import 'package:cheng_eng_3/ui/products/extensions/product_extension.dart';
 import 'package:cheng_eng_3/ui/cart/screens/cart_screen.dart';
 import 'package:cheng_eng_3/ui/core/widgets/cart_icon.dart';
@@ -402,16 +403,30 @@ class _CustomerProductDetailsScreenState
               final imageUrl = imageService.retrieveImageUrl(
                 product.photoPaths[index],
               );
-              return Image.network(
-                imageUrl,
-                fit: BoxFit.cover,
-                width: double.infinity,
-                errorBuilder: (_, __, ___) =>
-                    Container(color: Colors.grey.shade200),
-                loadingBuilder: (_, child, loading) {
-                  if (loading == null) return child;
-                  return const Center(child: CircularProgressIndicator());
+              return GestureDetector(
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) =>
+                          FullScreenImageView(imageUrl: imageUrl),
+                    ),
+                  );
                 },
+                child: Hero(
+                  tag: imageUrl,
+                  child: Image.network(
+                    imageUrl,
+                    fit: BoxFit.cover,
+                    width: double.infinity,
+                    errorBuilder: (_, __, ___) =>
+                        Container(color: Colors.grey.shade200),
+                    loadingBuilder: (_, child, loading) {
+                      if (loading == null) return child;
+                      return const Center(child: CircularProgressIndicator());
+                    },
+                  ),
+                ),
               );
             },
           ),

@@ -1,5 +1,6 @@
 import 'package:cheng_eng_3/ui/core/theme/colorscheme.dart';
 import 'package:cheng_eng_3/data/providers/product/product_by_id_provider.dart';
+import 'package:cheng_eng_3/ui/core/widgets/full_screen_image.dart';
 import 'package:cheng_eng_3/ui/products/notifiers/staff_product_notifier.dart';
 import 'package:cheng_eng_3/data/providers/realtime_provider.dart';
 import 'package:cheng_eng_3/domain/models/product_model.dart';
@@ -217,24 +218,41 @@ class _StaffProductDetailsScreenState
                                                   .photoPaths[index],
                                             );
 
-                                        return ClipRRect(
-                                          borderRadius:
-                                              const BorderRadius.vertical(
-                                                top: Radius.circular(16),
-                                              ),
-                                          child: Image.network(
-                                            imageUrl,
-                                            width: double.infinity,
-                                            fit: BoxFit.cover,
-                                            errorBuilder: (_, __, ___) =>
-                                                Container(
-                                                  color: Colors.grey.shade200,
-                                                  child: const Center(
-                                                    child: Icon(
-                                                      Icons.broken_image,
+                                        return GestureDetector(
+                                          onTap: () {
+                                            Navigator.push(
+                                              context,
+                                              MaterialPageRoute(
+                                                builder: (context) =>
+                                                    FullScreenImageView(
+                                                      imageUrl: imageUrl,
                                                     ),
+                                              ),
+                                            );
+                                          },
+                                          child: Hero(
+                                            tag: imageUrl,
+                                            child: ClipRRect(
+                                              borderRadius:
+                                                  const BorderRadius.vertical(
+                                                    top: Radius.circular(16),
                                                   ),
-                                                ),
+                                              child: Image.network(
+                                                imageUrl,
+                                                width: double.infinity,
+                                                fit: BoxFit.cover,
+                                                errorBuilder: (_, __, ___) =>
+                                                    Container(
+                                                      color:
+                                                          Colors.grey.shade200,
+                                                      child: const Center(
+                                                        child: Icon(
+                                                          Icons.broken_image,
+                                                        ),
+                                                      ),
+                                                    ),
+                                              ),
+                                            ),
                                           ),
                                         );
                                       },
@@ -483,7 +501,7 @@ class _StaffProductDetailsScreenState
     color = product.availability.getcolor(product.quantity);
 
     if (product.availability == ProductAvailability.ready) {
-        label = "$label (${product.quantity})";
+      label = "$label (${product.quantity})";
     }
 
     return Row(
